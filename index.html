@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf8"/>
+<title>Magnatune Player</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
+<link rel="icon" type="image/x-icon" href="http://magnatune.com/favicon.ico"/>
+<script type="text/javascript" src="json2.js"></script>
+<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="jquery.dataset.js"></script>
+<script type="text/javascript" src="shims.js"></script>
+<script type="text/javascript" src="magnatune.js"></script>
+</head>
+<body>
+<div id="main">
+	<div id="player">
+		<audio id="audio" preload="auto" controls style="display:none;"></audio>
+		<div id="controls">
+			<a href="javascript:Magnatune.Player.play();void(0)" title="Play">&#x25B6;</a>
+			<a href="javascript:Magnatune.Player.pause();void(0)" title="Pause">&#x25AE;&#x25AE;</a>
+			<a href="javascript:Magnatune.Player.stop();void(0)" title="Stop">&#x25A0;</a>
+			<a href="javascript:Magnatune.Player.previous();void(0)" title="Previous">&#x25AE;&#x25C0;</a>
+			<a href="javascript:Magnatune.Player.next();void(0)" title="Next">&#x25B6;&#x25AE;</a>
+
+			<div id="current">
+				<span id="current-song">&nbsp;</span>
+				<a href="javascript:void(0)" id="current-album">&nbsp;</a>
+				<a href="javascript:void(0)" id="current-artist">&nbsp;</a>
+				<span id="current-time">--:--</span> /
+				<span id="current-duration">--:--</span>
+			</div>
+
+			<div id="play-progress-container"><div id="play-progress" style="width:0px;"></div></div>
+			<div id="buffer-progress-container"><canvas id="buffer-progress" width="400" height="1"></canvas></div>
+			<a id="volume-button" href="javascript:Magnatune.Player.toggleVolume();void(0)">Volume</a>
+			<div id="volume-control" style="display:none;">
+				<div id="volume">100%</div>
+				<div id="volume-bar-container"><div id="volume-bar"></div></div>
+			</div>
+		</div>
+	</div>
+
+	<div id="body">
+		<div id="navigation">
+			<input id="search" type="text"/>
+			<a href="javascript:Magnatune.Navigation.clear();void(0)" title="Clear">&times;</a>
+
+			<a id="tree-mode-button" href="javascript:Magnatune.Navigation.toggleModeSelect();void(0)">Mode</a>
+			<ul id="tree-mode-select" style="display:none;">
+				<li id="mode-artist"><a href="javascript:Magnatune.Navigation.setMode('artist');void(0)">Artist</a></li>
+				<li id="mode-artist-album"><a href="javascript:Magnatune.Navigation.setMode('artist/album');void(0)">Artist / Album</a></li>
+				<li id="mode-album"><a href="javascript:Magnatune.Navigation.setMode('album');void(0)">Album</a></li>
+				<li id="mode-genre-artist"><a href="javascript:Magnatune.Navigation.setMode('genre/artist');void(0)">Genre / Artist</a></li>
+				<li id="mode-genre-artist-album" class="active"><a href="javascript:Magnatune.Navigation.setMode('genre/artist/album');void(0)">Genre / Artist / Album</a></li>
+			</ul>
+
+			<ul id="tree">
+			</ul>
+		</div>
+
+		<div id="content">
+			<ul id="tabs">
+				<li id="info-button" class="active"><a href="#/about">Info</a></li>
+				<li id="playlist-button"><a href="#/playlist">Playlist</a></li>
+			</ul>
+
+			<div id="info">
+				<ul id="breadcrumbs">
+				</ul>
+
+				<div id="info-content">
+				</div>
+			</div>
+
+			<table id="playlist" style="display:none;">
+				<thead>
+					<tr>
+						<th>Nr.</th>
+						<th>Title</th>
+						<th>Duration</th>
+						<th>Artist</th>
+						<th>Album</th>
+						<th>&nbsp;</th>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+</body>
+</html>

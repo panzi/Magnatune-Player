@@ -1,0 +1,146 @@
+a {
+	text-decoration: none;
+}
+
+li.active {
+	font-weight: bold;
+}
+
+#tree-mode-select {
+	position: absolute;
+	list-style: none;
+	padding: 0;
+}
+
+#tabs, #breadcrumbs {
+	list-style: none;
+	padding: 0;
+}
+
+#breadcrumbs li,
+#tabs li {
+	display: inline-block;
+}
+
+#breadcrumbs li:before {
+	content: "»";
+}
+
+#breadcrumbs li.first:before {
+	content: "";
+}
+
+#playlist {
+	width: 100%;
+}
+
+#playlist td.number {
+	width: 3em;
+}
+
+#playlist td.duration {
+	width: 4em;
+}
+
+#playlist tr.current {
+	font-weight: bold;
+}
+
+#volume-control {
+	position: absolute;
+}
+
+th {
+	text-align: left;
+}
+
+.number, .duration {
+	text-align: right;
+}
+
+#body {
+	position: relative;
+}
+
+#navigation {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 400px;
+}
+
+#content {
+	margin-left: 450px;
+}
+
+#play-progress-container,
+#buffer-progress-container,
+#buffer-progress {
+	width: 400px;
+}
+
+#play-progress,
+.buffer-progress,
+#volume-bar {
+	background-color: blue;
+}
+
+#buffer-progress {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	bottom: 0px;
+	right: 0px;
+}
+
+#play-progress-container {
+	background-color: black;
+	height: 20px;
+	cursor: pointer;
+}
+
+#buffer-progress,
+#buffer-progress-container {
+	background-color: #a0a0a0;
+	height: 5px;
+}
+
+#buffer-progress-container {
+	position: relative;
+}
+
+#play-progress {
+	height: 100%;
+}
+
+#volume-bar-container {
+	background-color: black;
+	width: 10px;
+	height: 150px;
+	margin: auto;
+	cursor: pointer;
+}
+
+.artist img.bandphoto,
+.album  img.cover {
+	float: right;
+}
+
+#volume-control,
+#tree-mode-select {
+	z-index: 1;
+}
+
+#tree .albums img {
+	width: 50px;
+	height: 50px;
+}
+
+#info-content {
+	overflow: auto;
+}
+
+#current-time,
+#current-duration {
+	font-family: monospace;
+}
