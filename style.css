@@ -34,6 +34,15 @@ li.active {
 	width: 100%;
 }
 
+#tree,
+#playlist {
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+}
+
 #playlist td.number {
 	width: 3em;
 }
@@ -44,6 +53,10 @@ li.active {
 
 #playlist tr.current {
 	font-weight: bold;
+}
+
+#playlist tr {
+	cursor: default;
 }
 
 #volume-control {

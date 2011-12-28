@@ -220,7 +220,7 @@ var Magnatune = {
 			var audio = $('#audio');
 			var duration = audio[0].duration;
 			if (duration === Infinity) {
-				duration = audio.dataset('duration');
+				duration = parseFloat(audio.dataset('duration'));
 				if (duration === undefined) {
 					duration = Infinity;
 				}
@@ -230,49 +230,95 @@ var Magnatune = {
 		currentTime: function () {
 			return $('#audio')[0].currentTime;
 		},
-		play: function (song) {
+		playing: function () {
+			var el = $('#audio')[0];
+			return !el.paused && !el.ended;
+		},
+		paused: function () {
+			return $('#audio')[0].paused;
+		},
+		ended: function () {
+			return $('#audio')[0].ended;
+		},
+		play: function () {
+			var song = Magnatune.Playlist.current();
+			if (!song) {
+				song = Magnatune.Playlist.first();
+				$('#playlist > tbody > tr:first').addClass('current');
+			}
+			if (!song) return;
+
 			var audio = $('#audio');
 			var el = audio[0];
 
 			if (!el.paused && !el.ended) {
 				el.pause();
 			}
-			if (song) {
-				audio.empty();
-				audio.dataset(song);
-				var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
-				var url = "http://he3.magnatune.com/all/"+encodeURIComponent((
-					(song.number < 10 ? '0'+song.number : song.number)+"-"+
-					song.desc+'-'+artist).replace(/[:\/]/g,'_'));
-				audio.append(tag('source',{type:'audio/mpeg;codecs="mp3"',src:url+'.mp3'}));
-				audio.append(tag('source',{type:'audio/ogg',src:url+'.ogg'}));
+			
+			audio.empty();
+			audio.dataset(song);
+			var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
+			var url = "http://he3.magnatune.com/all/"+encodeURIComponent((
+				(song.number < 10 ? '0'+song.number : song.number)+"-"+
+				song.desc+'-'+artist).replace(/[:\/]/g,'_'));
+			audio.append(tag('source',{type:'audio/ogg',src:url+'.ogg'}));
+			audio.append(tag('source',{type:'audio/mpeg;codecs="mp3"',src:url+'.mp3'}));
+			el.load();
+			$('#play-progress').css('width','0px');
+			var buffered = $('#buffer-progress')[0];
+			var ctx = buffered.getContext('2d');
+			ctx.clearRect(0,0,buffered.width,buffered.height);
 
-				$('#current-song').text(song.desc);
-				$('#current-album').text(song.albumname).attr('href','#/album/'+encodeURIComponent(song.albumname));
-				$('#current-artist').text(artist).attr('href','#/artist/'+encodeURIComponent(artist));
+			$('#current-song').text(song.desc);
+			$('#current-album').text(song.albumname).attr('href','#/album/'+encodeURIComponent(song.albumname));
+			$('#current-artist').text(artist).attr('href','#/artist/'+encodeURIComponent(artist));
 
-				$('html > head > title').text(song.desc+' - '+artist+' - Magnatune Player');
-			}
-			else {
-				if (!el.currentSrc) {
-					// TODO: play playlist
-				}
-			}
+			$('html > head > title').text(song.desc+' - '+artist+' - Magnatune Player');
+			
 			el.play();
 
 //			this.trigger('play', song);
 		},
+		seek: function (time) {
+			var el = $('#audio')[0];
+
+			try {
+				el.currentTime = time;
+			}
+			catch (e) {}
+		},
 		pause: function () {
+			var audio = $('#audio');
+			var el = audio[0];
+
+			if (!el.paused && !el.ended) {
+				el.pause();
+			}
 //			this.trigger('pause');
 		},
+		playPause: function () {
+			var audio = $('#audio');
+			var el = audio[0];
+
+			if (!el.paused && !el.ended) {
+				el.pause();
+			}
+			else {
+				el.play();
+			}
+		},
 		stop: function () {
+			var audio = $('#audio');
+			var el = audio[0];
+
+			if (!el.paused && !el.ended) {
+				el.pause();
+			}
+			try {
+				el.currentTime = 0;
+			}
+			catch (e) {}
 //			this.trigger('stop');
-		},
-		previous: function (forceplay) {
-//			this.trigger('previous');
-		},
-		next: function (forceplay) {
-//			this.trigger('next');
 		},
 		toggleVolume: function () {
 			var volume = $('#volume-control');
@@ -385,7 +431,7 @@ var Magnatune = {
 						tag.textify(data.body.description),
 						tag('div',
 							tag('a', {href:'javascript:Magnatune.Playlist.replace('+
-								JSON.stringify(data.body.songs)+');void(0)'}, 'Play Album'),
+								JSON.stringify(data.body.songs)+',true);void(0)'}, 'Play Album'),
 							tag('a', {href:'javascript:Magnatune.Playlist.enqueue('+
 								JSON.stringify(data.body.songs)+');void(0)'}, 'Enqueue Album')),
 						tag('table',
@@ -456,12 +502,14 @@ var Magnatune = {
 			return $('#playlist').is(':visible');
 		},
 		enqueue: function (songs) {
-			// TODO
 			var tbody = $('#playlist > tbody');
 			for (var i = 0; i < songs.length; ++ i) {
 				var song = songs[i];
 				var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
-				tbody.append(tag('tr',
+				tbody.append(tag('tr',{dataset:song,
+					ondblclick:'$("#playlist > tbody > tr.current").removeClass("current");'+
+						'$(this).addClass("current");'+
+						'Magnatune.Player.play();'},
 					tag('td',{'class':'number'},song.number),
 					tag('td',song.desc),
 					tag('td',{'class':'duration'},tag.time(song.duration)),
@@ -470,13 +518,85 @@ var Magnatune = {
 					tag('td',tag('a',{href:'javascript:void(0)',onclick:'$(this).parents("tr").first().remove();'},'\u00d7'))));
 			}
 		},
-		replace: function (songs) {
+		replace: function (songs, forceplay) {
 			this.clear();
 			this.enqueue(songs);
+			if (forceplay || Magnatune.Player.playing()) Magnatune.Player.play();
 		},
 		clear: function () {
-			// TODO
 			$('#playlist > tbody').empty();
+		},
+		songs: function () {
+			var rows = $('#playlist > tbody > tr');
+			var songs = [];
+			for (var i = 0; i < rows.length; ++ i) {
+				var song = $(rows[i]).dataset();
+				song.number = parseInt(song.number,10);
+				song.duration = parseFloat(song.duration);
+				songs.push(song);
+			}
+			return songs;
+		},
+		_song: function (selector) {
+			var row = $(selector);
+			if (row.length === 0) {
+				return null;
+			}
+			var song = row.dataset();
+			song.number = parseInt(song.number,10);
+			song.duration = parseFloat(song.duration);
+			return song;
+		},
+		first: function () {
+			return this._song('#playlist > tbody > tr:first');
+		},
+		last: function () {
+			return this._song('#playlist > tbody > tr:last');
+		},
+		current: function () {
+			return this._song('#playlist > tbody > tr.current');
+		},
+		currentIndex: function () {
+			return $('#playlist > tbody > tr.current').index();
+		},
+		length: function () {
+			return $('#playlist > tbody > tr').length;
+		},
+		next: function (forceplay) {
+			var tbody = $('#playlist > tbody');
+			var current = tbody.find('> tr.current');
+
+			var next;
+			if (current.length === 0) {
+				next = $('#playlist > tbody > tr:first');
+			}
+			else {
+				next = current.next();
+			}
+
+			if (next.length > 0) {
+				current.removeClass('current');
+				next.addClass('current');
+				if (forceplay || Magnatune.Player.playing()) Magnatune.Player.play();
+			}
+		},
+		previous: function (forceplay) {
+			var tbody = $('#playlist > tbody');
+			var current = tbody.find('> tr.current');
+
+			var prev;
+			if (current.length === 0) {
+				prev = $('#playlist > tbody > tr:first');
+			}
+			else {
+				prev = current.prev();
+			}
+
+			if (prev.length > 0) {
+				current.removeClass('current');
+				prev.addClass('current');
+				if (forceplay || Magnatune.Player.playing()) Magnatune.Player.play();
+			}
 		}
 	},
 	Collection: {
@@ -760,9 +880,6 @@ $(document).ready(function () {
 			ctx.fillRect(x,0,width,buffered.height);
 		}
 	});
-	audio.on('seeked', function (event) {
-		
-	});
 	audio.on('timeupdate', function (event) {
 		var currentTime = audio[0].currentTime;
 		var duration = Magnatune.Player.duration();
@@ -770,18 +887,6 @@ $(document).ready(function () {
 		playprogress.css('width',Math.round(playprogress_container.width()*currentTime/duration)+'px');
 	});
 	audio.on('volumechange', function (event) {
-		
-	});
-	audio.on('stalled', function (event) {
-		
-	});
-	audio.on('canplay', function (event) {
-		
-	});
-	audio.on('playing', function (event) {
-		
-	});
-	audio.on('loadedmetadata', function (event) {
 		
 	});
 	audio.on('durationchange', function (event) {
@@ -795,8 +900,7 @@ $(document).ready(function () {
 		
 	});
 	audio.on('ended', function (event) {
-		console.log("ended");
-		Magnatune.Player.next(true);
+		Magnatune.Playlist.next(true);
 	});
 	audio.on('emptied', function (event) {
 		
