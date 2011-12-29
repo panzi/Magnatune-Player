@@ -3,9 +3,11 @@
 import cgitb
 cgitb.enable()
 
+import re
 import sys
 import sqlite3
 import cgi
+from itertools import repeat
 
 try:
 	import json
@@ -13,6 +15,7 @@ except ImportError:
 	import simplejson as json
 
 # action=index
+# action=search query=... mode=...
 
 # action=albums [genre=...] [artist=...]
 # action=artists [genre=...]
@@ -41,6 +44,11 @@ def index(cur,params):
 	rv = {}
 	cur.execute('select albumname, artist, sku from albums order by albumname, artist')
 	rv['albums'] = rows_to_dicts(cur,cur.fetchall())
+#	for album in rv['albums']:
+#		cur.execute(
+#			'select number, desc, duration, mp3 from songs where albumname = ? order by number',
+#			[album['albumname']])
+#		album['songs'] = rows_to_dicts(cur,cur.fetchall())
 	cur.execute('select artist, homepage from artists order by artist')
 	rv['artists'] = rows_to_dicts(cur,cur.fetchall())
 	cur.execute('select distinct genre from genres order by genre')
@@ -54,6 +62,113 @@ def index(cur,params):
 			'albums': [album_row[0] for album_row in cur.fetchall()]
 		})
 	return rv
+
+finders = {}
+def finder(func):
+	finders[func.func_name[7:].replace('_','/')] = func
+	return func
+
+@finder
+def search_artist(cur,query):
+	pass
+
+@finder
+def search_artist_album(cur,query):
+	pass
+
+@finder
+def search_album(cur,query):
+	pass
+
+@finder
+def search_genre_artist(cur,query):
+	pass
+
+def nargs(n):
+	return ','.join(repeat('?', n))
+
+def concat(*seqs):
+	rv = []
+	for seq in seqs:
+		rv.extend(seq)
+	return rv
+
+@finder
+def search_genre_artist_album(cur,query):
+	where, args = build_query(['genre'],query)
+	cur.execute('select distinct genre from genres where %s order by genre' % where,args)
+	genres = [row[0] for row in cur.fetchall()]
+	where, args = build_query(['artists.artist'],query)
+	cur.execute(
+		'select distinct artists.artist from artists '
+		'inner join albums on artists.artist = albums.artist '
+		'inner join genres on genres.albumname = albums.albumname '
+		'where genre not in (%s) and %s '
+		'order by artists.artist' % (
+			nargs(len(genres)), where),
+		concat(genres,args))
+	artists = [row[0] for row in cur.fetchall()]
+	where, args = build_query(['albums.albumname'],query)
+	cur.execute(
+		'select distinct albums.albumname from albums '
+		'inner join genres on genres.albumname = albums.albumname '
+		'where genre not in (%s) and '
+		'albums.artist not in (%s) and %s '
+		'order by albums.albumname' % (
+			nargs(len(genres)), nargs(len(artists)), where),
+		concat(genres,artists,args))
+	albums = [row[0] for row in cur.fetchall()]
+	where, args = build_query(['songs.desc'],query)
+	cur.execute(
+		'select number, desc, duration, mp3, songs.albumname from songs '
+		'inner join albums on songs.albumname = albums.albumname '
+		'inner join genres on albums.albumname = genres.albumname '
+		'where songs.albumname not in (%s) and '
+		'genre not in (%s) and '
+		'albums.artist not in (%s) and %s '
+		'order by genre, songs.albumname, number' % (
+			nargs(len(albums)), nargs(len(genres)), nargs(len(artists)), where),
+		concat(albums,genres,artists,args))
+	songs = rows_to_dicts(cur,cur.fetchall())
+	songs_by_album = {}
+	for song in songs:
+		albumname = song['albumname']
+		if albumname in songs_by_album:
+			album = songs_by_album[albumname]
+		else:
+			album = songs_by_album[albumname] = []
+		del song['albumname']
+		album.append(song)
+
+	return {
+		'genres':  genres,
+		'artists': artists,
+		'albums':  albums,
+		'songs':   songs_by_album
+	}
+
+LIKE_CHARS = re.compile('([%_\\\\])')
+def like_escape(text):
+	return LIKE_CHARS.sub("\\\\\\1",text)
+
+def build_query(columns,words):
+	expr = '(%s)' % ' or '.join(column+" like ? escape '\\'" for column in columns)
+	where = '(%s)' % ' and '.join(repeat(expr, len(words)))
+	args = ['%%%s%%' % like_escape(word) for word in words]
+	return where, args
+
+@action
+def search(cur,params):
+	query = params.getvalue('query')
+	mode  = params.getvalue('mode')
+	try:
+		find = finders[mode.strip().lower().replace('-','/')]
+	except KeyError:
+		raise AttributeError('Unknown search mode: %r' % mode)
+	query = [word for word in set(re.split('\\W',query,flags=re.UNICODE)) if len(word) > 2]
+	if not query:
+		return None
+	return find(cur,query)
 
 @action
 def albums(cur,params):

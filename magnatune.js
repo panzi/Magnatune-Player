@@ -1195,7 +1195,12 @@ $(document).ready(function () {
 	});
 	Magnatune.Collection.on('ready', function () {
 		Magnatune.Navigation.setMode('genre/artist/album');
-		Magnatune.showHash();
+		if (/^#?$/.test(window.location.hash)) {
+			window.location.hash = '#/about';
+		}
+		else {
+			Magnatune.showHash();
+		}
 	});
 	// TODO: delay filtering
 	var search = $('#search');
