@@ -109,6 +109,11 @@ li.active {
 	border-top: 2px solid gray;
 }
 
+.dragged.playlist tr td {
+	border-bottom: 2px solid transparent !important;
+	border-top:    2px solid transparent !important;
+}
+
 .playlist tr.selected {
 	color: white;
 	background-color: blue;

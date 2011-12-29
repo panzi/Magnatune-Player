@@ -493,6 +493,7 @@ var Magnatune = {
 						tag('div',
 							tag('a', {href:'javascript:Magnatune.Playlist.replace('+
 								JSON.stringify(data.body.songs)+',true);void(0)'}, 'Play Album'),
+							' ',
 							tag('a', {href:'javascript:Magnatune.Playlist.enqueue('+
 								JSON.stringify(data.body.songs)+');void(0)'}, 'Enqueue Album')),
 						tag('table',
@@ -639,42 +640,39 @@ var Magnatune = {
 				tbody.append(tr);
 			}
 		},
-		_row_for: function (event) {
-			var target = $(event.target);
-			if (!target.is('tr')) {
-				target = target.parents('tr').first();
-			}
-			if (target.length === 0 || !target.parent().is('tbody') || !target.parent().parent().is('.playlist')) {
-				return null;
-			}
-			return target;
-		},
 		_dragover: function (event) {
-			var row = Magnatune.Playlist._row_for(event);
 			var playlist = $('#playlist');
 			(playlist.find('> tbody > tr.drop')
 				.removeClass('drop')
 				.removeClass('before')
 				.removeClass('after'));
-			if (row) {
-				if (event.pageY > (row.offset().top + row.height() * 0.5)) {
-					row.addClass('drop after');
-				}
-				else {
-					row.addClass('drop before');
-				}
+			var pos = playlist.offset();
+			var y = event.pageY;
+			var x = event.pageX;
+			if (x < pos.left || x > (pos.left + playlist.width())) {
+				return;
+			}
+			if (y <= pos.top) {
+				playlist.find('> tbody > tr:first').addClass('drop before');
+			}
+			else if (y >= (pos.top + playlist.height())) {
+				playlist.find('> tbody > tr:last').addClass('drop after');
 			}
 			else {
-				var pos = playlist.offset();
-				if (event.pageX < pos.left || event.pageX > (pos.left + playlist.width()))
-					return;
-				if (event.pageY > (pos.top + playlist.height() * 0.5)) {
-					row = playlist.find('> tbody > tr:last');
-					row.addClass('drop after');
-				}
-				else {
-					row = playlist.find('> tbody > tr:first');
-					row.addClass('drop before');
+				var tracks = playlist.find('> tbody > tr');
+				for (var i = 0; i < tracks.length; ++ i) {
+					var track = $(tracks[i]);
+					var track_pos = track.offset();
+					var track_height = track.height();
+					if (track_pos.top <= y && (track_pos.top + track_height) >= y) {
+						if (y > (track_pos.top + track_height * 0.5)) {
+							track.addClass('drop after');
+						}
+						else {
+							track.addClass('drop before');
+						}
+						break;
+					}
 				}
 			}
 		},
@@ -685,7 +683,21 @@ var Magnatune = {
 				return {
 					clone: function () {
 						var playlist = $('#playlist');
-						var selection = playlist.find('> tbody > tr.selected');
+
+						var track = $(event.target);
+						if (!track.is('tr')) {
+							track = track.parents('tr').first();
+						}
+
+						var selection;
+						if (!track.hasClass('selected')) {
+							playlist.find('> tbody > tr.selected').removeClass('selected').removeClass('selection-start');
+							track.addClass('selected selection-start');
+							selection = track;
+						}
+						else {
+							selection = playlist.find('> tbody > tr.selected');
+						}
 
 						return tag('table',{'class':'playlist',
 							style:{width:playlist.width()+'px'}},
