@@ -113,7 +113,7 @@ def songs(cur,params):
 		args = [params.getvalue('artist')]
 
 	cur.execute(
-		'select songs.number, songs.desc, songs.duration, songs.albumname, '
+		'select songs.number, songs.desc, songs.duration, songs.albumname, songs.mp3, '
 		'albums.artist from songs inner join albums on songs.albumname = albums.albumname '
 		'where '+where, args)
 
@@ -131,7 +131,7 @@ def album(cur,params):
 		return None
 	album = row_to_dict(cur,album)
 	cur.execute(
-		'select number, desc, duration from songs where albumname = ? order by number',
+		'select number, desc, duration, mp3 from songs where albumname = ? order by number',
 		args)
 	album['songs'] = rows_to_dicts(cur,cur.fetchall())
 #	cur.execute(
@@ -159,7 +159,7 @@ def artist(cur,params):
 def song(cur,params):
 	args = [params.getvalue('album'), int(params.getvalue('number'),10)]
 	cur.execute(
-		'select songs.number, songs.desc, songs.duration, songs.albumname, '
+		'select songs.number, songs.desc, songs.duration, songs.albumname, songs.mp3, '
 		'albums.artist from songs inner join albums on songs.albumname = albums.albumname '
 		'where songs.albumname = ? and songs.number = ?', args)
 	song = cur.fetchone()

@@ -324,11 +324,8 @@ var Magnatune = {
 			this.initAudio();
 			this._song = song;
 			var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
-			var url = "http://he3.magnatune.com/all/"+encodeURIComponent((
-				(song.number < 10 ? '0'+song.number : song.number)+"-"+
-				song.desc+'-'+artist).replace(/[:\/]/g,'_'));
-			this.audio.appendChild(tag('source',{type:'audio/ogg',src:url+'.ogg'}));
-			this.audio.appendChild(tag('source',{type:'audio/mpeg;codecs="mp3"',src:url+'.mp3'}));
+			this.audio.appendChild(tag('source',{type:'audio/ogg',src:"http://he3.magnatune.com/all/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'.ogg'))}));
+			this.audio.appendChild(tag('source',{type:'audio/mpeg;codecs="mp3"',src:"http://he3.magnatune.com/all/"+encodeURIComponent(song.mp3)}));
 			this.audio.load();
 
 			$('#play-progress').css('width','0px');
@@ -946,7 +943,7 @@ var Magnatune = {
 														src:'http://he3.magnatune.com/music/'+
 															encodeURIComponent(this.artist)+'/'+
 															encodeURIComponent(album.albumname)+'/cover_50.jpg'}),
-														album.albumname],
+														' ',album.albumname],
 													'class': 'songs',
 													children: function (parent) {
 														Magnatune.Info.showAlbum(this.albumname,true);
