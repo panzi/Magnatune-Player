@@ -277,6 +277,9 @@ var Magnatune = {
 			canplay: function (event) {
 				$('#waiting').css("visibility","hidden");
 			},
+			emptied: function (event) {
+				$('#waiting').css("visibility","hidden");
+			},
 			ended: function (event) {
 				$('#waiting').css("visibility","hidden");
 				if (!Magnatune.Drag.seeking) {
@@ -1181,11 +1184,11 @@ $(document).ready(function () {
 			return handler;
 		}
 	});
-	// TODO
 	Magnatune.Collection.on('ready', function () {
 		Magnatune.Navigation.setMode('genre/artist/album');
 		Magnatune.showHash();
 	});
+	// TODO: delay filtering
 	var search = $('#search');
 	search.on('change paste cut drop', function (event) {
 		Magnatune.Navigation.filter(this.value);
