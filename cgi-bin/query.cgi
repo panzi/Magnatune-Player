@@ -68,22 +68,6 @@ def finder(func):
 	finders[func.func_name[7:].replace('_','/')] = func
 	return func
 
-@finder
-def search_artist(cur,query):
-	pass
-
-@finder
-def search_artist_album(cur,query):
-	pass
-
-@finder
-def search_album(cur,query):
-	pass
-
-@finder
-def search_genre_artist(cur,query):
-	pass
-
 def nargs(n):
 	return ','.join(repeat('?', n))
 
@@ -92,6 +76,72 @@ def concat(*seqs):
 	for seq in seqs:
 		rv.extend(seq)
 	return rv
+
+def songs_by_album(songs):
+	songs_by_album = {}
+	for song in songs:
+		albumname = song['albumname']
+		if albumname in songs_by_album:
+			album = songs_by_album[albumname]
+		else:
+			album = songs_by_album[albumname] = []
+		del song['albumname']
+		album.append(song)
+	return songs_by_album
+
+@finder
+def search_album(cur,query):
+	where, args = build_query(['albums.albumname'],query)
+	cur.execute(
+		'select distinct albumname from albums '
+		'where %s order by albumname' % where, args)
+	albums = [row[0] for row in cur.fetchall()]
+	where, args = build_query(['songs.desc'],query)
+	cur.execute(
+		'select number, desc, duration, mp3, albumname from songs '
+		'where albumname not in (%s) and %s '
+		'order by albumname, number' % (
+			nargs(len(albums)), where),
+		albums+args)
+	songs = rows_to_dicts(cur,cur.fetchall())
+	return {
+		'albums': albums,
+		'songs': songs_by_album(songs)
+	}
+
+@finder
+def search_artist_album(cur,query):
+	where, args = build_query(['artists.artist'],query)
+	cur.execute(
+		'select distinct artists.artist from artists '
+		'inner join albums on artists.artist = albums.artist '
+		'where %s '
+		'order by artists.artist' % where,
+		args)
+	artists = [row[0] for row in cur.fetchall()]
+	where, args = build_query(['albums.albumname'],query)
+	cur.execute(
+		'select distinct albums.albumname from albums '
+		'where albums.artist not in (%s) and %s '
+		'order by albums.albumname' % (
+			nargs(len(artists)), where),
+		concat(artists,args))
+	albums = [row[0] for row in cur.fetchall()]
+	where, args = build_query(['songs.desc'],query)
+	cur.execute(
+		'select number, desc, duration, mp3, songs.albumname from songs '
+		'inner join albums on songs.albumname = albums.albumname '
+		'where songs.albumname not in (%s) and '
+		'albums.artist not in (%s) and %s '
+		'order by songs.albumname, number' % (
+			nargs(len(albums)), nargs(len(artists)), where),
+		concat(albums,artists,args))
+	songs = rows_to_dicts(cur,cur.fetchall())
+	return {
+		'artists': artists,
+		'albums':  albums,
+		'songs':   songs_by_album(songs)
+	}
 
 @finder
 def search_genre_artist_album(cur,query):
@@ -130,21 +180,11 @@ def search_genre_artist_album(cur,query):
 			nargs(len(albums)), nargs(len(genres)), nargs(len(artists)), where),
 		concat(albums,genres,artists,args))
 	songs = rows_to_dicts(cur,cur.fetchall())
-	songs_by_album = {}
-	for song in songs:
-		albumname = song['albumname']
-		if albumname in songs_by_album:
-			album = songs_by_album[albumname]
-		else:
-			album = songs_by_album[albumname] = []
-		del song['albumname']
-		album.append(song)
-
 	return {
 		'genres':  genres,
 		'artists': artists,
 		'albums':  albums,
-		'songs':   songs_by_album
+		'songs':   songs_by_album(songs)
 	}
 
 LIKE_CHARS = re.compile('([%_\\\\])')

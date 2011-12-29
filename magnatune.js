@@ -908,16 +908,10 @@ var Magnatune = {
 			var tree = $('#tree');
 			tree.empty();
 			switch (mode) {
-				case 'artist':
-					break;
-
-				case 'artist/album':
-					break;
-
 				case 'album':
 					break;
 
-				case 'genre/artist':
+				case 'artist/album':
 					break;
 
 				case 'genre/artist/album':
