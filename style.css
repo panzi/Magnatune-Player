@@ -24,6 +24,8 @@ li.active {
 
 #breadcrumbs li:before {
 	content: "»";
+	margin-left: 0.5em;
+	margin-right: 0.5em;
 }
 
 #breadcrumbs li.first:before {
@@ -34,8 +36,9 @@ li.active {
 	width: 100%;
 }
 
+.dragged,
 #tree,
-#playlist {
+.playlist {
 	-webkit-user-select: none;
 	-khtml-user-select: none;
 	-moz-user-select: none;
@@ -43,24 +46,60 @@ li.active {
 	user-select: none;
 }
 
-#playlist td.number {
+#tree ul.songs {
+	cursor: default;
+}
+
+.dragged {
+	position: absolute !important;
+	filter: alpha(opacity = 50) !important;
+	opacity: 0.5 !important;
+	pointer-events: none !important;
+	cursor: default;
+}
+
+.playlist {
+	border-collapse: separate;
+	border-spacing: 0px;
+	empty-cells: show;
+}
+
+.playlist td {
+	padding: 2px;
+}
+
+.playlist td.number {
 	width: 3em;
 }
 
-#playlist td.duration {
+.playlist td.duration {
 	width: 4em;
 }
 
-#playlist tr.current {
+.playlist tr.current {
 	font-weight: bold;
 }
 
-#playlist tr {
+.playlist tr {
 	cursor: default;
+}
+
+.playlist tr td {
+	border-bottom: 2px solid transparent;
+	border-top:    2px solid transparent;
+}
+
+.playlist tr.drop.after td {
+	border-bottom: 2px solid gray;
+}
+
+.playlist tr.drop.before td {
+	border-top: 2px solid gray;
 }
 
 #volume-control {
 	position: absolute;
+	background-color: #a0a0a0;
 }
 
 th {
@@ -92,12 +131,6 @@ th {
 	width: 400px;
 }
 
-#play-progress,
-.buffer-progress,
-#volume-bar {
-	background-color: blue;
-}
-
 #buffer-progress {
 	position: absolute;
 	left: 0px;
@@ -123,15 +156,34 @@ th {
 }
 
 #play-progress {
+	background-color: blue;
 	height: 100%;
 }
 
 #volume-bar-container {
 	background-color: black;
-	width: 10px;
 	height: 150px;
 	margin: auto;
 	cursor: pointer;
+	position: relative;
+	width: 10px;
+/*	overflow: hidden;*/
+}
+
+#volume-bar {
+	background-color: blue;
+	position: absolute;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+}
+
+#volume {
+	text-align: center;
+}
+
+#volume-control {
+	width: 40px;
 }
 
 .artist img.bandphoto,

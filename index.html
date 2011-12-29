@@ -14,9 +14,9 @@
 <body>
 <div id="main">
 	<div id="player">
-		<audio id="audio" preload="auto" controls style="display:none;"></audio>
 		<div id="controls">
 			<a href="javascript:Magnatune.Player.play();void(0)" title="Play">&#x25B6;</a>
+			<a href="javascript:Magnatune.Player.playPause();void(0)" title="Play/Play">&#x25AE;&#x25B6;</a>
 			<a href="javascript:Magnatune.Player.pause();void(0)" title="Pause">&#x25AE;&#x25AE;</a>
 			<a href="javascript:Magnatune.Player.stop();void(0)" title="Stop">&#x25A0;</a>
 			<a href="javascript:Magnatune.Playlist.previous();void(0)" title="Previous">&#x25AE;&#x25C0;</a>
@@ -35,7 +35,7 @@
 			<a id="volume-button" href="javascript:Magnatune.Player.toggleVolume();void(0)">Volume</a>
 			<div id="volume-control" style="display:none;">
 				<div id="volume">100%</div>
-				<div id="volume-bar-container"><div id="volume-bar"></div></div>
+				<div id="volume-bar-container"><div id="volume-bar" style="height:100%;"></div></div>
 			</div>
 		</div>
 	</div>
@@ -72,7 +72,7 @@
 				</div>
 			</div>
 
-			<table id="playlist" style="display:none;">
+			<table id="playlist" class="playlist" style="display:none;">
 				<thead>
 					<tr>
 						<th>Nr.</th>
