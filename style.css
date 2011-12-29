@@ -97,6 +97,11 @@ li.active {
 	border-top: 2px solid gray;
 }
 
+.playlist tr.selected {
+	color: white;
+	background-color: blue;
+}
+
 #volume-control {
 	position: absolute;
 	background-color: #a0a0a0;

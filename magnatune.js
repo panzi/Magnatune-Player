@@ -554,15 +554,73 @@ var Magnatune = {
 		visible: function () {
 			return $('#playlist').is(':visible');
 		},
+		setCurrentIndex: function (index,forceplay) {
+			var playlist = $("#playlist");
+			var current = playlist.find("> tbody > tr")[index];
+			if (current) {
+				playlist.find("> tbody > tr.current").removeClass("current");
+				$(current).addClass('current');
+				if (forceplay || Magnatune.Player.playing()) {
+					Magnatune.Player.play();
+				}
+			}
+		},
+		_click_song: function (event) {
+			var playlist = $("#playlist");
+			var element = $(this);
+			if (event.ctrlKey) {
+				if (element.hasClass('selected')) {
+					element.removeClass('selected');
+					
+					if (element.hasClass('selection-start')) {
+						element.removeClass('selection-start');
+						playlist.find('> tbody > tr.selected').first().addClass('selection-start');
+					}
+				}
+				else {
+					if (playlist.find('> tbody > tr.selected').length === 0) {
+						element.addClass('selected selection-start');
+					}
+					else {
+						element.addClass('selected');
+					}
+				}
+			}
+			else if (event.shiftKey) {
+				var start = playlist.find('> tbody > tr.selection-start');
+				if (start.length === 0) {
+					element.addClass('selected selection-start');
+				}
+				else {
+					playlist.find('> tbody > tr.selected').removeClass('selected');
+					var selection;
+					if (start.index() < element.index()) {
+						selection = start.nextUntil(element).add(start).add(element);
+					}
+					else {
+						selection = start.prevUntil(element).add(start).add(element);
+					}
+					selection.addClass('selected');
+				}
+			}
+			else {
+				(playlist.find('> tbody > tr.selected')
+					.removeClass('selected')
+					.removeClass('selection-start'));
+				element.addClass('selected selection-start');
+			}
+		},
+		_dblclick_song: function (event) {
+			Magnatune.Playlist.setCurrentIndex($(this).index(), true);
+		},
 		enqueue: function (songs) {
 			var tbody = $('#playlist > tbody');
 			for (var i = 0; i < songs.length; ++ i) {
 				var song = songs[i];
 				var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
 				var tr = tag('tr',{dataset:song,
-					ondblclick:'$("#playlist > tbody > tr.current").removeClass("current");'+
-						'$(this).addClass("current");'+
-						'Magnatune.Player.play();'},
+					onclick:Magnatune.Playlist._click_song,
+					ondblclick:Magnatune.Playlist._dblclick_song},
 					tag('td',{'class':'number'},song.number),
 					tag('td',song.desc),
 					tag('td',{'class':'duration'},tag.time(song.duration)),
@@ -617,7 +675,6 @@ var Magnatune = {
 			distance: 4,
 			create: function (event) {
 				return {
-					// TODO
 					clone: function () {
 						return tag('table',{'class':'playlist',
 							style:{width:$('#playlist').width()+'px'}},
@@ -656,7 +713,13 @@ var Magnatune = {
 			$('#playlist > tbody').empty();
 		},
 		songs: function () {
-			var rows = $('#playlist > tbody > tr');
+			return this._songs('#playlist > tbody > tr');
+		},
+		selected: function () {
+			return this._songs('#playlist > tbody > tr.selected');
+		},
+		_songs: function (selector) {
+			var rows = $(selector);
 			var songs = [];
 			for (var i = 0; i < rows.length; ++ i) {
 				var song = $(rows[i]).dataset();
