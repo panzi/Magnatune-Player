@@ -23,15 +23,21 @@
 			<a href="javascript:Magnatune.Playlist.next();void(0)" title="Next">&#x25B6;&#x25AE;</a>
 
 			<div id="current">
-				<span id="current-song">&nbsp;</span>
-				<a href="javascript:void(0)" id="current-album">&nbsp;</a>
-				<a href="javascript:void(0)" id="current-artist">&nbsp;</a>
-				<span id="current-time">--:--</span> /
-				<span id="current-duration">--:--</span>
+				<div id="currently-playing">
+					<a href="javascript:void(0)" id="current-song">--</a> -
+					<a href="javascript:void(0)" id="current-album">--</a> -
+					<a href="javascript:void(0)" id="current-artist">--</a>
+				</div>
+				<div id="current-time-duration">
+					<span id="current-time">--:--</span> /
+					<span id="current-duration">--:--</span>
+				</div>
 			</div>
 
 			<div id="play-progress-container"><div id="play-progress" style="width:0px;"></div></div>
 			<div id="buffer-progress-container"><canvas id="buffer-progress" width="400" height="1"></canvas></div>
+			<div id="waiting" style="visibility:hidden;"></div>
+
 			<a id="volume-button" href="javascript:Magnatune.Player.toggleVolume();void(0)">Volume</a>
 			<div id="volume-control" style="display:none;">
 				<div id="volume">100%</div>
@@ -72,20 +78,24 @@
 				</div>
 			</div>
 
-			<table id="playlist" class="playlist" style="display:none;">
-				<thead>
-					<tr>
-						<th>Nr.</th>
-						<th>Title</th>
-						<th>Duration</th>
-						<th>Artist</th>
-						<th>Album</th>
-						<th>&nbsp;</th>
-					</tr>
-				</thead>
-				<tbody>
-				</tbody>
-			</table>
+			<div id="playlist-container" style="display:none;">
+				<a href="javascript:Magnatune.Playlist.clear();void(0)">Clear</a>
+				<a href="javascript:Magnatune.Playlist.removeSelected();void(0)">Remove Selected</a>
+				<table class="playlist" id="playlist">
+					<thead>
+						<tr>
+							<th>Nr.</th>
+							<th>Title</th>
+							<th>Duration</th>
+							<th>Artist</th>
+							<th>Album</th>
+							<th>&nbsp;</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
 		</div>
 	</div>
 </div>

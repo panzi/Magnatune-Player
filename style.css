@@ -6,6 +6,12 @@ li.active {
 	font-weight: bold;
 }
 
+#currently-playing {
+	width: 400px;
+	overflow: hidden;
+	white-space:nowrap;
+}
+
 #tree-mode-select {
 	position: absolute;
 	list-style: none;
@@ -34,6 +40,12 @@ li.active {
 
 #playlist {
 	width: 100%;
+}
+
+#waiting {
+	width: 16px;
+	height: 16px;
+	background-image: url("spinner.gif");
 }
 
 .dragged,
