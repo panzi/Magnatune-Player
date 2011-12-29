@@ -676,9 +676,12 @@ var Magnatune = {
 			create: function (event) {
 				return {
 					clone: function () {
+						var playlist = $('#playlist');
+						var selection = playlist.find('> tbody > tr.selected');
+
 						return tag('table',{'class':'playlist',
-							style:{width:$('#playlist').width()+'px'}},
-							tag('tbody',this.cloneNode(true)));
+							style:{width:playlist.width()+'px'}},
+							tag('tbody',selection.clone()));
 					},
 					drag: function (event) {
 						Magnatune.Playlist._dragover(event);
@@ -687,12 +690,13 @@ var Magnatune = {
 						var playlist = $('#playlist');
 						var target = playlist.find('> tbody > tr.drop');
 
-						if (target.length > 0 && !target.is(this)) {
+						if (target.length > 0) {
+							var selection = playlist.find('> tbody > tr.selected');
 							if (target.hasClass('before')) {
-								$(this).insertBefore(target);
+								selection.insertBefore(target);
 							}
 							else {
-								$(this).insertAfter(target);
+								selection.insertAfter(target);
 							}
 						}
 
