@@ -429,139 +429,16 @@ var Magnatune = {
 		}
 	},
 	Info: {
-		show: function (path,keeptab) {
-			if (!keeptab) {
-				$('#info-button').addClass('active');
-				$('#playlist-button').removeClass('active');
-				$('#playlist-container').hide();
-				$('#info').show();
-			}
-
-			if (path) {
-				var breadcrumbs = $('#breadcrumbs');
-				breadcrumbs.empty();
-				for (var i = 0; i < path.length; ++ i) {
-					var el = path[i];
-					breadcrumbs.append(tag('li', i === 0 ? {'class':'first'} : null,
-						tag('a', {href:el.href}, el.text)));
-				}
-			}
+		show: function () {
+			$('#info-button').addClass('active');
+			$('#playlist-button').removeClass('active');
+			$('#playlist-container').hide();
+			$('#info').show();
 		},
 		visible: function () {
 			return $('#info').is(':visible');
 		},
-		showingAlbum: function (albumname) {
-			if (!this.visible()) return false;
-			var content = $("#info-content > div").first();
-			return content.hasClass('album') && content.find('h2 .albumname').text() === albumname;
-		},
-		showingArtist: function (artist) {
-			if (!this.visible()) return false;
-			var content = $("#info-content > div").first();
-			return content.hasClass('artist') && content.find('h2 .artist').text() === artist;
-		},
-		showingGenre: function (genre) {
-			if (!this.visible()) return false;
-			var content = $("#info-content > div").first();
-			return content.hasClass('genre') && content.find('h2 .genre').text() === genre;
-		},
-		showingAbout: function () {
-			if (!this.visible()) return false;
-			var content = $("#info-content > div").first();
-			return content.hasClass('about');
-		},
-		showAbout: function (keeptab) {
-			// TODO
-			if (!keeptab || Magnatune.Info.visible()) window.location.hash = '#/about';
-			$('#info-button > a').attr('href','#/about');
-			this.show([{href:'#/about',text:'About'}],keeptab);
-			$("#info-content").html(tag('div',{'class':'about'},
-				tag('h2','About Magnatune Player'),
-				tag('p','TODO: About text.')));
-		},
-		showGenre: function (genre,keeptab) {
-			var hash = '#/genre/'+encodeURIComponent(genre);
-			if (!keeptab || Magnatune.Info.visible()) window.location.hash = hash;
-			this.show([{href:hash,text:genre}],keeptab);
-			$("#info-content").html(tag('div',{'class':'genre'},
-				tag('h2',tag('a',{'class':'genre',
-					href:'http://magnatune.com/genres/'+genre.replace(/\s/g,'').toLowerCase()+'/'},
-					genre)),
-				Magnatune.Info.albumsTable(Magnatune.Collection.Genres[genre].albums)));
-		},
-		showAlbum: function (albumname,keeptab) {
-			var info = $("#info-content");
-			var hash = '#/album/'+encodeURIComponent(albumname);
-			if (!keeptab || Magnatune.Info.visible()) window.location.hash = hash;
-			$('#info-button > a').attr('href',hash);
-			$.ajax({
-				url: 'cgi-bin/query.cgi',
-				data: {action: 'album', name: albumname},
-				dataType: 'json',
-				success: function (data) {
-					if (!data.body) return; // TODO
-					var album = Magnatune.Collection.Albums[albumname];
-					var artist = album.artist;
-					var breadcrumbs = [
-						{href: '#/artist/'+encodeURIComponent(artist.artist), text: artist.artist},
-						{href: hash, text: albumname}];
-					Magnatune.Info.show(breadcrumbs,keeptab);
-					var songs = $(tag('tbody'));
-					for (var i = 0; i < data.body.songs.length; ++ i) {
-						var song = data.body.songs[i];
-						
-						song.albumname = data.body.albumname;
-						songs.append(tag('tr',
-							tag('td', {'class':'number'}, song.number),
-							tag('td', song.desc),
-							tag('td', {'class':'duration'}, tag.time(song.duration)),
-							tag('td', tag('a',{
-								title: 'Enqueue',
-								href:'javascript:Magnatune.Playlist.enqueue(['+
-									JSON.stringify(song)+']);void(0)'},'+'))));
-					}
-					var genres = $(tag('ul'));
-					for (var i = 0; i < album.genres.length; ++ i) {
-						var genre = album.genres[i].genre;
-						genres.append(tag('li', tag('a',
-							{href:'#/genre/'+encodeURIComponent(genre)}, genre)));
-					}
-
-					info.html(tag('div',{'class':'album'},
-						tag('h2', tag('a', {'class':'albumname',
-							href:'http://magnatune.com/artists/albums/'+data.body.sku+'/'},
-							data.body.albumname)),
-						tag('div',{'class':'buy',title:'Buy this Album'},
-							tag('a',{href:'https://magnatune.com/buy/choose?sku='+data.body.sku},'Buy')),
-						tag('img', {'class':'cover',
-							src: 'http://he3.magnatune.com/music/'+
-								encodeURIComponent(data.body.artist)+'/'+
-								encodeURIComponent(data.body.albumname)+'/cover_300.jpg',
-							alt: 'Cover'}),
-						tag.textify(data.body.description),
-						tag('div',
-							tag('a', {href:'javascript:Magnatune.Playlist.replace('+
-								JSON.stringify(data.body.songs)+',true);void(0)'}, 'Play Album'),
-							' ',
-							tag('a', {href:'javascript:Magnatune.Playlist.enqueue('+
-								JSON.stringify(data.body.songs)+');void(0)'}, 'Enqueue Album')),
-						tag('table',
-							tag('thead',
-								tag('tr',
-									tag('th','Nr.'),
-									tag('th','Title'),
-									tag('th','Duration'),
-									tag('th',''))),
-							songs),
-						tag('h3','Genres'),
-						genres));
-				},
-				error: function () {
-					// TODO
-				}
-			});
-		},
-		albumsTable: function (albums) {
+		_albumsTable: function (albums) {
 			var tbody = $(tag('tbody'));
 			for (var i = 0; i < albums.length; ++ i) {
 				var album = albums[i];
@@ -578,33 +455,164 @@ var Magnatune = {
 			}
 			return tag('table', tbody);
 		},
-		showArtist: function (artist,keeptab) {
+		hash: function () {
+			return $("#info-content").dataset('hash');
+		},
+		update: function (hash,breadcrumbs,content,keeptab) {
+			var list = $('#breadcrumbs');
+			list.empty();
+			for (var i = 0; i < breadcrumbs.length; ++ i) {
+				var el = breadcrumbs[i];
+				list.append(tag('li', i === 0 ? {'class':'first'} : null,
+					tag('a', {href:el.href}, el.text)));
+			}
 			var info = $("#info-content");
-			var hash = '#/artist/'+encodeURIComponent(artist);
-			if (!keeptab || Magnatune.Info.visible()) window.location.hash = hash;
-			$('#info-button > a').attr('href',hash);
-			$.ajax({
-				url: 'cgi-bin/query.cgi',
-				data: {action: 'artist', name: artist},
-				dataType: 'json',
-				success: function (data) {
-					if (!data.body) return; // TODO
-					var breadcrumbs = [{href: hash, text: artist}];
-					Magnatune.Info.show(breadcrumbs,keeptab);
-					var albums = Magnatune.Collection.Artists[artist].albums;
-					info.html(tag('div',{'class':'artist'},
-						tag('h2', tag('a', {'class':'artist',
-							href:'http://magnatune.com/artists/'+data.body.homepage},
-							data.body.artist)),
-						data.body.bandphoto && tag('img', {'class': 'bandphoto',
-							src: 'http://magnatune.com/'+data.body.bandphoto, alt: 'Bandphoto'}),
-						Magnatune.Info.albumsTable(albums),
-						tag.textify(data.body.bio)));
-				},
-				error: function () {
-					// TODO
+			info.dataset('hash',hash);
+			info.html(content);
+			
+			if (!keeptab) this.show();
+			if (!keeptab || Magnatune.Info.visible()) {
+				window.location.hash = hash;
+			}
+		},
+		load: function (page,opts) {
+			if (Object.prototype.hasOwnProperty.call(this.Pages,page)) {
+				this.Pages[page](opts||{});
+				return true;
+			}
+			else {
+				return false;
+			}
+		},
+		Pages: {
+			playlist: function () {
+				// pseudopage
+				Magnatune.Playlist.show();
+			},
+			info: function () {
+				// pseudopage
+				var hash = Magnatune.Info.hash();
+				if (hash === '#/info' || !hash) {
+					window.location.hash = '#/about';
 				}
-			});
+				else {
+					window.location.hash = hash;
+				}
+			},
+			about: function (opts) {
+				// TODO
+				var breadcrumbs = [{href:'#/about',text:'About'}];
+				var page = tag('div',{'class':'about'},
+					tag('h2','About Magnatune Player'),
+					tag('p','TODO: About text.'));
+				Magnatune.Info.update('#/about',breadcrumbs,page,opts.keeptab);
+			},
+			genre: function (opts) {
+				var genre = Magnatune.Collection.Genres[opts.id];
+				var hash = '#/genre/'+encodeURIComponent(opts.id);
+				var breadcrumbs = [{href:hash,text:genre.genre}];
+				var page = tag('div',{'class':'genre'},
+					tag('h2',tag('a',{'class':'genre',
+						href:'http://magnatune.com/genres/'+genre.genre.replace(/\s/g,'').toLowerCase()+'/'},
+						genre.genre)),
+					Magnatune.Info._albumsTable(genre.albums));
+				Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);
+			},
+			album: function (opts) {
+				$.ajax({
+					url: 'cgi-bin/query.cgi',
+					data: {action: 'album', name: opts.id},
+					dataType: 'json',
+					success: function (data) {
+						if (!data.body) return; // TODO
+						var album = Magnatune.Collection.Albums[opts.id];
+						var artist = album.artist;
+						var hash = '#/album/'+encodeURIComponent(album.albumname);
+						var breadcrumbs = [
+							{href: '#/artist/'+encodeURIComponent(artist.artist), text: artist.artist},
+							{href: hash, text: album.albumname}];
+						var songs = $(tag('tbody'));
+						for (var i = 0; i < data.body.songs.length; ++ i) {
+							var song = data.body.songs[i];
+						
+							song.albumname = album.albumname;
+							songs.append(tag('tr',
+								tag('td', {'class':'number'}, song.number),
+								tag('td', song.desc),
+								tag('td', {'class':'duration'}, tag.time(song.duration)),
+								tag('td', tag('a',{
+									title: 'Enqueue',
+									href:'javascript:Magnatune.Playlist.enqueue(['+
+										JSON.stringify(song)+']);void(0)'},'+'))));
+						}
+						var genres = $(tag('ul'));
+						for (var i = 0; i < album.genres.length; ++ i) {
+							var genre = album.genres[i].genre;
+							genres.append(tag('li', tag('a',
+								{href:'#/genre/'+encodeURIComponent(genre)}, genre)));
+						}
+
+						var page = tag('div',{'class':'album'},
+							tag('h2', tag('a', {'class':'albumname',
+								href:'http://magnatune.com/artists/albums/'+data.body.sku+'/'},
+								album.albumname)),
+							tag('div',{'class':'buy',title:'Buy this Album'},
+								tag('a',{href:'https://magnatune.com/buy/choose?sku='+data.body.sku},'Buy')),
+							tag('img', {'class':'cover',
+								src: 'http://he3.magnatune.com/music/'+
+									encodeURIComponent(artist.artist)+'/'+
+									encodeURIComponent(album.albumname)+'/cover_300.jpg',
+								alt: 'Cover'}),
+							tag.textify(data.body.description),
+							tag('div',
+								tag('a', {href:'javascript:Magnatune.Playlist.replace('+
+									JSON.stringify(data.body.songs)+',true);void(0)'}, 'Play Album'),
+								' ',
+								tag('a', {href:'javascript:Magnatune.Playlist.enqueue('+
+									JSON.stringify(data.body.songs)+');void(0)'}, 'Enqueue Album')),
+							tag('table',
+								tag('thead',
+									tag('tr',
+										tag('th','Nr.'),
+										tag('th','Title'),
+										tag('th','Duration'),
+										tag('th',''))),
+								songs),
+							tag('h3','Genres'),
+							genres);
+						Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);			
+					},
+					error: function () {
+						// TODO
+					}
+				});
+			},
+			artist: function (opts) {
+				$.ajax({
+					url: 'cgi-bin/query.cgi',
+					data: {action: 'artist', name: opts.id},
+					dataType: 'json',
+					success: function (data) {
+						if (!data.body) return; // TODO
+						var artist = Magnatune.Collection.Artists[opts.id];
+						var hash = '#/artist/'+encodeURIComponent(artist.artist);
+						var breadcrumbs = [{href: hash, text: artist.artist}];
+						var page = tag('div',{'class':'artist'},
+							tag('h2', tag('a', {'class':'artist',
+								href:'http://magnatune.com/artists/'+data.body.homepage},
+								artist.artist)),
+							data.body.bandphoto && tag('img', {'class': 'bandphoto',
+								src: 'http://magnatune.com/'+data.body.bandphoto,
+								alt: 'Bandphoto'}),
+							Magnatune.Info._albumsTable(artist.albums),
+							tag.textify(data.body.bio));
+						Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);	
+					},
+					error: function () {
+						// TODO
+					}
+				});
+			}
 		}
 	},
 	Playlist: {
@@ -1024,7 +1032,8 @@ var Magnatune = {
 						list.append(tag.expander({
 							label: genre.genre,
 							head_attrs: {
-								onclick: Magnatune.Info.showGenre.bind(Magnatune.Info,genre.genre,true)
+								onclick: Magnatune.Info.load.bind(Magnatune.Info,
+									'genre',{id:genre.genre,keeptab:true})
 							},
 							render: function (parent) {
 								Magnatune.Navigation.Modes.Artists.render(parent, this.artists, function (album) {
@@ -1165,7 +1174,8 @@ var Magnatune = {
 						list.append(tag.expander({
 							label: artist.artist,
 							head_attrs: {
-								onclick: Magnatune.Info.showArtist.bind(Magnatune.Info,artist.artist,true)
+								onclick: Magnatune.Info.load.bind(Magnatune.Info,
+									'artist',{id:artist.artist,keeptab:true})
 							},
 							render: function (parent) {
 								Magnatune.Navigation.Modes.Albums.render(parent,
@@ -1200,7 +1210,8 @@ var Magnatune = {
 									encodeURIComponent(album.albumname)+'/cover_50.jpg'}),
 								' ',album.albumname],
 							head_attrs: {
-								onclick: Magnatune.Info.showAlbum.bind(Magnatune.Info,album.albumname,true)
+								onclick: Magnatune.Info.load.bind(Magnatune.Info,
+									'album',{id:album.albumname,keeptab:true})
 							},
 							render: function (parent) {
 								if (this.songs) {
@@ -1298,45 +1309,19 @@ var Magnatune = {
 		}
 	},
 	showHash: function () {
+		if (Magnatune.Info.hash() === window.location.hash) {
+			return /^#\/.+/.test(window.location.hash);
+		}
+
 		var m = /^#?\/([^\/]+)(?:\/(.*))?/.exec(window.location.hash);
 
 		if (m) {
-			switch (m[1]) {
-				case 'info':
-					Magnatune.Info.show();
-					return true;
-
-				case 'album':
-					var albumname = decodeURIComponent(m[2]);
-					if (!Magnatune.Info.showingAlbum(albumname)) {
-						Magnatune.Info.showAlbum(albumname);
-					}
-					return true;
-
-				case 'artist':
-					var artist = decodeURIComponent(m[2]);
-					if (!Magnatune.Info.showingArtist(artist)) {
-						Magnatune.Info.showArtist(artist);
-					}
-					return true;
-
-				case 'playlist':
-					Magnatune.Playlist.show();
-					return true;
-
-				case 'genre':
-					var genre = decodeURIComponent(m[2]);
-					if (!Magnatune.Info.showingGenre(genre)) {
-						Magnatune.Info.showGenre(genre);
-					}
-					return true;
-
-				case 'about':
-					if (!Magnatune.Info.showingAbout()) {
-						Magnatune.Info.showAbout();
-					}
-					return true;
+			var page = m[1];
+			var opts = {};
+			if (typeof(m[2]) !== "undefined") {
+				opts.id = decodeURIComponent(m[2]);
 			}
+			return Magnatune.Info.load(page, opts);
 		}
 
 		return false;
