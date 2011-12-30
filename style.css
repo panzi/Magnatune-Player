@@ -4,14 +4,136 @@
 body {
 	font-family: 'Actor', sans-serif;
 	font-size: 14px;
+	color: #e0e0e0;
+	background-color: #444444;
 }
 
 a {
 	text-decoration: none;
+	color: #D19559;
+}
+
+#tree a {
+	color: #e0e0e0;
+}
+
+input[type="text"] {
+	background-color: transparent;
+	border-style: none;
+	color: #e0e0e0;
+}
+
+.tab-content,
+#tree,
+.search-container {
+	background-color: #313131;
+	border-top-color:  #573B1F;
+	border-left-color: #573B1F;
+	border-bottom-color: #87592C;
+	border-right-color:  #87592C;
+}
+
+.search-container,
+.button {
+	display: inline-block;
+	border-radius: 10px;
+}
+
+#tree,
+.tab-content,
+.search-container,
+.button {
+	margin: 2px;
+	border-style: solid;
+	border-width: 1px;
+	padding: 2px;
+}
+
+#tree,
+.tab-content {
+	border-radius: 15px;
+}
+
+.button {
+	background-color: #313131;
+}
+
+#player,
+#tabs li,
+.button,
+#navigation,
+#content {
+	border-top-color:  #87592C;
+	border-left-color: #87592C;
+	border-bottom-color: #573B1F;
+	border-right-color:  #573B1F;
+}
+
+.buy {
+	width: 50px;
+	text-align: center;
+	padding: 5px;
+	font-size: 20px;
+	font-weight: bold;
+}
+
+.input-clear {
+	font-weight: bold;
+	padding: 2px;
+}
+
+input {
+	outline: none;
 }
 
 li.active {
 	font-weight: bold;
+}
+
+#player,
+#navigation,
+#content {
+	background-color: #453D33;
+	border-radius: 20px;
+	border-style: solid;
+	border-width: 1px;
+	box-shadow: inset 15px 20px 30px #52483C;
+}
+
+.inner-area {
+	border-radius: 19px;
+	padding: 10px;
+	box-shadow: inset -15px -20px 30px #39322A;
+}
+
+#player-wrapper {
+	position: fixed;
+	top: 0px;
+	right: 50px;
+	z-index: 1000;
+}
+
+#player {
+	width: 500px;
+	margin: auto;
+	border-radius: 30px;
+	border-width: 5px;
+	border-top-style: none;
+}
+
+#player .inner-area {
+	border-radius: 25px;
+}
+
+#player,
+#player .inner-area {
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;
+}
+
+body {
+	padding: 0;
+	margin: 0;
 }
 
 #currently-playing {
@@ -26,7 +148,28 @@ li.active {
 	padding: 0;
 }
 
-#tabs, #breadcrumbs {
+#tabs {
+	margin-left: -11px;
+	margin-top: -11px;
+}
+
+#tabs li {
+	background-color: #313131;
+	border-style: solid;
+	border-width: 1px;
+	margin: 0;
+	padding: 5px 20px;
+	margin-left: -3px; /* why? */
+}
+
+#tabs li.first {
+	margin-left: 0px;
+	padding-left: 25px;
+	border-top-left-radius: 20px;
+}
+
+#tabs,
+#breadcrumbs {
 	list-style: none;
 	padding: 0;
 }
@@ -145,53 +288,86 @@ th {
 	text-align: right;
 }
 
-#body {
-	position: relative;
-}
-
 #navigation {
 	position: absolute;
-	left: 0px;
-	top: 0px;
+	left: 10px;
+	bottom: 10px;
+	top: 10px;
 	width: 400px;
+}
+
+#navigation .inner-area,
+#content .inner-area {
+	position: absolute;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	top: 0px;
+}
+
+#tree {
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	bottom: 10px;
+	top: 40px;
+}
+
+.tab-content {
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	bottom: 10px;
+	top: 75px;
 }
 
 #content {
-	margin-left: 450px;
+	position: absolute;
+	left: 425px;
+	bottom: 10px;
+	top: 10px;
+	right: 10px;
 }
-
 #play-progress-container,
-#buffer-progress-container,
 #buffer-progress {
 	width: 400px;
+}
+
+#play-progress-container {
+	position: relative;
+	background-color: #313131;
+	height: 10px;
+	cursor: pointer;
+	border-radius: 10px;
+}
+
+#play-progress {
+	position: relative;
+}
+
+#play-progress-knob {
+	position: absolute;
+	width: 10px;
+	height: 10px;
+	right: -5px;
+	top: -2px;
+	bottom: 0px;
+	border-radius: 10px;
+	border: 2px solid #87592C;
+	background-color: #313131;
 }
 
 #buffer-progress {
 	position: absolute;
 	left: 0px;
+	right: 0px;
 	top: 0px;
 	bottom: 0px;
-	right: 0px;
-}
-
-#play-progress-container {
-	background-color: black;
-	height: 20px;
-	cursor: pointer;
-}
-
-#buffer-progress,
-#buffer-progress-container {
-	background-color: #a0a0a0;
-	height: 5px;
-}
-
-#buffer-progress-container {
-	position: relative;
+	height: 10px;
+	border-radius: 10px;
 }
 
 #play-progress {
-	background-color: blue;
 	height: 100%;
 }
 
@@ -224,11 +400,28 @@ th {
 .artist img.bandphoto,
 .album  img.cover {
 	float: right;
+	margin-left: 10px;
+	margin-bottom: 10px;
 }
 
 #volume-control,
 #tree-mode-select {
 	z-index: 1;
+}
+
+.navigation-head {
+	position: relative;
+}
+
+#search {
+	width: 305px;
+}
+
+#tree-mode-button {
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	bottom: 0px;
 }
 
 #tree .album img {
@@ -237,14 +430,47 @@ th {
 }
 
 #tree .album {
-	display: inline-block;
+	height: 50px;
+}
+
+#tree {
+	margin-top: 10px;
+	white-space: nowrap;
+	overflow: auto;
+}
+
+#tree a {
+	outline: none;
+	display: block;
+}
+
+#tabs a,
+a.button {
+	outline: none;
 }
 
 #tree ul {
+	padding-left: 10px;
 	list-style: none;
 }
 
+#tree .expander {
+	float: left;
+	margin-right: 5px;
+}
+
+#tree .album-head .expander {
+	line-height: 50px;
+}
+
+#tree ul ul {
+	padding-left: 25px;
+}
+
+
 #info-content {
+	padding: 15px;
+	padding-top: 0px;
 	overflow: auto;
 }
 

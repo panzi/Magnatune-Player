@@ -13,84 +13,103 @@
 </head>
 <body>
 <div id="main">
-	<div id="player">
-		<div id="controls">
-			<a href="javascript:Magnatune.Player.play();void(0)" title="Play">&#x25B6;</a>
-			<a href="javascript:Magnatune.Player.playPause();void(0)" title="Play/Play">&#x25AE;&#x25B6;</a>
-			<a href="javascript:Magnatune.Player.pause();void(0)" title="Pause">&#x25AE;&#x25AE;</a>
-			<a href="javascript:Magnatune.Player.stop();void(0)" title="Stop">&#x25A0;</a>
-			<a href="javascript:Magnatune.Playlist.previous();void(0)" title="Previous">&#x25AE;&#x25C0;</a>
-			<a href="javascript:Magnatune.Playlist.next();void(0)" title="Next">&#x25B6;&#x25AE;</a>
+	<div id="player-wrapper">
+		<div id="player">
+			<div class="inner-area">
+				<a href="javascript:Magnatune.Player.play();void(0)" title="Play">&#x25B6;</a>
+				<a href="javascript:Magnatune.Player.playPause();void(0)" title="Play/Play">&#x25AE;&#x25B6;</a>
+				<a href="javascript:Magnatune.Player.pause();void(0)" title="Pause">&#x25AE;&#x25AE;</a>
+				<a href="javascript:Magnatune.Player.stop();void(0)" title="Stop">&#x25A0;</a>
+				<a href="javascript:Magnatune.Playlist.previous();void(0)" title="Previous">&#x25AE;&#x25C0;</a>
+				<a href="javascript:Magnatune.Playlist.next();void(0)" title="Next">&#x25B6;&#x25AE;</a>
 
-			<div id="current">
-				<div id="currently-playing">
-					<a href="javascript:void(0)">--</a>
+				<div id="current">
+					<div id="currently-playing">
+						<a href="javascript:void(0)">--</a>
+					</div>
+					<div id="current-time-duration">
+						<span id="current-time">--:--</span> /
+						<span id="current-duration">--:--</span>
+					</div>
 				</div>
-				<div id="current-time-duration">
-					<span id="current-time">--:--</span> /
-					<span id="current-duration">--:--</span>
+	
+				<div id="play-progress-container">
+					<canvas id="buffer-progress" width="400" height="1"></canvas>
+					<div id="play-progress" style="width:0px;"><div id="play-progress-knob"></div></div>
 				</div>
-			</div>
+				<div id="waiting" style="visibility:hidden;"></div>
 
-			<div id="play-progress-container"><div id="play-progress" style="width:0px;"></div></div>
-			<div id="buffer-progress-container"><canvas id="buffer-progress" width="400" height="1"></canvas></div>
-			<div id="waiting" style="visibility:hidden;"></div>
-
-			<a id="volume-button" href="javascript:Magnatune.Player.toggleVolume();void(0)">Volume</a>
-			<div id="volume-control" style="display:none;">
-				<div id="volume">100%</div>
-				<div id="volume-bar-container"><div id="volume-bar" style="height:100%;"></div></div>
+				<a id="volume-button" href="javascript:Magnatune.Player.toggleVolume();void(0)">Volume</a>
+				<div id="volume-control" style="display:none;">
+					<div id="volume">100%</div>
+					<div id="volume-bar-container"><div id="volume-bar" style="height:100%;"></div></div>
+				</div>
 			</div>
 		</div>
 	</div>
 
 	<div id="body">
 		<div id="navigation">
-			<input id="search" type="text" autocomplete="off"/>
-			<a href="javascript:Magnatune.Navigation.clear();void(0)" title="Clear">&times;</a>
+			<div class="inner-area">
+				<div class="navigation-head">
+					<span class="search-container">
+						<input id="search" type="text" autocomplete="off"/>
+						<a class="input-clear" href="javascript:Magnatune.Navigation.clear();void(0)" title="Clear">&times;</a>
+					</span>
 
-			<a id="tree-mode-button" href="javascript:Magnatune.Navigation.toggleModeSelect();void(0)">Mode</a>
-			<ul id="tree-mode-select" style="display:none;">
-				<li id="mode-album"><a href="javascript:Magnatune.Navigation.setMode('album');void(0)">Album</a></li>
-				<li id="mode-artist-album"><a href="javascript:Magnatune.Navigation.setMode('artist/album');void(0)">Artist / Album</a></li>
-				<li id="mode-genre-artist-album" class="active"><a href="javascript:Magnatune.Navigation.setMode('genre/artist/album');void(0)">Genre / Artist / Album</a></li>
-			</ul>
+					<a class="button" id="tree-mode-button" href="javascript:Magnatune.Navigation.toggleModeSelect();void(0)">Mode</a>
 
-			<div id="tree">
+					<ul id="tree-mode-select" style="display:none;">
+						<li id="mode-album"><a href="javascript:Magnatune.Navigation.setMode('album');void(0)">Album</a></li>
+						<li id="mode-artist-album"><a href="javascript:Magnatune.Navigation.setMode('artist/album');void(0)">Artist / Album</a></li>
+						<li id="mode-genre-artist-album" class="active"><a href="javascript:Magnatune.Navigation.setMode('genre/artist/album');void(0)">Genre / Artist / Album</a></li>
+					</ul>
+				</div>
+
+				<div id="tree">
+				</div>
 			</div>
 		</div>
 
 		<div id="content">
-			<ul id="tabs">
-				<li id="info-button" class="active"><a href="#/about">Info</a></li>
-				<li id="playlist-button"><a href="#/playlist">Playlist</a></li>
-			</ul>
-
-			<div id="info">
-				<ul id="breadcrumbs">
+			<div class="inner-area">
+				<ul id="tabs">
+					<li id="info-button" class="active first"><a href="#/about">Info</a></li>
+					<li id="playlist-button" class="last"><a href="#/playlist">Playlist</a></li>
 				</ul>
 
-				<div id="info-content">
-				</div>
-			</div>
+				<div id="info" class="tab">
+					<div class="tab-head">
+						<ul id="breadcrumbs">
+						</ul>
+					</div>
 
-			<div id="playlist-container" style="display:none;">
-				<a href="javascript:Magnatune.Playlist.clear();void(0)">Clear</a>
-				<a href="javascript:Magnatune.Playlist.removeSelected();void(0)">Remove Selected</a>
-				<table class="playlist" id="playlist">
-					<thead>
-						<tr>
-							<th>Nr.</th>
-							<th>Title</th>
-							<th>Duration</th>
-							<th>Artist</th>
-							<th>Album</th>
-							<th>&nbsp;</th>
-						</tr>
-					</thead>
-					<tbody>
-					</tbody>
-				</table>
+					<div id="info-content" class="tab-content">
+					</div>
+				</div>
+
+				<div id="playlist-container" style="display:none;" class="tab">
+					<div class="tab-head">
+						<a class="button" href="javascript:Magnatune.Playlist.clear();void(0)">Clear</a>
+						<a class="button" href="javascript:Magnatune.Playlist.removeSelected();void(0)">Remove Selected</a>
+					</div>
+					<div class="tab-content">
+						<table class="playlist" id="playlist">
+							<thead>
+								<tr>
+									<th>Nr.</th>
+									<th>Title</th>
+									<th>Duration</th>
+									<th>Artist</th>
+									<th>Album</th>
+									<th>&nbsp;</th>
+								</tr>
+							</thead>
+							<tbody>
+							</tbody>
+						</table>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
