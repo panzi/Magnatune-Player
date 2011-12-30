@@ -104,20 +104,24 @@ li.active {
 	cursor: default;
 }
 
-.playlist tr td {
+.playlist tr td,
+.playlist tr th {
 	border-bottom: 2px solid transparent;
 	border-top:    2px solid transparent;
 }
 
-.playlist tr.drop.after td {
+.playlist tr.drop.after td,
+.playlist tr.drop.after th {
 	border-bottom: 2px solid gray;
 }
 
-.playlist tr.drop.before td {
+.playlist tr.drop.before td,
+.playlist tr.drop.before th {
 	border-top: 2px solid gray;
 }
 
-.dragged.playlist tr td {
+.dragged.playlist tr td,
+.dragged.playlist tr th {
 	border-bottom: 2px solid transparent !important;
 	border-top:    2px solid transparent !important;
 }
@@ -227,9 +231,13 @@ th {
 	z-index: 1;
 }
 
-#tree .albums img {
+#tree .album img {
 	width: 50px;
 	height: 50px;
+}
+
+#tree .album {
+	display: inline-block;
 }
 
 #tree ul {
