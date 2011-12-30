@@ -1,3 +1,11 @@
+@import url(http://fonts.googleapis.com/css?family=Actor);
+@import url(http://fonts.googleapis.com/css?family=Ubuntu+Mono);
+
+body {
+	font-family: 'Actor', sans-serif;
+	font-size: 14px;
+}
+
 a {
 	text-decoration: none;
 }
@@ -129,6 +137,7 @@ th {
 }
 
 .number, .duration {
+	font-family: 'Ubuntu Mono', monospace;
 	text-align: right;
 }
 
@@ -221,6 +230,10 @@ th {
 #tree .albums img {
 	width: 50px;
 	height: 50px;
+}
+
+#tree ul {
+	list-style: none;
 }
 
 #info-content {

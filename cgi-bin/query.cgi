@@ -170,7 +170,7 @@ def search_genre_artist_album(cur,query):
 	albums = [row[0] for row in cur.fetchall()]
 	where, args = build_query(['songs.desc'],query)
 	cur.execute(
-		'select number, desc, duration, mp3, songs.albumname from songs '
+		'select distinct number, desc, duration, mp3, songs.albumname from songs '
 		'inner join albums on songs.albumname = albums.albumname '
 		'inner join genres on albums.albumname = genres.albumname '
 		'where songs.albumname not in (%s) and '
