@@ -267,7 +267,7 @@ var Magnatune = {
 				var ranges = this.buffered;
 				var buffered = $('#buffer-progress')[0];
 				var ctx = buffered.getContext('2d');
-				ctx.fillStyle = '#a0a0ff';
+				ctx.fillStyle = '#573B1F';
 				ctx.clearRect(0,0,buffered.width,buffered.height);
 				for (var i = 0; i < ranges.length; ++ i) {
 					var start = ranges.start(i);
@@ -723,7 +723,9 @@ var Magnatune = {
 				tag('td',{'class':'duration'},tag.time(song.duration)),
 				tag('td',tag('a',{href:'#/artist/'+encodeURIComponent(artist)},artist)),
 				tag('td',tag('a',{href:'#/album/'+encodeURIComponent(song.albumname)},song.albumname)),
-				tag('td',tag('a',{href:'javascript:void(0)',onclick:'$(this).parents("tr").first().remove();'},'\u00d7')));
+				tag('td',{'class':'remove'},
+					tag('a',{href:'javascript:void(0)',onclick:'$(this).parents("tr").first().remove();'},
+					'\u00d7')));
 			Magnatune.Drag.draggable(tr, Magnatune.Playlist.DraggableOptions);
 			return tr;
 		},
@@ -1557,7 +1559,7 @@ var Magnatune = {
 				var button = $('#tree-mode-button');
 				var pos = button.position();
 				mode.css({
-					left: pos.left+'px',
+					left: (pos.left+button.width()-mode.width())+'px',
 					top: (pos.top+button.height())+'px'
 				});
 				mode.show();
@@ -1700,6 +1702,18 @@ $(document).on('mouseup', function (event) {
 
 $(document).ready(function () {
 	Magnatune.Player.initAudio();
+	var playerleave_timer = null;
+	$('#player').on('mouseenter', function (event) {
+		if (playerleave_timer !== null) {
+			clearTimeout(playerleave_timer);
+		}
+		$(this).stop().animate({top: '0px'},250);
+	});
+	$('#player').on('mouseleave', function (event) {
+		playerleave_timer = setTimeout(function () {
+			$(this).stop().animate({top: '-65px'},250);
+		}.bind(this),500);
+	});
 	Magnatune.Drag.draggable($('#play-progress-container'), {
 		create: function (event) {
 			Magnatune.Drag.seeking = true;
@@ -1750,9 +1764,8 @@ $(document).ready(function () {
 			Magnatune.showHash();
 		}
 	});
-	var search = $('#search');
-	search.on('paste cut drop', Magnatune.Navigation.FilterInput.delayedUpdate);
-	search.on('keypress', function (event) {
+	$('#search').on('paste cut drop', Magnatune.Navigation.FilterInput.delayedUpdate);
+	$('#search').on('keypress', function (event) {
 		if (event.which === 13) {
 			Magnatune.Navigation.FilterInput.update();
 		}

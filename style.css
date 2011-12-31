@@ -6,6 +6,8 @@ body {
 	font-size: 14px;
 	color: #e0e0e0;
 	background-color: #444444;
+	padding: 0;
+	margin: 0;
 }
 
 a {
@@ -23,6 +25,7 @@ input[type="text"] {
 	color: #e0e0e0;
 }
 
+#currently-playing,
 .tab-content,
 #tree,
 .search-container {
@@ -33,12 +36,14 @@ input[type="text"] {
 	border-right-color:  #87592C;
 }
 
+#currently-playing,
 .search-container,
 .button {
 	display: inline-block;
 	border-radius: 10px;
 }
 
+#currently-playing,
 #tree,
 .tab-content,
 .search-container,
@@ -54,12 +59,17 @@ input[type="text"] {
 	border-radius: 15px;
 }
 
+#tree-mode-select,
+#volume-control,
 .button {
 	background-color: #313131;
 }
 
+#tree-mode-select,
+#volume-control,
+#play-button-wrapper,
 #player,
-#tabs li,
+#tabs a,
 .button,
 #navigation,
 #content {
@@ -90,6 +100,7 @@ li.active {
 	font-weight: bold;
 }
 
+#play-button-wrapper,
 #player,
 #navigation,
 #content {
@@ -106,14 +117,11 @@ li.active {
 	box-shadow: inset -15px -20px 30px #39322A;
 }
 
-#player-wrapper {
+#player {
 	position: fixed;
-	top: 0px;
+	top: -65px;
 	right: 50px;
 	z-index: 1000;
-}
-
-#player {
 	width: 500px;
 	margin: auto;
 	border-radius: 30px;
@@ -123,6 +131,7 @@ li.active {
 
 #player .inner-area {
 	border-radius: 25px;
+	height: 75px;
 }
 
 #player,
@@ -131,9 +140,55 @@ li.active {
 	border-top-right-radius: 0px;
 }
 
-body {
-	padding: 0;
-	margin: 0;
+#play-button-wrapper {
+	position: absolute;
+	left: -20px;
+	bottom: -20px;
+	border-style: solid;
+	border-width: 10px;
+	border-radius: 80px;
+	width: 80px;
+	height: 80px;
+}
+
+#play-button-wrapper .inner-area {
+	border-radius: 70px;
+	width: 60px;
+	height: 60px;
+}
+
+#play-button-wrapper a {
+	outline: none;
+}
+
+#play-button-wrapper img {
+	width: 60px;
+	height: 60px;
+}
+
+#status,
+#player-buttons {
+	position: absolute;
+	bottom: 10px;
+}
+
+#player-buttons {
+	left: 85px;
+}
+
+#next-button {
+	margin-right: 10px;
+}
+
+#status {
+	right: 20px;
+}
+
+#waiting {
+	width: 16px;
+	height: 16px;
+	margin-right: 10px;
+	background-image: url("spinner.gif");
 }
 
 #currently-playing {
@@ -145,7 +200,11 @@ body {
 #tree-mode-select {
 	position: absolute;
 	list-style: none;
-	padding: 0;
+	border-radius: 10px;
+	border-width: 1px;
+	border-style: solid;
+	padding: 5px;
+	white-space: nowrap;
 }
 
 #tabs {
@@ -153,7 +212,8 @@ body {
 	margin-top: -11px;
 }
 
-#tabs li {
+#tabs li a {
+	display: inline-block;
 	background-color: #313131;
 	border-style: solid;
 	border-width: 1px;
@@ -162,7 +222,7 @@ body {
 	margin-left: -3px; /* why? */
 }
 
-#tabs li.first {
+#tabs li.first a {
 	margin-left: 0px;
 	padding-left: 25px;
 	border-top-left-radius: 20px;
@@ -191,12 +251,6 @@ body {
 
 #playlist {
 	width: 100%;
-}
-
-#waiting {
-	width: 16px;
-	height: 16px;
-	background-image: url("spinner.gif");
 }
 
 .dragged,
@@ -239,6 +293,10 @@ body {
 	width: 4em;
 }
 
+.playlist td.remove {
+	width: 1em;
+}
+
 .playlist tr.current {
 	font-weight: bold;
 }
@@ -270,13 +328,15 @@ body {
 }
 
 .playlist tr.selected {
-	color: white;
-	background-color: blue;
+	background-color: #503B28;
 }
 
 #volume-control {
 	position: absolute;
-	background-color: #a0a0a0;
+	border-radius: 10px;
+	border-width: 1px;
+	border-style: solid;
+	padding: 5px;
 }
 
 th {
@@ -328,13 +388,28 @@ th {
 	top: 10px;
 	right: 10px;
 }
-#play-progress-container,
-#buffer-progress {
+
+#currently-playing {
 	width: 400px;
 }
 
+#play-progress-container,
+#buffer-progress {
+	width: 380px;
+}
+
+#currently-playing {
+	bottom: 60px;
+}
+
+#currently-playing,
 #play-progress-container {
-	position: relative;
+	position: absolute;
+	right: 20px;
+}
+
+#play-progress-container {
+	bottom: 40px;
 	background-color: #313131;
 	height: 10px;
 	cursor: pointer;
@@ -372,21 +447,23 @@ th {
 }
 
 #volume-bar-container {
-	background-color: black;
+	background-color: #101010;
 	height: 150px;
 	margin: auto;
+	margin-top: 5px;
 	cursor: pointer;
 	position: relative;
 	width: 10px;
-/*	overflow: hidden;*/
+	border-radius: 5px;
 }
 
 #volume-bar {
-	background-color: blue;
+	background-color: #87592C;
 	position: absolute;
 	left: 0px;
 	right: 0px;
 	bottom: 0px;
+	border-radius: 5px;
 }
 
 #volume {
@@ -424,6 +501,7 @@ th {
 	bottom: 0px;
 }
 
+.genre table .cover,
 #tree .album img {
 	width: 50px;
 	height: 50px;
