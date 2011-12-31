@@ -545,11 +545,13 @@ a.button {
 	padding-left: 25px;
 }
 
+.tab-content {
+	overflow: auto;
+}
 
 #info-content {
 	padding: 15px;
 	padding-top: 0px;
-	overflow: auto;
 }
 
 #current-time,
