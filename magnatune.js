@@ -278,7 +278,8 @@ var Magnatune = {
 			},
 			timeupdate: function (event) {
 				var duration = Magnatune.Player.duration();
-				$('#time-left').text('-'+tag.time(duration - this.currentTime));
+				var remaining = duration - this.currentTime;
+				$('#time-left').text('-'+tag.time(remaining < 0 ? NaN : remaining));
 				$('#current-time').text(tag.time(this.currentTime));
 				$('#play-progress').css('width',Math.round(
 					$('#play-progress-container').width() * this.currentTime / duration)+'px');
