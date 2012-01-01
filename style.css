@@ -123,24 +123,21 @@ li.active {
 }
 
 #player-wrapper {
-	position: fixed;
-	height: 0px;
+	position: absolute;
 	left: 0px;
+	top: 0px;
 	right: 0px;
 	bottom: 0px;
-	z-index: 1000;
 }
 
 #player {
-	position: absolute;
-	bottom: 0px;
-	left: 0px;
-	right: 0px;
+	position: relative;
 	width: 500px;
 	margin: auto;
 	border-radius: 30px;
 	border-width: 5px;
-	border-bottom-style: none;
+	border-top-style: none;
+	z-index: 1000;
 }
 
 #player .inner-area {
@@ -150,8 +147,8 @@ li.active {
 
 #player,
 #player .inner-area {
-	border-bottom-left-radius: 0px;
-	border-bottom-right-radius: 0px;
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;
 }
 
 #play-button-wrapper {
@@ -186,6 +183,12 @@ li.active {
 	bottom: 10px;
 }
 
+#player-hide,
+#player-show {
+	position: absolute;
+	bottom: 6px;
+}
+
 #player-buttons {
 	left: 65px;
 }
@@ -211,8 +214,15 @@ li.active {
 	margin-right: 10px;
 }
 
-#status {
+#player-hide,
+#player-show {
 	right: 20px;
+	width: 20px;
+	text-align: center;
+}
+
+#status {
+	right: 60px;
 }
 
 #waiting {
@@ -220,12 +230,6 @@ li.active {
 	height: 16px;
 	margin-right: 10px;
 	background-image: url("spinner.gif");
-}
-
-#currently-playing {
-	width: 400px;
-	overflow: hidden;
-	white-space:nowrap;
 }
 
 #tree-mode-select {
@@ -387,12 +391,24 @@ th {
 	text-align: right;
 }
 
-#navigation {
+#navigation,
+#content {
 	position: absolute;
-	left: 10px;
 	bottom: 10px;
-	top: 10px;
+	top: 110px;
+	min-height: 100px;
+	overflow: hidden;
+}
+
+#navigation {
+	left: 10px;
 	width: 350px;
+}
+
+#content {
+	left: 375px;
+	right: 10px;
+	min-width: 100px;
 }
 
 #navigation .inner-area,
@@ -412,14 +428,6 @@ th {
 	top: 40px;
 }
 
-#content {
-	position: absolute;
-	left: 375px;
-	bottom: 10px;
-	top: 10px;
-	right: 10px;
-}
-
 #play-progress-container,
 #buffer-progress {
 	width: 380px;
@@ -427,20 +435,13 @@ th {
 
 #currently-playing {
 	position: absolute;
-	right: 50px;
-	width: 355px;
+	right: 20px;
+	width: 385px;
 	bottom: 60px;
 	padding-left: 5px;
 	padding-right: 5px;
-}
-
-#player-hide,
-#player-show {
-	position: absolute;
-	right: 20px;
-	bottom: 60px;
-	width: 20px;
-	text-align: center;
+	overflow: hidden;
+	white-space:nowrap;
 }
 
 #play-progress-container {
@@ -608,11 +609,6 @@ a.button {
 	right: 10px;
 	bottom: 10px;
 	top: 75px;
-}
-
-#tree,
-.tab-content {
-	padding-bottom: 80px !important;
 }
 
 #current-time-duration {
