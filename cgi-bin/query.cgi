@@ -285,9 +285,14 @@ def album(cur,params):
 	if not album:
 		return None
 	album = row_to_dict(cur,album)
-	also = album['also'].split()
-	cur.execute('select albumname from albums where sku in (%s)' % (nargs(len(also))), also)
-	album['also'] = [row[0] for row in cur.fetchall()]
+	also = album['also']
+	if also:
+		also = also.split()
+		cur.execute('select albumname from albums where sku in (%s)' % (nargs(len(also))), also)
+		album['also'] = [row[0] for row in cur.fetchall()]
+	else:
+		# just in case it might be '' or None
+		album['also'] = []
 	cur.execute(
 		'select number, desc, duration, mp3 from songs where albumname = ? order by number',
 		args)

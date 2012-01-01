@@ -1227,7 +1227,7 @@ var Magnatune = {
 											artist: artist.artist,
 											albums: [album]
 										};
-										add_artist(new_artist, artist.genres);
+										add_artist(new_artist, album.genres);
 										artists_to_sort.push(new_artist);
 									}
 									return new_artist;
@@ -1281,7 +1281,6 @@ var Magnatune = {
 								sorted_genres.sort(function (a,b) {
 									return a.genre < b.genre ? -1 : a.genre > b.genre ? 1 : 0;
 								});
-
 								Magnatune.Navigation.Modes.GenreArtistAlbum.render(parent, sorted_genres);
 							},
 							error: function () {
