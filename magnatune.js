@@ -415,6 +415,26 @@ var Magnatune = {
 			}
 			catch (e) {}
 		},
+		randomAlbum: function () {
+			var albums = Magnatune.Collection.SortedAlbums;
+			var album = albums[Math.round(Math.random() * (albums.length - 1))];
+			
+			$.ajax({
+				url: 'cgi-bin/query.cgi',
+				data: {action: 'album', name: album.albumname},
+				dataType: 'json',
+				success: function (data) {
+					if (!data.body) return; // TODO
+					for (var i = 0; i < data.body.songs.length; ++ i) {
+						data.body.songs[i].albumname = album.albumname;
+					}
+					Magnatune.Playlist.replace(data.body.songs,true);
+				},
+				error: function () {
+					// TODO
+				}
+			});
+		},
 		hide: function () {
 			$('#player-show').show();
 			$('#player-hide').hide();
@@ -535,9 +555,17 @@ var Magnatune = {
 			about: function (opts) {
 				// TODO
 				var breadcrumbs = [{href:'#/about',text:'About'}];
-				var page = tag('div',{'class':'about'},
-					tag('h2','About Magnatune Player'),
-					tag('p','TODO: About text.'));
+				var page = tag('div',{'class':'about'});
+				$(page).html(
+					'<h2>About Magnatune Player</h2>'+
+					'<p>This is a proof of concept interface to <a href="http://magnatune.com/">magnatune.com</a> '+
+					'that is organized like a music player. It used the <a href="http://www.sqlite.org/">SQLite</a> '+
+					'export from the <a href="http://magnatune.com/info/api">Magnatune API</a> and the '+
+					'<a href="http://dev.w3.org/html5/spec/the-audio-element.html">HTML5 Audio Element</a>. '+
+					'Because HTML5 Audio is still not bug free depending on the browser things like the buffer '+
+					'progress display or seeking might not work 100% reliable.</p>'+
+					'<p>You can download the source code of this web page on '+
+					'<a href="https://bitbucket.org/panzi/magnatune-player">bitbucket</a>.</p>');
 				Magnatune.Info.update('#/about',breadcrumbs,page,opts.keeptab);
 			},
 			genre: function (opts) {

@@ -1,6 +1,11 @@
 @import url(http://fonts.googleapis.com/css?family=Actor);
 @import url(http://fonts.googleapis.com/css?family=Ubuntu+Mono);
 
+html,
+body {
+	overflow: hidden;
+}
+
 body {
 	font-family: 'Actor', sans-serif;
 	font-size: 14px;
@@ -258,11 +263,19 @@ li.active {
 #breadcrumbs {
 	list-style: none;
 	padding: 0;
+	white-space: nowrap;
 }
 
 #breadcrumbs li,
 #tabs li {
 	display: inline-block;
+}
+
+#about {
+	position: absolute;
+	right: 15px;
+	top: 10px;
+	font-weight: bold;
 }
 
 #breadcrumbs li:before {
