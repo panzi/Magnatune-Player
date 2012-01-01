@@ -646,7 +646,9 @@ var Magnatune = {
 								target:'_blank'},
 								album.albumname)),
 							tag('div',{'class':'buy button',title:'Buy this Album'},
-								tag('a',{href:'https://magnatune.com/buy/choose?sku='+data.body.sku},'Buy')),
+								tag('a',{
+									href:'https://magnatune.com/buy/choose?sku='+data.body.sku,
+									target:'_blank'},'Buy')),
 							tag('img', {'class':'cover',
 								src: 'http://he3.magnatune.com/music/'+
 									encodeURIComponent(artist.artist)+'/'+
