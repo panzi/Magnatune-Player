@@ -1777,7 +1777,10 @@ $(document).on('mouseup', function (event) {
 });
 
 $(document).ready(function () {
-	Magnatune.Player.initAudio();
+	try {
+		Magnatune.Player.initAudio();
+	}
+	catch (e) {}
 	Magnatune.Drag.draggable($('#play-progress-container'), {
 		create: function (event) {
 			Magnatune.Drag.seeking = true;

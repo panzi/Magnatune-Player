@@ -521,6 +521,10 @@ th {
 	margin-left: 10px;
 }
 
+img {
+	border-style: none;
+}
+
 #volume-control,
 #tree-mode-select {
 	z-index: 1001;
