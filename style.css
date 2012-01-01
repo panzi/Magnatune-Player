@@ -117,16 +117,25 @@ li.active {
 	box-shadow: inset -15px -20px 30px #39322A;
 }
 
-#player {
+#player-wrapper {
 	position: fixed;
-	top: -65px;
-	right: 50px;
+	height: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
 	z-index: 1000;
+}
+
+#player {
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
 	width: 500px;
 	margin: auto;
 	border-radius: 30px;
 	border-width: 5px;
-	border-top-style: none;
+	border-bottom-style: none;
 }
 
 #player .inner-area {
@@ -136,8 +145,8 @@ li.active {
 
 #player,
 #player .inner-area {
-	border-top-left-radius: 0px;
-	border-top-right-radius: 0px;
+	border-bottom-left-radius: 0px;
+	border-bottom-right-radius: 0px;
 }
 
 #play-button-wrapper {
@@ -173,10 +182,27 @@ li.active {
 }
 
 #player-buttons {
-	left: 85px;
+	left: 65px;
 }
 
-#next-button {
+#player-buttons .button {
+	margin: -3px; /* why not 0px? */
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+#stop-button,
+#previous-button {
+	border-radius: 0px;
+}
+
+#stop-button.button {
+	padding-left: 20px;
+}
+
+#next-button.button {
+	border-top-left-radius: 0px;
+	border-bottom-left-radius: 0px;
 	margin-right: 10px;
 }
 
@@ -353,7 +379,7 @@ th {
 	left: 10px;
 	bottom: 10px;
 	top: 10px;
-	width: 400px;
+	width: 350px;
 }
 
 #navigation .inner-area,
@@ -373,24 +399,12 @@ th {
 	top: 40px;
 }
 
-.tab-content {
-	position: absolute;
-	left: 10px;
-	right: 10px;
-	bottom: 10px;
-	top: 75px;
-}
-
 #content {
 	position: absolute;
-	left: 425px;
+	left: 375px;
 	bottom: 10px;
 	top: 10px;
 	right: 10px;
-}
-
-#currently-playing {
-	width: 400px;
 }
 
 #play-progress-container,
@@ -399,10 +413,23 @@ th {
 }
 
 #currently-playing {
+	position: absolute;
+	right: 50px;
+	width: 355px;
 	bottom: 60px;
+	padding-left: 5px;
+	padding-right: 5px;
 }
 
-#currently-playing,
+#player-hide,
+#player-show {
+	position: absolute;
+	right: 20px;
+	bottom: 60px;
+	width: 20px;
+	text-align: center;
+}
+
 #play-progress-container {
 	position: absolute;
 	right: 20px;
@@ -483,7 +510,7 @@ th {
 
 #volume-control,
 #tree-mode-select {
-	z-index: 1;
+	z-index: 1001;
 }
 
 .navigation-head {
@@ -491,7 +518,7 @@ th {
 }
 
 #search {
-	width: 305px;
+	width: 255px;
 }
 
 #tree-mode-button {
@@ -513,8 +540,8 @@ th {
 
 #tree {
 	margin-top: 10px;
-	white-space: nowrap;
 	overflow: auto;
+	white-space: nowrap;
 }
 
 #tree a {
@@ -541,12 +568,19 @@ a.button {
 	line-height: 50px;
 }
 
-#tree ul ul {
-	padding-left: 25px;
+#tree a.album-head {
+	height: 50px;
+	position: relative;
+	margin-bottom: 5px;
 }
 
-.tab-content {
-	overflow: auto;
+#tree a.album-head table {
+	position: absolute;
+	left: 15px;
+}
+
+#tree ul ul {
+	padding-left: 25px;
 }
 
 #info-content {
@@ -554,7 +588,21 @@ a.button {
 	padding-top: 0px;
 }
 
-#current-time,
-#current-duration {
+.tab-content {
+	position: absolute;
+	overflow: auto;
+	left: 10px;
+	right: 10px;
+	bottom: 10px;
+	top: 75px;
+}
+
+#tree,
+.tab-content {
+	padding-bottom: 80px !important;
+}
+
+#current-time-duration {
+	cursor: default;
 	font-family: monospace;
 }

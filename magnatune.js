@@ -278,6 +278,7 @@ var Magnatune = {
 			},
 			timeupdate: function (event) {
 				var duration = Magnatune.Player.duration();
+				$('#time-left').text('-'+tag.time(duration - this.currentTime));
 				$('#current-time').text(tag.time(this.currentTime));
 				$('#play-progress').css('width',Math.round(
 					$('#play-progress-container').width() * this.currentTime / duration)+'px');
@@ -302,10 +303,20 @@ var Magnatune = {
 			canplay: function (event) {
 				$('#waiting').css("visibility","hidden");
 			},
+			playing: function (event) {
+				$('#play-image').hide();
+				$('#pause-image').show();
+			},
 			emptied: function (event) {
 				$('#waiting').css("visibility","hidden");
 			},
+			pause: function (event) {
+				$('#play-image').show();
+				$('#pause-image').hide();
+			},
 			ended: function (event) {
+				$('#play-image').show();
+				$('#pause-image').hide();
 				$('#waiting').css("visibility","hidden");
 				if (!Magnatune.Drag.seeking) {
 					Magnatune.Playlist.next(true);
@@ -404,19 +415,33 @@ var Magnatune = {
 			}
 			catch (e) {}
 		},
+		hide: function () {
+			$('#player-show').show();
+			$('#player-hide').hide();
+			$('#player-wrapper').stop().animate({bottom:'-55px'},500);
+		},
+		show: function () {
+			$('#player-show').hide();
+			$('#player-hide').show();
+			$('#player-wrapper').stop().animate({bottom:'0px'},500);
+		},
 		toggleVolume: function () {
-			var volume = $('#volume-control');
-			if (volume.is(':visible')) {
-				volume.hide();
+			var control = $('#volume-control');
+			if (control.is(':visible')) {
+				control.hide();
 			}
 			else {
-				var button = $('#volume-button');
-				var pos = button.position();
-				volume.css({
-					left: pos.left+'px',
-					top: (pos.top+button.height())+'px'
+				var element = control[0];
+				var button = $('#volume-button')[0];
+				control.css({
+					visibility: 'hidden',
+					display: ''
 				});
-				volume.show();
+				control.css({
+					left: Math.round(button.offsetLeft+(button.offsetWidth-element.offsetWidth)*0.5)+'px',
+					top: (button.offsetTop-element.offsetHeight-5)+'px',
+					visibility: ''
+				});
 			}
 		},
 		mute: function () {
@@ -1228,7 +1253,8 @@ var Magnatune = {
 							head_attrs: {
 								href: '#/artist/'+encodeURIComponent(artist.artist),
 								onclick: Magnatune.Info.load.bind(Magnatune.Info,
-									'artist',{id:artist.artist,keeptab:true})
+									'artist',{id:artist.artist,keeptab:true}),
+								title: artist.artist
 							},
 							render: function (parent) {
 								Magnatune.Navigation.Modes.Album.render(parent,
@@ -1344,7 +1370,8 @@ var Magnatune = {
 								'class': 'album-head',
 								href: '#/album/'+encodeURIComponent(album.albumname),
 								onclick: Magnatune.Info.load.bind(Magnatune.Info,
-									'album',{id:album.albumname,keeptab:true})
+									'album',{id:album.albumname,keeptab:true}),
+								title: album.albumname
 							},
 							render: function (parent) {
 								if (this.songs) {
@@ -1480,7 +1507,7 @@ var Magnatune = {
 					for (var i = 0; i < album.songs.length; ++ i) {
 						var song = album.songs[i];
 						song.albumname = album.albumname;
-						var item = tag('li', {dataset:song}, song.desc);
+						var item = tag('li', {dataset:song, title:song.desc}, song.desc);
 						Magnatune.Drag.draggable(item, this.DraggableOptions);
 						list.append(item);
 					}
@@ -1702,18 +1729,6 @@ $(document).on('mouseup', function (event) {
 
 $(document).ready(function () {
 	Magnatune.Player.initAudio();
-	var playerleave_timer = null;
-	$('#player').on('mouseenter', function (event) {
-		if (playerleave_timer !== null) {
-			clearTimeout(playerleave_timer);
-		}
-		$(this).stop().animate({top: '0px'},250);
-	});
-	$('#player').on('mouseleave', function (event) {
-		playerleave_timer = setTimeout(function () {
-			$(this).stop().animate({top: '-65px'},250);
-		}.bind(this),500);
-	});
 	Magnatune.Drag.draggable($('#play-progress-container'), {
 		create: function (event) {
 			Magnatune.Drag.seeking = true;
