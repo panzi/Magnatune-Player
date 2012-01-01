@@ -825,6 +825,7 @@ var Magnatune = {
 			}
 			else {
 				var tracks = tbody.find('> tr');
+				var prev = null;
 				for (var i = 0; i < tracks.length; ++ i) {
 					var track = $(tracks[i]);
 					var track_pos = track.offset();
@@ -833,11 +834,15 @@ var Magnatune = {
 						if (y > (track_pos.top + track_height * 0.5)) {
 							track.addClass('drop after');
 						}
+						else if (prev) {
+							prev.addClass('drop after');
+						}
 						else {
 							track.addClass('drop before');
 						}
 						break;
 					}
+					prev = track;
 				}
 			}
 		},
