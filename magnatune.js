@@ -596,7 +596,8 @@ var Magnatune = {
 
 				var page = tag('div',{'class':'genre'},
 					tag('h2',tag('a',{'class':'genre',
-						href:'http://magnatune.com/genres/'+genre.genre.replace(/\s/g,'').toLowerCase()+'/'},
+						href:'http://magnatune.com/genres/'+genre.genre.replace(/\s/g,'').toLowerCase()+'/',
+						target:'_blank'},
 						genre.genre)),
 					tag('table', tbody));
 				Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);
@@ -637,7 +638,8 @@ var Magnatune = {
 
 						var page = tag('div',{'class':'album'},
 							tag('h2', tag('a', {'class':'albumname',
-								href:'http://magnatune.com/artists/albums/'+data.body.sku+'/'},
+								href:'http://magnatune.com/artists/albums/'+data.body.sku+'/',
+								target:'_blank'},
 								album.albumname)),
 							tag('div',{'class':'buy button',title:'Buy this Album'},
 								tag('a',{href:'https://magnatune.com/buy/choose?sku='+data.body.sku},'Buy')),
@@ -682,7 +684,8 @@ var Magnatune = {
 						var breadcrumbs = [{href: hash, text: artist.artist}];
 						var page = tag('div',{'class':'artist'},
 							tag('h2', tag('a', {'class':'artist',
-								href:'http://magnatune.com/artists/'+data.body.homepage},
+								href:'http://magnatune.com/artists/'+data.body.homepage,
+								target:'_blank'},
 								artist.artist)),
 							data.body.bandphoto && tag('img', {'class': 'bandphoto',
 								src: 'http://magnatune.com/'+data.body.bandphoto,
