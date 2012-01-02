@@ -941,6 +941,17 @@ var Magnatune = {
 		removeSelected: function () {
 			$('#playlist > tbody > tr.selected').remove();
 		},
+		showCurrent: function () {
+			var current = $('#playlist .current')[0];
+			if (current) {
+				if (current.scrollIntoViewIfNeeded) {
+					current.scrollIntoViewIfNeeded();
+				}
+				else {
+					current.scrollIntoView();
+				}
+			}
+		},
 		_songs: function (selector) {
 			var rows = $(selector);
 			var songs = [];
@@ -1784,6 +1795,9 @@ $(document).on('mouseup', function (event) {
 });
 
 $(document).ready(function () {
+	if (!document.body.scrollIntoView && !document.body.scrollIntoViewIfNeeded) {
+		$('#show-current').hide();
+	}
 	try {
 		Magnatune.Player.initAudio();
 	}
