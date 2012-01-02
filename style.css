@@ -424,7 +424,10 @@ li.active {
 	border-top:    2px solid transparent !important;
 }
 
-::selection,
+::selection {
+	background-color: #503B28;
+}
+
 .playlist tr.selected {
 	background-color: #503B28;
 }
