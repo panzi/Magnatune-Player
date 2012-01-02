@@ -524,6 +524,11 @@ th {
 	margin-left: 10px;
 }
 
+.album img.cover {
+	width: 300px;
+	height: 300px;
+}
+
 img {
 	border-style: none;
 }
@@ -657,5 +662,5 @@ a.button {
 .tab-content .album {
 	position: relative;
 	margin-right: 220px;
-	min-width: 200px;
+	min-width: 300px;
 }
