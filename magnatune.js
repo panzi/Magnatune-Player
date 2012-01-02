@@ -523,6 +523,8 @@ var Magnatune = {
 			$('#info-button a').attr('href', hash);
 			var info = $("#info-content");
 			info.dataset('hash',hash);
+			info.scrollTop(0);
+			info.scrollLeft(0);
 			info.html(content);
 			
 			if (!keeptab) this.show();
@@ -606,8 +608,8 @@ var Magnatune = {
 								tag('td', {'class':'duration'}, tag.time(song.duration)),
 								tag('td', tag('a',{
 									title: 'Enqueue',
-									href:'javascript:Magnatune.Playlist.enqueue(['+
-										JSON.stringify(song)+']);void(0)'},'+'))));
+									href:'javascript:'+encodeURIComponent('Magnatune.Playlist.enqueue(['+
+										JSON.stringify(song)+']);void(0)')},'+'))));
 						}
 						var genres = $(tag('ul'));
 						for (var i = 0; i < album.genres.length; ++ i) {
@@ -636,11 +638,13 @@ var Magnatune = {
 								alt: 'Cover'}),
 							tag.textify(data.body.description),
 							tag('div',
-								tag('a', {'class':'button',href:'javascript:Magnatune.Playlist.replace('+
-									JSON.stringify(data.body.songs)+',true);void(0)'}, 'Play Album'),
+								tag('a', {'class':'button',href:'javascript:'+encodeURIComponent(
+									'Magnatune.Playlist.replace('+JSON.stringify(data.body.songs)+',true);void(0)')},
+									'Play Album'),
 								' ',
-								tag('a', {'class':'button',href:'javascript:Magnatune.Playlist.enqueue('+
-									JSON.stringify(data.body.songs)+');void(0)'}, 'Enqueue Album')),
+								tag('a', {'class':'button',href:'javascript:'+encodeURIComponent(
+									'Magnatune.Playlist.enqueue('+JSON.stringify(data.body.songs)+');void(0)')},
+									'Enqueue Album')),
 							tag('table',
 								tag('thead',
 									tag('tr',
@@ -1122,6 +1126,18 @@ var Magnatune = {
 		}
 	},
 	Navigation: {
+		show: function () {
+			$('#content').stop().animate({left:'375px'},500);
+			$('#navigation').stop().animate({left:'10px'},500);
+			$('#navigation-hide').show();
+			$('#navigation-show').hide();
+		},
+		hide: function () {
+			$('#content').stop().animate({left:'25px'},500);
+			$('#navigation').stop().animate({left:'-340px'},500);
+			$('#navigation-hide').hide();
+			$('#navigation-show').show();
+		},
 		clear: function () {
 			$('#search').val('');
 			this.filter('');

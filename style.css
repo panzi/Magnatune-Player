@@ -397,6 +397,9 @@ th {
 	bottom: 10px;
 	top: 110px;
 	min-height: 100px;
+}
+
+#content {
 	overflow: hidden;
 }
 
@@ -535,14 +538,33 @@ img {
 }
 
 #search {
-	width: 255px;
+	width: 225px;
+}
+
+#tree-mode-button,
+#navigation-hide,
+#navigation-show {
+	position: absolute;
+	top: 0px;
+	bottom: 0px;
 }
 
 #tree-mode-button {
-	position: absolute;
+	right: 30px;
+}
+
+#navigation-show {
+	right: -20px;
+}
+
+#navigation-hide {
 	right: 0px;
-	top: 0px;
-	bottom: 0px;
+}
+
+#navigation-show,
+#navigation-hide {
+	width: 20px;
+	text-align: center;
 }
 
 table.albums .cover,
@@ -627,12 +649,13 @@ a.button {
 .also {
 	position: absolute;
 	top: 0px;
-	right: 0px;
+	right: -210px;
 	width: 210px;
-	margin-right: 10px;
 	padding-bottom: 10px;
 }
 
 .tab-content .album {
+	position: relative;
 	margin-right: 220px;
+	min-width: 200px;
 }
