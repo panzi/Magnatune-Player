@@ -1,6 +1,59 @@
 @import url(http://fonts.googleapis.com/css?family=Actor);
 @import url(http://fonts.googleapis.com/css?family=Ubuntu+Mono);
 
+::-webkit-scrollbar {
+	height: 14px;
+	width: 14px;
+}
+
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-thumb {
+	background-color: #453D33;
+	border-radius: 6px;
+	box-shadow:
+		inset 3px 3px 6px 0px #52483C,
+		inset -3px -3px 6px 0px #39322A;
+	border: 1px solid #573B1F;
+	overflow: hidden;
+}
+
+::-webkit-scrollbar-button:active,
+::-webkit-scrollbar-thumb:active {
+	box-shadow:
+		inset -3px -3px 6px 0px #52483C,
+		inset 3px 3px 6px 0px #39322A;
+}
+
+::-webkit-scrollbar-button {
+	background-repeat: no-repeat;
+}
+
+::-webkit-scrollbar-button:active {
+	background-position: 1px 1px;
+}
+
+::-webkit-scrollbar,
+::-webkit-scrollbar-corner {
+	background-color: transparent;
+}
+
+::-webkit-scrollbar-button:vertical:increment {
+	background-image: url("scroll-down.png");
+}
+
+::-webkit-scrollbar-button:vertical:decrement {
+	background-image: url("scroll-up.png");
+}
+
+::-webkit-scrollbar-button:horizontal:increment {
+	background-image: url("scroll-right.png");
+}
+
+::-webkit-scrollbar-button:horizontal:decrement {
+	background-image: url("scroll-left.png");
+}
+
+
 html,
 body {
 	overflow: hidden;
@@ -294,6 +347,7 @@ li.active {
 
 #playlist {
 	width: 100%;
+	white-space: nowrap;
 }
 
 .dragged,
@@ -370,6 +424,7 @@ li.active {
 	border-top:    2px solid transparent !important;
 }
 
+::selection,
 .playlist tr.selected {
 	background-color: #503B28;
 }
