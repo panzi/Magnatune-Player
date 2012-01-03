@@ -77,10 +77,10 @@ else:
 	cur = conn.cursor()
 
 	def mkindex(table,columns):
-		sql = "create index {index} on {table} ({columns})".format(
-			index=table+'_'+'_'.join(columns),
-			table=table,
-			columns=', '.join(columns))
+		sql = "create index %s on %s (%s)" % (
+			table+'_'+'_'.join(columns),
+			table,
+			', '.join(columns))
 		write(sql+"\n")
 		cur.execute(sql)
 
