@@ -1,5 +1,7 @@
 "use strict";
 
+$.fx.interval = 40;
+
 var tag = (function ($) {
 	var add = function (element, arg) {
 		var type = typeof(arg);
@@ -205,6 +207,9 @@ var tag = (function ($) {
 })(jQuery);
 
 var Magnatune = {
+	Options: {
+		AnimationDuration: 500
+	},
 	Events: {
 		extend: function (obj) {
 			var events = {};
@@ -428,18 +433,61 @@ var Magnatune = {
 			});
 		},
 		hide: function () {
+			var d = Magnatune.Options.AnimationDuration;
 			$('#player-show').show();
 			$('#player-hide').hide();
-			$('#player-wrapper').stop().animate({top:'-60px'},500);
-			$('#currently-playing').stop().animate({bottom:'6px',right:'55px',width:'195px'},500);
-			$('#navigation, #content').stop().animate({top:'50px'},500);
+			$('#player-wrapper').stop().animate({top:'-60px'},d);
+			var currently_playing = $('#currently-playing').stop();
+			Magnatune.Player._stopTitleAnim();
+			currently_playing.animate({bottom:'6px',right:'55px',width:'195px'},d);
+			$('#navigation, #content').stop().animate({top:'50px'},d);
 		},
 		show: function () {
+			var d = Magnatune.Options.AnimationDuration;
 			$('#player-show').hide();
 			$('#player-hide').show();
-			$('#player-wrapper').stop().animate({top:'0px'},500);
-			$('#currently-playing').stop().animate({bottom:'60px',right:'20px',width:'385px'},500);
-			$('#navigation, #content').stop().animate({top:'110px'},500);
+			$('#player-wrapper').stop().animate({top:'0px'},d);
+			var currently_playing = $('#currently-playing').stop();
+			Magnatune.Player._stopTitleAnim();
+			currently_playing.animate({bottom:'60px',right:'20px',width:'385px'},d);
+			$('#navigation, #content').stop().animate({top:'110px'},d);
+		},
+		_stopTitleAnim: function () {
+			$('#currently-playing').stop('scroll',true,false).animate(
+				{scrollLeft: 0},
+				{duration: Magnatune.Options.AnimationDuration,
+				 queue:    'scroll',
+				 easing:   'linear'}).dequeue('scroll');
+		},
+		_titleAnim: function () {
+			var currently_playing = $('#currently-playing');
+			var text = currently_playing.find('a');
+			var diff = text.width() - currently_playing.width();
+			currently_playing.stop('scroll',true,false);
+			if (diff > 0) {
+				var d = Magnatune.Options.AnimationDuration;
+				var scroll = currently_playing.scrollLeft();
+				if (scroll >= diff) {
+					currently_playing.scrollLeft(diff).animate(
+						{scrollLeft: 0},
+						{duration: (diff / 40) * d,
+						 queue:    'scroll',
+						 easing:   'linear',
+						 complete: Magnatune.Player._titleAnim});
+				}
+				else {
+					currently_playing.animate(
+						{scrollLeft: diff},
+						{duration: ((diff - scroll) / 40) * d,
+						 queue:    'scroll',
+						 easing:   'linear',
+						 complete: Magnatune.Player._titleAnim});
+				}
+				currently_playing.dequeue('scroll');
+			}
+			else {
+				currently_playing.scrollLeft(0);
+			}
 		},
 		toggleVolume: function () {
 			var control = $('#volume-control');
@@ -1138,14 +1186,16 @@ var Magnatune = {
 	},
 	Navigation: {
 		show: function () {
-			$('#content').stop().animate({left:'375px'},500);
-			$('#navigation').stop().animate({left:'10px'},500);
+			var d = Magnatune.Options.AnimationDuration;
+			$('#content').stop().animate({left:'375px'},d);
+			$('#navigation').stop().animate({left:'10px'},d);
 			$('#navigation-hide').show();
 			$('#navigation-show').hide();
 		},
 		hide: function () {
-			$('#content').stop().animate({left:'25px'},500);
-			$('#navigation').stop().animate({left:'-340px'},500);
+			var d = Magnatune.Options.AnimationDuration;
+			$('#content').stop().animate({left:'25px'},d);
+			$('#navigation').stop().animate({left:'-340px'},d);
 			$('#navigation-hide').hide();
 			$('#navigation-show').show();
 		},
@@ -1866,6 +1916,8 @@ $(document).ready(function () {
 			}.bind(this), 0);
 		}
 	});
+	$('#currently-playing').on('mouseenter', Magnatune.Player._titleAnim);
+	$('#currently-playing').on('mouseleave', Magnatune.Player._stopTitleAnim);
 	Magnatune.Collection.load();
 });
 

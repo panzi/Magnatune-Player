@@ -712,13 +712,13 @@ a.button {
 .also {
 	position: absolute;
 	top: 0px;
-	right: -210px;
-	width: 210px;
+	right: -260px;
+	width: 260px;
 	padding-bottom: 10px;
 }
 
 .tab-content .album {
 	position: relative;
-	margin-right: 220px;
-	min-width: 300px;
+	margin-right: 270px;
+	min-width: 350px;
 }
