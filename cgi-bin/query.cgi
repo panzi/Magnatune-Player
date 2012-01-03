@@ -209,7 +209,7 @@ def search(cur,params):
 		find = finders[mode.strip().lower().replace('-','/')]
 	except KeyError:
 		raise AttributeError('Unknown search mode: %r' % mode)
-	query = [word for word in set(re.split('\\W',query,flags=re.UNICODE)) if len(word) > 2]
+	query = [word for word in set(re.split('\\W',query,0,re.UNICODE)) if len(word) > 2]
 	if not query:
 		return None
 	return find(cur,query)
