@@ -43,6 +43,12 @@ def rows_to_dicts(cur,rows):
 def row_to_dict(cur,row):
 	return dict((column[0], row[i]) for i, column in enumerate(cur.description))
 
+def getp(params,name):
+	val = params.getvalue(name)
+	if val is not None:
+		val = unicode(val,'utf-8')
+	return val
+
 @action
 def index(cur,params):
 	rv = {}
@@ -203,13 +209,13 @@ def build_query(columns,words):
 
 @action
 def search(cur,params):
-	query = params.getvalue('query')
-	mode  = params.getvalue('mode')
+	query = getp(params,'query')
+	mode  = getp(params,'mode')
 	try:
 		find = finders[mode.strip().lower().replace('-','/')]
 	except KeyError:
 		raise AttributeError('Unknown search mode: %r' % mode)
-	query = [word for word in set(re.split('\\W',query,0,re.UNICODE)) if len(word) > 2]
+	query = [word for word in set(query.split()) if len(word) > 2]
 	if not query:
 		return None
 	return find(cur,query)
@@ -221,13 +227,13 @@ def albums(cur,params):
 	args = []
 
 	if 'genre' in params:
-		genre = params.getvalue('genre')
+		genre = getp(params,'genre')
 		sql.append(' inner join genres on genres.albumname = albums.albumname ')
 		where.append('genres.genre = ?')
 		args.append(genre)
 
 	if 'artist' in params:
-		artist = params.getvalue('artist')
+		artist = getp(params,'artist')
 		where.append('albums.artist = ?')
 		args.append(artist)
 
@@ -246,7 +252,7 @@ def artists(cur,params):
 	args = []
 
 	if 'genre' in params:
-		genre = params.getvalue('genre')
+		genre = getp(params,'genre')
 		sql.append(
 			' inner join albums on artists.artist = albums.artist '
 			' inner join genre on genres.albumname = albums.albumname ')
@@ -266,10 +272,10 @@ def genres(cur,params):
 def songs(cur,params):
 	if 'album' in params:
 		where = 'albums.albumname = ?'
-		args = [params.getvalue('album')]
+		args = [getp(params,'album')]
 	else:
 		where = 'albums.artist = ?'
-		args = [params.getvalue('artist')]
+		args = [getp(params,'artist')]
 
 	cur.execute(
 		'select songs.number, songs.desc, songs.duration, songs.albumname, songs.mp3, '
@@ -280,7 +286,7 @@ def songs(cur,params):
 
 @action
 def album(cur,params):
-	args = [params.getvalue('name')]
+	args = [getp(params,'name')]
 	cur.execute(
 		'select albumname, artist, also, description, sku, '
 		'launchdate, itunes from albums where albumname = ?',
@@ -309,7 +315,7 @@ def album(cur,params):
 
 @action
 def artist(cur,params):
-	args = [params.getvalue('name')]
+	args = [getp(params,'name')]
 	cur.execute(
 		'select artist, description, homepage, city, state, '
 		'country, bio, bandphoto from artists where artist = ?',
@@ -324,7 +330,7 @@ def artist(cur,params):
 
 @action
 def song(cur,params):
-	args = [params.getvalue('album'), int(params.getvalue('number'),10)]
+	args = [getp(params,'album'), int(params.getvalue('number'),10)]
 	cur.execute(
 		'select songs.number, songs.desc, songs.duration, songs.albumname, songs.mp3, '
 		'albums.artist from songs inner join albums on songs.albumname = albums.albumname '
@@ -348,7 +354,7 @@ def embed(cur,params):
 	else:
 		height = 300
 
-	m = re.match('^https?://magnatune\.com/artists/albums/([^/]+)', params.getvalue('url'))
+	m = re.match('^https?://magnatune\.com/artists/albums/([^/]+)', getp(params,'url'))
 
 	if not m:
 		# TODO: correct error status
@@ -439,7 +445,7 @@ def embed(cur,params):
 	}
 
 def query(params):
-	action_name = params.getvalue('action')
+	action_name = getp(params,'action')
 	if action_name is None and 'url' in params:
 		action_name = 'embed'
 	elif action_name not in actions:
