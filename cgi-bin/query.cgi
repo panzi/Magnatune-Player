@@ -5,9 +5,13 @@ cgitb.enable()
 
 import re
 import sys
-import sqlite3
 import cgi
 from itertools import repeat
+
+try:
+	import sqlite3
+except:
+	from pysqlite2 import dbapi2 as sqlite3
 
 try:
 	import json

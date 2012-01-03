@@ -69,7 +69,10 @@ else:
 		fin.close()
 
 	write('\n\nCreate Indices...\n')
-	import sqlite3
+	try:
+		import sqlite3
+	except:
+		from pysqlite2 import dbapi2 as sqlite3
 	conn = sqlite3.connect('sqlite_magnatune.db')
 	cur = conn.cursor()
 
