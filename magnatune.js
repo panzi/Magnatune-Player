@@ -610,12 +610,14 @@ var Magnatune = {
 				var page = tag('div',{'class':'about'});
 				$(page).html(
 					'<h2>About Magnatune Player</h2>'+
+					'<a class="logo" title="Magnatune" href="http://magnatune.com/"><img alt="" src="logo.png"/></a>'+
 					'<p>This is a proof of concept interface to <a href="http://magnatune.com/">magnatune.com</a> '+
-					'that is organized like a music player. It used the <a href="http://www.sqlite.org/">SQLite</a> '+
+					'that is organized like a music player. It uses the <a href="http://www.sqlite.org/">SQLite</a> '+
 					'export from the <a href="http://magnatune.com/info/api">Magnatune API</a> and the '+
 					'<a href="http://dev.w3.org/html5/spec/the-audio-element.html">HTML5 Audio Element</a>. '+
 					'Because HTML5 Audio is still not bug free depending on the browser things like the buffer '+
-					'progress display or seeking might not work 100% reliable.</p>'+
+					'progress display or seeking might not work 100% reliable. In Internet Explorer it doesn\'t '+
+					'work at all.</p>'+
 					'<p>You can download the source code of this web page on '+
 					'<a href="https://bitbucket.org/panzi/magnatune-player">bitbucket</a>.</p>');
 				Magnatune.Info.update('#/about',breadcrumbs,page,opts.keeptab);
@@ -675,10 +677,23 @@ var Magnatune = {
 								href:'http://magnatune.com/artists/albums/'+data.body.sku+'/',
 								target:'_blank'},
 								album.albumname)),
-							tag('div',{'class':'buy button',title:'Buy this Album'},
-								tag('a',{
-									href:'https://magnatune.com/buy/choose?sku='+data.body.sku,
-									target:'_blank'},'Buy')),
+							tag('table',
+								tag('tr',
+									tag('td',
+										tag('a',{
+											'class':'buy button',
+											title:'Buy Music from Magnatune',
+											href:'https://magnatune.com/buy/choose?sku='+data.body.sku,
+											target:'_blank'},'Buy')),
+									tag('td',
+										tag('a',{
+											rel: 'license',
+											target:'_blank',
+											href: 'http://creativecommons.org/licenses/by-nc-sa/1.0/'},
+											tag('img',{
+												alt:'Creative Commons License',
+												title:'This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 1.0 Generic License',
+												src:'http://i.creativecommons.org/l/by-nc-sa/1.0/88x31.png'}))))),
 							tag('img', {'class':'cover',
 								src: 'http://he3.magnatune.com/music/'+
 									encodeURIComponent(artist.artist)+'/'+

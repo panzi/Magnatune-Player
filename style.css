@@ -73,6 +73,10 @@ a {
 	color: #D19559;
 }
 
+.logo {
+	float: right;
+}
+
 #tree a {
 	color: #e0e0e0;
 }
@@ -138,6 +142,7 @@ input[type="text"] {
 }
 
 .buy {
+	display: block;
 	width: 50px;
 	text-align: center;
 	padding: 5px;
