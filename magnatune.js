@@ -612,14 +612,18 @@ var Magnatune = {
 					'<h2>About Magnatune Player</h2>'+
 					'<a class="logo" title="Magnatune" href="http://magnatune.com/"><img alt="" src="logo.png"/></a>'+
 					'<p>This is a proof of concept interface to <a href="http://magnatune.com/">magnatune.com</a> '+
-					'that is organized like a music player. It uses the <a href="http://www.sqlite.org/">SQLite</a> '+
-					'export from the <a href="http://magnatune.com/info/api">Magnatune API</a> and the '+
+					'that is organized like a music player, written by Mathias Panzenb&ouml;ck. It uses the '+
+					'<a href="http://www.sqlite.org/">SQLite</a> export from the '+
+					'<a href="http://magnatune.com/info/api">Magnatune API</a> and the '+
 					'<a href="http://dev.w3.org/html5/spec/the-audio-element.html">HTML5 Audio Element</a>. '+
-					'Because HTML5 Audio is still not bug free depending on the browser things like the buffer '+
+					'Because depending on the browser HTML5 Audio is still not bug free, things like the buffer '+
 					'progress display or seeking might not work 100% reliable. In Internet Explorer it doesn\'t '+
 					'work at all.</p>'+
+					'<p>I\'m not happy with the current color scheme and will most likely redo the visual style.</p>'+
 					'<p>You can download the source code of this web page on '+
-					'<a href="https://bitbucket.org/panzi/magnatune-player">bitbucket</a>.</p>');
+					'<a href="https://bitbucket.org/panzi/magnatune-player">bitbucket</a>.</p>'+
+					'<p>Other experiments done by me can be found <a '+
+					'href="http://web.student.tuwien.ac.at/~e0427417/">here</a>.</p>');
 				Magnatune.Info.update('#/about',breadcrumbs,page,opts.keeptab);
 			},
 			genre: function (opts) {
@@ -692,6 +696,8 @@ var Magnatune = {
 											href: 'http://creativecommons.org/licenses/by-nc-sa/1.0/'},
 											tag('img',{
 												alt:'Creative Commons License',
+												width:'88',
+												height:'31',
 												title:'This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 1.0 Generic License',
 												src:'http://i.creativecommons.org/l/by-nc-sa/1.0/88x31.png'}))))),
 							tag('img', {'class':'cover',
