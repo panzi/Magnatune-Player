@@ -1960,7 +1960,7 @@ $(document).ready(function () {
 		}
 	});
 	$('#search').on('paste cut drop', Magnatune.Navigation.FilterInput.delayedUpdate);
-	$('#search').on('keypress', function (event) {
+	$('#search').on('keydown', function (event) {
 		if (event.which === 13) {
 			Magnatune.Navigation.FilterInput.update();
 		}
