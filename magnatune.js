@@ -608,9 +608,16 @@ var Magnatune = {
 				// TODO
 				var breadcrumbs = [{href:'#/about',text:'About'}];
 				var page = tag('div',{'class':'about'});
+				var install = '';
+				if (window.chrome && window.chrome.app) {
+					install = '<a class="button app" href="app/magnatune-player.crx">Install App</a>'
+				}
 				$(page).html(
 					'<h2>About Magnatune Player</h2>'+
+					'<div class="about-float">'+
 					'<a class="logo" title="Magnatune" href="http://magnatune.com/"><img alt="" src="logo.png"/></a>'+
+					install+
+					'</div>'+
 					'<p>This is a proof of concept interface to <a href="http://magnatune.com/">magnatune.com</a> '+
 					'that is organized like a music player, written by Mathias Panzenb&ouml;ck. It uses the '+
 					'<a href="http://www.sqlite.org/">SQLite</a> export from the '+
@@ -1130,10 +1137,12 @@ var Magnatune = {
 
 			// resolve associations
 			for (var i = 0; i < sorted_artists.length; ++ i) {
-				var artist = sorted_artists[i];
-				artist.albums = [];
-				artist.genres = {};
-				artists[artist.artist] = artist;
+				var artist = {
+					artist: sorted_artists[i],
+					albums: [],
+					genres: {}
+				};
+				sorted_artists[i] = artists[artist.artist] = artist;
 			}
 					
 			for (var i = 0; i < sorted_albums.length; ++ i) {

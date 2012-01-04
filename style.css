@@ -73,10 +73,6 @@ a {
 	color: #D19559;
 }
 
-.logo {
-	float: right;
-}
-
 #tree a {
 	color: #e0e0e0;
 }
@@ -141,13 +137,21 @@ input[type="text"] {
 	border-right-color:  #573B1F;
 }
 
+.app,
 .buy {
 	display: block;
-	width: 50px;
 	text-align: center;
 	padding: 5px;
 	font-size: 20px;
 	font-weight: bold;
+}
+
+.app {
+	margin-top: 10px;
+}
+
+.buy {
+	width: 50px;
 }
 
 .input-clear {
@@ -587,10 +591,12 @@ th {
 	width: 40px;
 }
 
+.about-float,
 .artist img.bandphoto,
 .album  img.cover {
 	float: right;
 	margin-left: 10px;
+	margin-bottom: 10px;
 }
 
 .album img.cover {

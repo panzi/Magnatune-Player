@@ -4,3 +4,4 @@ sqlite_magnatune.db
 sqlite_magnatune.db.gz
 .*
 *~
+app/magnatune-player.*

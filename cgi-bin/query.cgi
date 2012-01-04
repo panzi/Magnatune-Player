@@ -52,15 +52,10 @@ def getp(params,name):
 @action
 def index(cur,params):
 	rv = {}
-	cur.execute('select albumname, artist, sku from albums order by albumname, artist')
+	cur.execute('select albumname, artist from albums order by albumname, artist')
 	rv['albums'] = rows_to_dicts(cur,cur.fetchall())
-#	for album in rv['albums']:
-#		cur.execute(
-#			'select number, desc, duration, mp3 from songs where albumname = ? order by number',
-#			[album['albumname']])
-#		album['songs'] = rows_to_dicts(cur,cur.fetchall())
-	cur.execute('select artist, homepage from artists order by artist')
-	rv['artists'] = rows_to_dicts(cur,cur.fetchall())
+	cur.execute('select artist from artists order by artist')
+	rv['artists'] = [row[0] for row in cur.fetchall()]
 	cur.execute('select distinct genre from genres order by genre')
 	rv['genres'] = genres = []
 	for genre_row in cur.fetchall():

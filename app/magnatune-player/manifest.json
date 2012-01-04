@@ -1,0 +1,16 @@
+{
+	"name": "Magnatune Player",
+	"description": "This is a proof of concept HTML5 audio player based on the music from Magnatune.com",
+	"version": "1.0",
+	"app": {
+		"urls": [
+			"*://web.student.tuwien.ac.at/~e0427417/magnatune-player/"
+		],
+		"launch": {
+			"web_url": "http://web.student.tuwien.ac.at/~e0427417/magnatune-player/"
+		}
+	},
+	"icons": {
+		"128": "logo_128.png"
+	}
+}
