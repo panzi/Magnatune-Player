@@ -73,8 +73,17 @@ a {
 	color: #D19559;
 }
 
-#tree a {
+#tree a,
+textarea {
 	color: #e0e0e0;
+}
+
+#embed {
+	width: 150px;
+	height: 50px;
+	overflow: hidden;
+	resize: none;
+	margin: 10px;
 }
 
 input[type="text"] {
@@ -83,6 +92,7 @@ input[type="text"] {
 	color: #e0e0e0;
 }
 
+textarea,
 #currently-playing,
 .tab-content,
 #tree,
@@ -110,6 +120,12 @@ input[type="text"] {
 	border-style: solid;
 	border-width: 1px;
 	padding: 2px;
+}
+
+textarea {
+	border-style: solid;
+	border-width: 1px;
+	border-radius: 10px;
 }
 
 #tree,
@@ -159,6 +175,7 @@ input[type="text"] {
 	padding: 2px;
 }
 
+textarea,
 input {
 	outline: none;
 }

@@ -214,7 +214,7 @@ def search(cur,params):
 	try:
 		find = finders[mode.strip().lower().replace('-','/')]
 	except KeyError:
-		raise AttributeError('Unknown search mode: %r' % mode)
+		raise KeyError('Unknown search mode: %r' % mode)
 	query = [word for word in set(query.split()) if len(word) > 2]
 	if not query:
 		return None
@@ -354,21 +354,31 @@ def embed(cur,params):
 	else:
 		height = 300
 
-	m = re.match('^https?://magnatune\.com/artists/albums/([^/]+)', getp(params,'url'))
+	if 'url' in params:
+		m = re.match('^https?://magnatune\.com/artists/albums/([^/]+)', getp(params,'url'))
 
-	if not m:
-		raise HTTPError(404)
+		if not m:
+			raise HTTPError(404)
 	
-	sku = m.group(1)
-
-	cur.execute('select albumname, artists.artist, artists.homepage from albums inner join artists on albums.artist = artists.artist where sku = ?', [sku])
-	row = cur.fetchone()
-	if not row:
-		raise HTTPError(404)
-
-	album    = row[0]
-	artist   = row[1]
-	homepage = row[2]
+		sku = m.group(1)
+		cur.execute('select albumname, artists.artist, artists.homepage from albums inner join artists on albums.artist = artists.artist where sku = ?', [sku])
+		row = cur.fetchone()
+		if not row:
+			raise HTTPError(404)
+		album    = row[0]
+		artist   = row[1]
+		homepage = row[2]
+	elif 'album' in params: # oembed extension
+		album = getp(params,'album')
+		cur.execute('select artists.artist, artists.homepage, sku from albums inner join artists on albums.artist = artists.artist where albumname = ?', [album])
+		row = cur.fetchone()
+		if not row:
+			raise HTTPError(404)
+		artist   = row[0]
+		homepage = row[1]
+		sku      = row[2]
+	else:
+		raise KeyError('missing url or album parameter')
 	
 	TRUE_VALUES = set(['true','t','yes','on','1'])
 	FALSE_VALUES = set(['false','f','no','off','0'])
@@ -384,10 +394,10 @@ def embed(cur,params):
 	large=True
 	autoplay=False
 
-	if 'large' in params:
+	if 'large' in params: # oembed extension
 		large = parse_bool(params.getvalue('large'))
 
-	if 'autoplay' in params:
+	if 'autoplay' in params: # oembed extension
 		autoplay = parse_bool(params.getvalue('autoplay'))
 
 	if large:
@@ -485,7 +495,7 @@ def query(params):
 		mimetype = 'application/json+oembed;charset=utf-8'
 		body = with_conn(embed)
 	elif action_name not in actions:
-		raise AttributeError('Unknown action: %r' % action_name)
+		raise ValueError('Unknown action: %r' % action_name)
 	else:
 		body = with_conn(actions[action_name])
 
@@ -517,6 +527,11 @@ try:
 except HTTPError, e:
 	# seems like I can't set the http status using cgi :(
 	import httplib
-	sys.stdout.write('Status: %d %s\r\n\r\n' % (e.status, httplib.responses[e.status]))
+	msg = httplib.responses[e.status]
+	sys.stdout.write(
+		'Status: %d %s\r\n'
+		'Content-Type: text/html\r\n'
+		'\r\n'
+		'<html><head><title>%s</title></head><body><h1>%s</h1></body></html>' % (e.status, msg, msg, msg))
 else:
 	sys.stdout.write("Content-Type: %s\r\n\r\n%s" % (mimetype, body))

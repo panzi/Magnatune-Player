@@ -531,6 +531,26 @@ var Magnatune = {
 			$('#playlist-container').hide();
 			$('#info').show();
 		},
+		toggleEmbed: function (albumname) {
+			var embed_container = $('#embed-container');
+			if (embed_container.is(':visible')) {
+				embed_container.hide();
+			}
+			else {
+				embed_container.show();
+				$.ajax({
+					url: 'cgi-bin/query.cgi',
+					data: {action: 'embed', album: albumname},
+					dataType: 'json',
+					success: function (data) {
+						$('#embed').val(data.html);
+					},
+					error: function () {
+						// TODO
+					}
+				});
+			}
+		},
 		visible: function () {
 			return $('#info').is(':visible');
 		},
@@ -689,24 +709,25 @@ var Magnatune = {
 								target:'_blank'},
 								album.albumname)),
 							tag('table',
-								tag('tr',
-									tag('td',
-										tag('a',{
-											'class':'buy button',
-											title:'Buy Music from Magnatune',
-											href:'https://magnatune.com/buy/choose?sku='+data.body.sku,
-											target:'_blank'},'Buy')),
-									tag('td',
-										tag('a',{
-											rel: 'license',
-											target:'_blank',
-											href: 'http://creativecommons.org/licenses/by-nc-sa/1.0/'},
-											tag('img',{
-												alt:'Creative Commons License',
-												width:'88',
-												height:'31',
-												title:'This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 1.0 Generic License',
-												src:'http://i.creativecommons.org/l/by-nc-sa/1.0/88x31.png'}))))),
+								tag('tbody',
+									tag('tr',
+										tag('td',
+											tag('a',{
+												'class':'buy button',
+												title:'Buy Music from Magnatune',
+												href:'https://magnatune.com/buy/choose?sku='+data.body.sku,
+												target:'_blank'},'Buy')),
+										tag('td',
+											tag('a',{
+												rel: 'license',
+												target:'_blank',
+												href: 'http://creativecommons.org/licenses/by-nc-sa/1.0/'},
+												tag('img',{
+													alt:'Creative Commons License',
+													width:'88',
+													height:'31',
+													title:'This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 1.0 Generic License',
+													src:'http://i.creativecommons.org/l/by-nc-sa/1.0/88x31.png'})))))),
 							tag('img', {'class':'cover',
 								src: 'http://he3.magnatune.com/music/'+
 									encodeURIComponent(artist.artist)+'/'+
@@ -720,7 +741,13 @@ var Magnatune = {
 								' ',
 								tag('a', {'class':'button',href:'javascript:'+encodeURIComponent(
 									'Magnatune.Playlist.enqueue('+JSON.stringify(data.body.songs)+');void(0)')},
-									'Enqueue Album')),
+									'Enqueue Album'),
+								' ',
+								tag('a', {'class':'button',href:'javascript:'+encodeURIComponent(
+									'Magnatune.Info.toggleEmbed('+JSON.stringify(album.albumname)+');void(0)')},
+									'Embed Code')),
+							tag('div',{'id':'embed-container','style':'display:none;'},
+								tag('textarea',{'id':'embed',title:'Copy this HTML code into your website.',onclick:'this.select();'})),
 							tag('table',
 								tag('thead',
 									tag('tr',
