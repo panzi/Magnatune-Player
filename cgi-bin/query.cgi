@@ -18,6 +18,11 @@ try:
 except ImportError:
 	import simplejson as json
 
+class HTTPError(Exception):
+	__slots__ = 'status',
+	def __init__(self,status):
+		self.status = status
+
 # action=index
 # action=search query=... mode=...
 
@@ -43,8 +48,8 @@ def rows_to_dicts(cur,rows):
 def row_to_dict(cur,row):
 	return dict((column[0], row[i]) for i, column in enumerate(cur.description))
 
-def getp(params,name):
-	val = params.getvalue(name)
+def getp(params,name,default=None):
+	val = params.getvalue(name,default)
 	if val is not None:
 		val = unicode(val,'utf-8')
 	return val
@@ -337,7 +342,7 @@ def song(cur,params):
 
 @action
 def embed(cur,params):
-	import urllib, re
+	import urllib
 
 	if 'maxwidth' in params:
 		width = int(params.getvalue('maxwidth'),10)
@@ -352,23 +357,39 @@ def embed(cur,params):
 	m = re.match('^https?://magnatune\.com/artists/albums/([^/]+)', getp(params,'url'))
 
 	if not m:
-		# TODO: correct error status
-		return None
+		raise HTTPError(404)
 	
 	sku = m.group(1)
 
 	cur.execute('select albumname, artists.artist, artists.homepage from albums inner join artists on albums.artist = artists.artist where sku = ?', [sku])
 	row = cur.fetchone()
 	if not row:
-		# TODO: correct error status
-		return None
+		raise HTTPError(404)
 
 	album    = row[0]
 	artist   = row[1]
 	homepage = row[2]
+	
+	TRUE_VALUES = set(['true','t','yes','on','1'])
+	FALSE_VALUES = set(['false','f','no','off','0'])
+	def parse_bool(s):
+		v = s.strip().lower()
+		if v in TRUE_VALUES:
+			return True
+		elif v in FALSE_VALUES:
+			return False
+		else:
+			raise ValueError('Cannot parse boolean value: %r' % s)
 
 	large=True
 	autoplay=False
+
+	if 'large' in params:
+		large = parse_bool(params.getvalue('large'))
+
+	if 'autoplay' in params:
+		autoplay = parse_bool(params.getvalue('autoplay'))
+
 	if large:
 		if width  <  150: width  =  150
 		if width  >  600: width  =  600
@@ -396,29 +417,30 @@ def embed(cur,params):
 		autoplay = ''
 
 	embedtempl = """\
-#LOGO#
-<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0" width="#WIDTH#" height="#HEIGHT#" >
+%(LOGO)s
+<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0" width="%(WIDTH)d" height="%(HEIGHT)d">
 	<param name="allowScriptAccess" value="sameDomain"/>
-	<param name="movie" value="#PLAYER#?playlist_url=http://embed.magnatune.com/artists/albums/#ALBUM_SKU#/hifi.xspf&autoload=true&autoplay=#AUTOPLAY#&playlist_title=#PLAYLIST_TITLE#"/>
+	<param name="movie" value="%(PLAYER)s?playlist_url=http://embed.magnatune.com/artists/albums/%(ALBUM_SKU)s/hifi.xspf&autoload=true&autoplay=%(AUTOPLAY)s&playlist_title=%(PLAYLIST_TITLE)s"/>
 	<param name="quality" value="high"/>
 	<param name="bgcolor" value="#E6E6E6"/>
-	<embed src="#PLAYER#?playlist_url=http://embed.magnatune.com/artists/albums/#ALBUM_SKU#/hifi.xspf&autoload=true&autoplay=#AUTOPLAY#&playlist_title=#PLAYLIST_TITLE#" quality="high" bgcolor="#E6E6E6" name="xspf_player" allowscriptaccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" align="center" height="#HEIGHT#" width="#WIDTH#"></embed>
+	<embed src="%(PLAYER)s?playlist_url=http://embed.magnatune.com/artists/albums/%(ALBUM_SKU)s/hifi.xspf&autoload=true&autoplay=%(AUTOPLAY)s&playlist_title=%(PLAYLIST_TITLE)s" quality="high" bgcolor="#E6E6E6" name="xspf_player" allowscriptaccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" align="center" height="%(HEIGHT)d" width="%(WIDTH)d"></embed>
 </object><br/>
 <span style="font-face: Verdana, Arial, utopia, Sans-serif; font-size: 1em; color: #000000">
-	<a href="http://magnatune.com/artists/albums/#ALBUM_SKU#"><b>#ALBUM_NAME#</b></a> by <a href="http://magnatune.com/artists/#ARTIST_HOMEPAGE#"><b>#ARTIST_NAME#</b></a>
+	<a href="http://magnatune.com/artists/albums/%(ALBUM_SKU)s"><b>%(ALBUM_NAME)s</b></a> by <a href="http://magnatune.com/artists/%(ARTIST_HOMEPAGE)s"><b>%(ARTIST_NAME)s</b></a>
 </span>
 """
-	html = (embedtempl
-		.replace('#WIDTH#', str(width))
-		.replace('#HEIGHT#', str(height))
-		.replace('#AUTOPLAY#', autoplay)
-		.replace('#PLAYER#', player)
-		.replace('#LOGO#', logo)
-		.replace('#ALBUM_SKU#',sku)
-		.replace('#ALBUM_NAME#',cgi.escape(album).encode('ascii','xmlcharrefreplace'))
-		.replace('#ARTIST_NAME#',cgi.escape(artist).encode('ascii','xmlcharrefreplace'))
-		.replace('#ARTIST_HOMEPAGE#',homepage)
-		.replace('#PLAYLIST_TITLE#',urllib.quote(album+' - '+artist)))
+	html = embedtempl % {
+		'WIDTH': width,
+		'HEIGHT': height,
+		'AUTOPLAY': autoplay,
+		'PLAYER': player,
+		'LOGO': logo,
+		'ALBUM_SKU':sku,
+		'ALBUM_NAME':cgi.escape(album).encode('ascii','xmlcharrefreplace'),
+		'ARTIST_NAME':cgi.escape(artist).encode('ascii','xmlcharrefreplace'),
+		'ARTIST_HOMEPAGE':homepage,
+		'PLAYLIST_TITLE':urllib.quote(album+' - '+artist)
+	}
 
 	return {
 		"version": "1.0",
@@ -439,28 +461,41 @@ def embed(cur,params):
 		"url": 'http://magnatune.com/artists/albums/%s/' % sku
 	}
 
-def query(params):
-	action_name = getp(params,'action')
-	if action_name is None and 'url' in params:
-		action_name = 'embed'
-	elif action_name not in actions:
-		raise AttributeError('Unknown action: %r' % action_name)
-
+def with_conn(f):
 	conn = sqlite3.connect('sqlite_magnatune.db')
 	try:
-		body = actions[action_name](conn.cursor(),params)
+		return f(conn.cursor(),params)
 	finally:
 		conn.close()
 
-	if action_name == 'embed':
-		return body
+def query(params):
+	if 'format' in params:
+		fmt = getp(params,'format').strip().lower()
 	else:
+		fmt = 'json'
+	
+	if fmt not in ('json', 'jsonp'):
+		raise HTTPError(501)
+
+	if 'callback' in params:
+		fmt = 'jsonp'
+	
+	action_name = getp(params,'action')
+	if action_name is None and 'url' in params or action_name == 'embed':
+		mimetype = 'application/json+oembed;charset=utf-8'
+		body = with_conn(embed)
+	elif action_name not in actions:
+		raise AttributeError('Unknown action: %r' % action_name)
+	else:
+		body = with_conn(actions[action_name])
+
 		fp = open('changed.txt','r')
 		try:
 			changed = fp.read().strip()
 		finally:
 			fp.close()
-		return {
+		mimetype = 'application/json;charset=utf-8'
+		body = {
 			'head': {
 				'version': '1.0',
 				'changed': changed
@@ -468,13 +503,20 @@ def query(params):
 			'body': body
 		}
 
+	body = json.dumps(body)
+
+	if fmt == 'jsonp':
+		mimetype = 'text/javascript;charset=utf-8'
+		body = '%s(%s)' % (getp(params,'callback','callback'), body)
+	
+	return mimetype, body
+
 params = cgi.FieldStorage()
-response = query(params)
-if 'callback' in params:
-	sys.stdout.write(
-		"Content-Type: text/javascript;charset=utf-8\r\n\r\n"+
-		params.getvalue('callback')+'('+json.dumps(response)+')')
+try:
+	mimetype, body = query(params)
+except HTTPError, e:
+	# seems like I can't set the http status using cgi :(
+	import httplib
+	sys.stdout.write('Status: %d %s\r\n\r\n' % (e.status, httplib.responses[e.status]))
 else:
-	sys.stdout.write(
-		"Content-Type: application/json;charset=utf-8\r\n\r\n"+
-		json.dumps(response))
+	sys.stdout.write("Content-Type: %s\r\n\r\n%s" % (mimetype, body))
