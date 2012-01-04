@@ -252,9 +252,11 @@ li.active {
 }
 
 #player-buttons .button {
+	display: inline-block;
 	margin: -3px; /* why not 0px? */
 	padding-left: 5px;
 	padding-right: 5px;
+	line-height: 20px;
 }
 
 #stop-button,
@@ -367,6 +369,10 @@ li.active {
 
 #tree ul.songs {
 	cursor: default;
+}
+
+#tree li {
+	clear: both;
 }
 
 .dragged {
