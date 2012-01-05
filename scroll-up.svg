@@ -38,11 +38,11 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="1920"
-     inkscape:window-height="1028"
-     inkscape:window-x="-4"
-     inkscape:window-y="-3"
-     inkscape:window-maximized="1">
+     inkscape:window-width="766"
+     inkscape:window-height="827"
+     inkscape:window-x="379"
+     inkscape:window-y="62"
+     inkscape:window-maximized="0">
     <inkscape:grid
        type="xygrid"
        id="grid2985"
@@ -72,7 +72,7 @@
      id="layer1"
      transform="translate(0,-1038.3622)">
     <path
-       style="fill:#d19559;fill-opacity:1;stroke:none"
+       style="fill:#8492b4;fill-opacity:1;stroke:none"
        d="m 7,1041.3622 -4,8 8,0 -4,-8"
        id="path2987"
        inkscape:path-effect="#path-effect2989"

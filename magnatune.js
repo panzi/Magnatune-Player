@@ -272,7 +272,7 @@ var Magnatune = {
 				var ranges = this.buffered;
 				var buffered = $('#buffer-progress')[0];
 				var ctx = buffered.getContext('2d');
-				ctx.fillStyle = '#573B1F';
+				ctx.fillStyle = '#626D86';
 				ctx.clearRect(0,0,buffered.width,buffered.height);
 				for (var i = 0; i < ranges.length; ++ i) {
 					var start = ranges.start(i);
@@ -439,7 +439,7 @@ var Magnatune = {
 			$('#player-wrapper').stop().animate({top:'-60px'},d);
 			var currently_playing = $('#currently-playing').stop();
 			Magnatune.Player._stopTitleAnim();
-			currently_playing.animate({bottom:'6px',right:'55px',width:'195px'},d);
+			currently_playing.animate({bottom:'6px',right:'55px',width:'235px'},d);
 			$('#navigation, #content').stop().animate({top:'50px'},d);
 		},
 		show: function () {
@@ -449,7 +449,7 @@ var Magnatune = {
 			$('#player-wrapper').stop().animate({top:'0px'},d);
 			var currently_playing = $('#currently-playing').stop();
 			Magnatune.Player._stopTitleAnim();
-			currently_playing.animate({bottom:'60px',right:'20px',width:'385px'},d);
+			currently_playing.animate({bottom:'60px',right:'20px',width:'430px'},d);
 			$('#navigation, #content').stop().animate({top:'110px'},d);
 		},
 		_stopTitleAnim: function () {
@@ -1244,14 +1244,14 @@ var Magnatune = {
 	Navigation: {
 		show: function () {
 			var d = Magnatune.Options.AnimationDuration;
-			$('#content').stop().animate({left:'375px'},d);
+			$('#content').stop().animate({left:'390px'},d);
 			$('#navigation').stop().animate({left:'10px'},d);
 			$('#navigation-hide').show();
 			$('#navigation-show').hide();
 		},
 		hide: function () {
 			var d = Magnatune.Options.AnimationDuration;
-			$('#content').stop().animate({left:'25px'},d);
+			$('#content').stop().animate({left:'40px'},d);
 			$('#navigation').stop().animate({left:'-340px'},d);
 			$('#navigation-hide').hide();
 			$('#navigation-show').show();

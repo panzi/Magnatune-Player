@@ -24,11 +24,15 @@
     <linearGradient
        id="linearGradient3763">
       <stop
-         style="stop-color:#5f3c1a;stop-opacity:1;"
+         style="stop-color:#959fb1;stop-opacity:1;"
          offset="0"
          id="stop3765" />
       <stop
-         style="stop-color:#cd8847;stop-opacity:1;"
+         id="stop4032"
+         offset="0.18000001"
+         style="stop-color:#c2cbda;stop-opacity:1;" />
+      <stop
+         style="stop-color:#e8effc;stop-opacity:1;"
          offset="1"
          id="stop3767" />
     </linearGradient>
@@ -86,7 +90,7 @@
        x1="20"
        gradientUnits="userSpaceOnUse"
        id="linearGradient3783"
-       xlink:href="#linearGradient3763-6"
+       xlink:href="#linearGradient3763"
        inkscape:collect="always" />
   </defs>
   <sodipodi:namedview
@@ -135,14 +139,14 @@
      id="layer1"
      transform="translate(0,-992.36218)">
     <rect
-       style="color:#000000;fill:url(#linearGradient3766);fill-opacity:1;fill-rule:nonzero;stroke:#87592c;stroke-width:2;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       style="color:#000000;fill:url(#linearGradient3766);fill-opacity:1;fill-rule:nonzero;stroke:#8492b4;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
        id="rect2990"
        width="15"
        height="39.999996"
        x="10"
        y="1002.3622" />
     <rect
-       style="color:#000000;fill:url(#linearGradient3783);fill-opacity:1;fill-rule:nonzero;stroke:#87592c;stroke-width:2;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       style="color:#000000;fill:url(#linearGradient3783);fill-opacity:1;fill-rule:nonzero;stroke:#8492b4;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
        id="rect2990-2"
        width="15"
        height="39.999996"

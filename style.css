@@ -3,33 +3,34 @@
 
 ::-webkit-scrollbar {
 	height: 14px;
-	width: 14px;
+	width:  14px;
 }
 
-::-webkit-scrollbar-button,
 ::-webkit-scrollbar-thumb {
-	background-color: #453D33;
+	background-color: #C1CADA;
 	border-radius: 6px;
 	box-shadow:
-		inset 3px 3px 6px 0px #52483C,
-		inset -3px -3px 6px 0px #39322A;
-	border: 1px solid #573B1F;
+		inset  3px  3px 6px 0px #E8EFFC,
+		inset -3px -3px 6px 0px #959FB1;
 	overflow: hidden;
 }
 
-::-webkit-scrollbar-button:active,
 ::-webkit-scrollbar-thumb:active {
 	box-shadow:
-		inset -3px -3px 6px 0px #52483C,
-		inset 3px 3px 6px 0px #39322A;
+		inset -3px -3px 6px 0px #E8EFFC,
+		inset  3px  3px 6px 0px #959FB1;
 }
 
 ::-webkit-scrollbar-button {
 	background-repeat: no-repeat;
 }
 
-::-webkit-scrollbar-button:active {
-	background-position: 1px 1px;
+::-webkit-scrollbar-button:vertical {
+	height: 18px;
+}
+
+::-webkit-scrollbar-button:horizontal {
+	width: 18px;
 }
 
 ::-webkit-scrollbar,
@@ -39,20 +40,27 @@
 
 ::-webkit-scrollbar-button:vertical:increment {
 	background-image: url("scroll-down.png");
+	background-position: 0px 0px;
 }
 
 ::-webkit-scrollbar-button:vertical:decrement {
 	background-image: url("scroll-up.png");
+	background-position: 0px 2px;
 }
 
 ::-webkit-scrollbar-button:horizontal:increment {
 	background-image: url("scroll-right.png");
+	background-position: 0px 0px;
 }
 
 ::-webkit-scrollbar-button:horizontal:decrement {
 	background-image: url("scroll-left.png");
+	background-position: 2px 0px;
 }
 
+::-webkit-scrollbar-button:active {
+	/* TODO */
+}
 
 html,
 body {
@@ -63,14 +71,27 @@ body {
 	font-family: 'Actor', sans-serif;
 	font-size: 14px;
 	color: #e0e0e0;
-	background-color: #444444;
+	background-color: #8596B3;
 	padding: 0;
 	margin: 0;
 }
 
 a {
 	text-decoration: none;
-	color: #D19559;
+	color: #6789E6;
+}
+
+#tabs a,
+#breadcrumbs,
+#breadcrumbs a,
+.button,
+#status,
+#play-control-buttons a,
+#tree-mode-select a,
+#volume-control {
+	font-weight: bold;
+	color: #8492B4;
+	text-shadow: 1px 1px 2px #E8EFFC;
 }
 
 #tree a,
@@ -97,16 +118,13 @@ textarea,
 .tab-content,
 #tree,
 .search-container {
-	background-color: #313131;
-	border-top-color:  #573B1F;
-	border-left-color: #573B1F;
-	border-bottom-color: #87592C;
-	border-right-color:  #87592C;
+	background-color: #212733;
 }
 
 #currently-playing,
 .search-container,
-.button {
+.button,
+#play-control-buttons {
 	display: inline-block;
 	border-radius: 10px;
 }
@@ -115,16 +133,14 @@ textarea,
 #tree,
 .tab-content,
 .search-container,
+#status,
 .button {
 	margin: 2px;
-	border-style: solid;
-	border-width: 1px;
-	padding: 2px;
+	padding: 2px 5px;
 }
 
 textarea {
-	border-style: solid;
-	border-width: 1px;
+	border: 1px solid #8492B4;
 	border-radius: 10px;
 }
 
@@ -135,22 +151,43 @@ textarea {
 
 #tree-mode-select,
 #volume-control,
-.button {
-	background-color: #313131;
+.button,
+#play-control-buttons a {
+	background: #e8effc;
+	background: -moz-linear-gradient(top, #e8effc 0%, #c1cada 72%, #959fb1 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#e8effc), color-stop(72%,#c1cada), color-stop(100%,#959fb1));
+	background: -webkit-linear-gradient(top, #e8effc 0%,#c1cada 72%,#959fb1 100%);
+	background: -o-linear-gradient(top, #e8effc 0%,#c1cada 72%,#959fb1 100%);
+	background: -ms-linear-gradient(top, #e8effc 0%,#c1cada 72%,#959fb1 100%);
+	background: linear-gradient(top, #e8effc 0%,#c1cada 72%,#959fb1 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e8effc', endColorstr='#959fb1',GradientType=0 );
 }
 
-#tree-mode-select,
-#volume-control,
-#play-button-wrapper,
-#player,
-#tabs a,
-.button,
-#navigation,
-#content {
-	border-top-color:  #87592C;
-	border-left-color: #87592C;
-	border-bottom-color: #573B1F;
-	border-right-color:  #573B1F;
+#tabs li a:hover,
+.button:hover,
+#tree-mode-select a:hover,
+#play-control-buttons a:hover {
+	background: #e8effc; /* TODO */
+}
+
+#tabs li a:active,
+#tabs li.active a,
+.button:active,
+#tree-mode-select a:active,
+#tree-mode-select li.active a,
+#play-control-buttons a:active {
+background: -moz-linear-gradient(top, #959fb1 0%, #c1cada 18%, #e8effc 100%);
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#959fb1), color-stop(18%,#c1cada), color-stop(100%,#e8effc));
+background: -webkit-linear-gradient(top, #959fb1 0%,#c1cada 18%,#e8effc 100%);
+background: -o-linear-gradient(top, #959fb1 0%,#c1cada 18%,#e8effc 100%);
+background: -ms-linear-gradient(top, #959fb1 0%,#c1cada 18%,#e8effc 100%);
+background: linear-gradient(top, #959fb1 0%,#c1cada 18%,#e8effc 100%);
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#959fb1', endColorstr='#e8effc',GradientType=0 );
+}
+
+#play-control-buttons,
+.button {
+	box-shadow: 2px 2px 3px rgba(0,0,0,0.1);
 }
 
 .app,
@@ -184,21 +221,36 @@ li.active {
 	font-weight: bold;
 }
 
-#play-button-wrapper,
+#play-button,
 #player,
 #navigation,
 #content {
-	background-color: #453D33;
+	background-color: #C1CADA;
 	border-radius: 20px;
-	border-style: solid;
-	border-width: 1px;
-	box-shadow: inset 15px 20px 30px #52483C;
+	box-shadow:
+	    inset  15px  20px 30px #E8EFFC,
+		inset -15px -20px 30px #959FB1,
+		        0px   0px 30px rgba(0,0,0,0.4);
 }
 
-.inner-area {
-	border-radius: 19px;
-	padding: 10px;
-	box-shadow: inset -15px -20px 30px #39322A;
+.tab-content,
+#tree,
+.search-container {
+	box-shadow:
+		 5px  5px 10px #E8EFFC,
+		-5px -5px 10px #959FB1;
+}
+
+#currently-playing {
+	box-shadow:
+		 3px  3px 6px #E8EFFC,
+		-2px -2px 6px #959FB1;
+}
+
+#play-button:active {
+	box-shadow:
+		inset  15px  20px 30px #959FB1,
+		inset -15px -20px 30px #E8EFFC;
 }
 
 #player-wrapper {
@@ -214,52 +266,33 @@ li.active {
 	width: 500px;
 	margin: auto;
 	border-radius: 30px;
-	border-width: 5px;
-	border-top-style: none;
 	z-index: 1000;
-}
-
-#player .inner-area {
-	border-radius: 25px;
+	padding: 10px;
 	height: 75px;
-}
-
-#player,
-#player .inner-area {
 	border-top-left-radius: 0px;
 	border-top-right-radius: 0px;
 }
 
-#play-button-wrapper {
+#play-button {
 	position: absolute;
 	left: -20px;
-	bottom: -20px;
-	border-style: solid;
-	border-width: 10px;
-	border-radius: 80px;
+	bottom: -10px;
+	border-radius: 40px;
 	width: 80px;
 	height: 80px;
-}
-
-#play-button-wrapper .inner-area {
-	border-radius: 70px;
-	width: 60px;
-	height: 60px;
-}
-
-#play-button-wrapper a {
 	outline: none;
 }
 
-#play-button-wrapper img {
+#play-button img {
 	width: 60px;
 	height: 60px;
+	margin: 10px;
 }
 
 #status,
 #player-buttons {
 	position: absolute;
-	bottom: 10px;
+	bottom: 6px;
 }
 
 #player-hide,
@@ -269,30 +302,31 @@ li.active {
 }
 
 #player-buttons {
-	left: 65px;
+	left: 50px;
 }
 
-#player-buttons .button {
+#play-control-buttons a {
 	display: inline-block;
-	margin: -3px; /* why not 0px? */
-	padding-left: 5px;
-	padding-right: 5px;
+	margin: 0px -3px;
+	padding: 2px 5px;
 	line-height: 20px;
 }
 
-#stop-button,
-#previous-button {
-	border-radius: 0px;
-}
-
-#stop-button.button {
+#play-control-buttons #stop-button {
 	padding-left: 20px;
 }
 
-#next-button.button {
+#next-button {
+	border-top-right-radius: 10px;
+	border-bottom-right-radius: 10px;
+}
+
+#play-control-buttons {
 	border-top-left-radius: 0px;
 	border-bottom-left-radius: 0px;
 	margin-right: 10px;
+	margin-bottom: -5px;  /* why does FF need this? */
+	overflow: hidden;
 }
 
 #player-hide,
@@ -317,10 +351,24 @@ li.active {
 	position: absolute;
 	list-style: none;
 	border-radius: 10px;
-	border-width: 1px;
-	border-style: solid;
-	padding: 5px;
+	padding: 0;
 	white-space: nowrap;
+	overflow: hidden;
+}
+
+#tree-mode-select a {
+	display: block;
+	padding: 5px;
+}
+
+#tree-mode-select li.first a {
+	border-top-left-radius: 10px;
+	border-top-right-radius: 10px;
+}
+
+#tree-mode-select li.last a {
+	border-bottom-left-radius: 10px;
+	border-bottom-right-radius: 10px;
 }
 
 #tabs {
@@ -330,9 +378,6 @@ li.active {
 
 #tabs li a {
 	display: inline-block;
-	background-color: #313131;
-	border-style: solid;
-	border-width: 1px;
 	margin: 0;
 	padding: 5px 20px;
 	margin-left: -3px; /* why? */
@@ -442,12 +487,12 @@ li.active {
 
 .playlist tr.drop.after td,
 .playlist tr.drop.after th {
-	border-bottom: 2px solid gray;
+	border-bottom: 2px solid #8492B4;
 }
 
 .playlist tr.drop.before td,
 .playlist tr.drop.before th {
-	border-top: 2px solid gray;
+	border-top: 2px solid #8492B4;
 }
 
 .dragged.playlist tr td,
@@ -457,18 +502,16 @@ li.active {
 }
 
 ::selection {
-	background-color: #503B28;
+	background-color: #485063;
 }
 
 .playlist tr.selected {
-	background-color: #503B28;
+	background-color: #485063;
 }
 
 #volume-control {
 	position: absolute;
 	border-radius: 10px;
-	border-width: 1px;
-	border-style: solid;
 	padding: 5px;
 }
 
@@ -487,10 +530,7 @@ th {
 	bottom: 10px;
 	top: 110px;
 	min-height: 100px;
-}
-
-#content {
-	overflow: hidden;
+	padding: 10px;
 }
 
 #navigation {
@@ -499,18 +539,10 @@ th {
 }
 
 #content {
-	left: 375px;
+	overflow: hidden;
+	left: 390px;
 	right: 10px;
 	min-width: 100px;
-}
-
-#navigation .inner-area,
-#content .inner-area {
-	position: absolute;
-	left: 0px;
-	right: 0px;
-	bottom: 0px;
-	top: 0px;
 }
 
 #tree {
@@ -523,13 +555,13 @@ th {
 
 #play-progress-container,
 #buffer-progress {
-	width: 380px;
+	width: 420px;
 }
 
 #currently-playing {
 	position: absolute;
 	right: 20px;
-	width: 385px;
+	width: 430px;
 	bottom: 60px;
 	padding-left: 5px;
 	padding-right: 5px;
@@ -540,9 +572,6 @@ th {
 #play-progress-container {
 	position: absolute;
 	right: 20px;
-}
-
-#play-progress-container {
 	bottom: 40px;
 	background-color: #313131;
 	height: 10px;
@@ -562,7 +591,7 @@ th {
 	top: -2px;
 	bottom: 0px;
 	border-radius: 10px;
-	border: 2px solid #87592C;
+	border: 2px solid #8492B4;
 	background-color: #313131;
 }
 
@@ -581,7 +610,7 @@ th {
 }
 
 #volume-bar-container {
-	background-color: #101010;
+	background-color: #212733;
 	height: 150px;
 	margin: auto;
 	margin-top: 5px;
@@ -589,10 +618,11 @@ th {
 	position: relative;
 	width: 10px;
 	border-radius: 5px;
+	overflow: hidden;
 }
 
 #volume-bar {
-	background-color: #87592C;
+	background-color: #626D86;
 	position: absolute;
 	left: 0px;
 	right: 0px;
@@ -617,7 +647,7 @@ th {
 }
 
 .album img.cover {
-	width: 300px;
+	width:  300px;
 	height: 300px;
 }
 
@@ -628,6 +658,7 @@ img {
 #volume-control,
 #tree-mode-select {
 	z-index: 1001;
+	box-shadow: 0px 0px 30px rgba(0,0,0,0.4);
 }
 
 .navigation-head {
@@ -647,7 +678,7 @@ img {
 }
 
 #tree-mode-button {
-	right: 30px;
+	right: 40px;
 }
 
 #navigation-show {

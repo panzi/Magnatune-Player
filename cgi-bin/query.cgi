@@ -435,7 +435,7 @@ def embed(cur,params):
 	<param name="bgcolor" value="#E6E6E6"/>
 	<embed src="%(PLAYER)s?playlist_url=http://embed.magnatune.com/artists/albums/%(ALBUM_SKU)s/hifi.xspf&autoload=true&autoplay=%(AUTOPLAY)s&playlist_title=%(PLAYLIST_TITLE)s" quality="high" bgcolor="#E6E6E6" name="xspf_player" allowscriptaccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" align="center" height="%(HEIGHT)d" width="%(WIDTH)d"></embed>
 </object><br/>
-<span style="font-face: Verdana, Arial, utopia, Sans-serif; font-size: 1em; color: #000000">
+<span style="font-face: Verdana, Arial, Utopia, Sans-serif; font-size: 1em;">
 	<a href="http://magnatune.com/artists/albums/%(ALBUM_SKU)s"><b>%(ALBUM_NAME)s</b></a> by <a href="http://magnatune.com/artists/%(ARTIST_HOMEPAGE)s"><b>%(ARTIST_NAME)s</b></a>
 </span>
 """
@@ -445,11 +445,11 @@ def embed(cur,params):
 		'AUTOPLAY': autoplay,
 		'PLAYER': player,
 		'LOGO': logo,
-		'ALBUM_SKU':sku,
-		'ALBUM_NAME':cgi.escape(album).encode('ascii','xmlcharrefreplace'),
-		'ARTIST_NAME':cgi.escape(artist).encode('ascii','xmlcharrefreplace'),
-		'ARTIST_HOMEPAGE':homepage,
-		'PLAYLIST_TITLE':urllib.quote(album+' - '+artist)
+		'ALBUM_SKU': sku,
+		'ALBUM_NAME': cgi.escape(album).encode('ascii','xmlcharrefreplace'),
+		'ARTIST_NAME': cgi.escape(artist).encode('ascii','xmlcharrefreplace'),
+		'ARTIST_HOMEPAGE': homepage,
+		'PLAYLIST_TITLE': urllib.quote(album+' - '+artist)
 	}
 
 	return {
