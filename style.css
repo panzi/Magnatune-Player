@@ -448,6 +448,7 @@ li.active {
 	opacity: 0.5 !important;
 	pointer-events: none !important;
 	cursor: default;
+	z-index: 2000;
 }
 
 .playlist {
