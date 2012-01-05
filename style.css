@@ -789,3 +789,12 @@ a.button {
 	margin-right: 270px;
 	min-width: 350px;
 }
+
+.tab-content .album h2 {
+	margin-bottom: 5px;
+}
+
+.tab-content .album .launchdate {
+	margin-bottom: 15px;
+	color: #5A6A8B;
+}

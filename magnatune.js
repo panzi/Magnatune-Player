@@ -702,12 +702,14 @@ var Magnatune = {
 						for (var i = 0; i < data.body.also.length; ++ i) {
 							also.push(Magnatune.Collection.Albums[data.body.also[i]]);
 						}
-
+						var launchdate = new Date();
+						launchdate.setTime(data.body.launchdate * 1000);
 						var page = tag('div',{'class':'album'},
 							tag('h2', tag('a', {'class':'albumname',
 								href:'http://magnatune.com/artists/albums/'+data.body.sku+'/',
 								target:'_blank'},
 								album.albumname)),
+							tag('div',{'class':'launchdate'}, launchdate.toLocaleDateString()),
 							tag('table',
 								tag('tbody',
 									tag('tr',
