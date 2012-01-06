@@ -439,7 +439,7 @@ var Magnatune = {
 			$('#player-wrapper').stop().animate({top:'-60px'},d);
 			var currently_playing = $('#currently-playing').stop();
 			Magnatune.Player._stopTitleAnim();
-			currently_playing.animate({bottom:'6px',right:'55px',width:'235px'},d);
+			currently_playing.animate({bottom:'6px',width:'265px'},d);
 			$('#navigation, #content').stop().animate({top:'50px'},d);
 		},
 		show: function () {
@@ -449,7 +449,7 @@ var Magnatune = {
 			$('#player-wrapper').stop().animate({top:'0px'},d);
 			var currently_playing = $('#currently-playing').stop();
 			Magnatune.Player._stopTitleAnim();
-			currently_playing.animate({bottom:'60px',right:'20px',width:'430px'},d);
+			currently_playing.animate({bottom:'60px',width:'430px'},d);
 			$('#navigation, #content').stop().animate({top:'110px'},d);
 		},
 		_stopTitleAnim: function () {
@@ -1253,8 +1253,8 @@ var Magnatune = {
 		},
 		hide: function () {
 			var d = Magnatune.Options.AnimationDuration;
-			$('#content').stop().animate({left:'40px'},d);
-			$('#navigation').stop().animate({left:'-340px'},d);
+			$('#content').stop().animate({left:'20px'},d);
+			$('#navigation').stop().animate({left:'-360px'},d);
 			$('#navigation-hide').hide();
 			$('#navigation-show').show();
 		},

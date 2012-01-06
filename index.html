@@ -47,8 +47,10 @@
 				<a href="javascript:Magnatune.Player.randomAlbum();void(0)">[Play Random Album]</a>
 			</div>
 
-			<a id="player-hide" class="button" href="javascript:Magnatune.Player.hide();" title="Hide Player">&#x25B4;</a>
-			<a id="player-show" class="button" href="javascript:Magnatune.Player.show();" title="Show Player" style="display:none;">&#x25BE;</a>
+			<div class="slide-expand top">
+				<a id="player-hide" href="javascript:Magnatune.Player.hide();" title="Hide Player">&#x25B4;</a>
+				<a id="player-show" href="javascript:Magnatune.Player.show();" title="Show Player" style="display:none;">&#x25BE;</a>
+			</div>
 			
 			<a id="play-button" href="javascript:Magnatune.Player.playPause();void(0)"><img
 				id="play-image" src="play.png" alt="Play" title="Play"/><img
@@ -65,8 +67,6 @@
 				</span>
 
 				<a class="button" id="tree-mode-button" href="javascript:Magnatune.Navigation.toggleModeSelect();void(0)">Mode</a>
-				<a class="button" id="navigation-hide" href="javascript:Magnatune.Navigation.hide();void(0)" title="Hide Collection">&#x25C2;</a>
-				<a class="button" id="navigation-show" href="javascript:Magnatune.Navigation.show();void(0)" title="Show Collection" style="display:none;">&#x25B8;</a>
 
 				<ul id="tree-mode-select" style="display:none;">
 					<li id="mode-album" class="first"><a href="javascript:Magnatune.Navigation.setMode('album');void(0)">Album</a></li>
@@ -74,8 +74,12 @@
 					<li id="mode-genre-artist-album" class="active last"><a href="javascript:Magnatune.Navigation.setMode('genre/artist/album');void(0)">Genre / Artist / Album</a></li>
 				</ul>
 			</div>
-
 			<div id="tree">
+			</div>
+			
+			<div class="slide-expand left">
+				<a id="navigation-hide" href="javascript:Magnatune.Navigation.hide();void(0)" title="Hide Collection">&#x25C2;</a>
+				<a id="navigation-show" href="javascript:Magnatune.Navigation.show();void(0)" title="Show Collection" style="display:none;">&#x25B8;</a>
 			</div>
 		</div>
 

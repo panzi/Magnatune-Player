@@ -181,12 +181,15 @@ textarea {
 
 #tabs li a:hover,
 .button:hover,
+.slide-expand a:hover,
+.tab-content .button:hover,
 #tree-mode-select a:hover,
 #play-control-buttons a:hover {
 	background: #e8effc; /* TODO */
 }
 
 #tabs li a:active,
+.slide-expand.top a:active,
 #tabs li.active a,
 #tree-mode-select a:active,
 #tree-mode-select li.active a,
@@ -198,6 +201,20 @@ textarea {
 	background: -ms-linear-gradient(top, #959fb1 0%,#c1cada 18%,#e8effc 100%);
 	background: linear-gradient(top, #959fb1 0%,#c1cada 18%,#e8effc 100%);
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#959fb1', endColorstr='#e8effc',GradientType=0 );
+}
+
+.slide-expand.left a:active {
+	background: -moz-linear-gradient(left, #959fb1 0%, #c1cada 18%, #e8effc 100%);
+	background: -webkit-gradient(linear, left top, right top, color-stop(0%,#959fb1), color-stop(18%,#c1cada), color-stop(100%,#e8effc));
+	background: -webkit-linear-gradient(left, #959fb1 0%,#c1cada 18%,#e8effc 100%);
+	background: -o-linear-gradient(left, #959fb1 0%,#c1cada 18%,#e8effc 100%);
+	background: -ms-linear-gradient(left, #959fb1 0%,#c1cada 18%,#e8effc 100%);
+	background: linear-gradient(left, #959fb1 0%,#c1cada 18%,#e8effc 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#959fb1', endColorstr='#e8effc',GradientType=1 );
+}
+
+.button:active {
+	background: #B3BDCD;
 }
 
 #play-control-buttons {
@@ -267,6 +284,15 @@ li.active {
 		inset -15px -20px 30px #E8EFFC;
 }
 
+#play-button img {
+	position: relative;
+}
+
+#play-button:active img {
+	left: 2px;
+	top:  2px;
+}
+
 #player-wrapper {
 	position: absolute;
 	left: 0px;
@@ -309,12 +335,6 @@ li.active {
 	bottom: 6px;
 }
 
-#player-hide,
-#player-show {
-	position: absolute;
-	bottom: 6px;
-}
-
 #player-buttons {
 	left: 50px;
 }
@@ -341,13 +361,6 @@ li.active {
 	margin-right: 10px;
 	margin-bottom: -5px;  /* why does FF need this? */
 	overflow: hidden;
-}
-
-#player-hide,
-#player-show {
-	right: 20px;
-	width: 20px;
-	text-align: center;
 }
 
 #status {
@@ -681,33 +694,55 @@ img {
 }
 
 #search {
-	width: 225px;
-}
-
-#tree-mode-button,
-#navigation-hide,
-#navigation-show {
-	position: absolute;
-	top: 0px;
-	bottom: 0px;
+	width: 265px;
 }
 
 #tree-mode-button {
-	right: 40px;
-}
-
-#navigation-show {
-	right: -20px;
-}
-
-#navigation-hide {
+	position: absolute;
+	top: 0px;
+	bottom: 0px;
 	right: 0px;
 }
 
-#navigation-show,
-#navigation-hide {
-	width: 20px;
+.slide-expand {
+	position: absolute;
+	overflow: hidden;
 	text-align: center;
+}
+
+.slide-expand a {
+	display: block;
+	outline: none;
+}
+
+.slide-expand.left {
+	width: 12px;
+	top: 0px;
+	bottom: 0px;
+	right: 0px;
+}
+
+.slide-expand.left a {
+	position: absolute;
+	top: 50%;
+	left: 0px;
+	right: 0px;
+	line-height: 80px;
+	margin-top: -40px;
+}
+
+.slide-expand.top {
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	text-align: center;
+}
+
+.slide-expand.top a {
+	width: 80px;
+	margin: auto;
+	line-height: 8px;
+	font-size: 12px;
 }
 
 table.albums .cover,
@@ -813,7 +848,12 @@ a.button {
 }
 
 .tab-content .button {
-	color: #0D131F;
+	color: #2D3440;
 	text-shadow: none;
 	text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
+	background: #7F8FAC;
+}
+
+.tab-content .button:active {
+	background: #67758C;
 }
