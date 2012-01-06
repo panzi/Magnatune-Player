@@ -1781,7 +1781,7 @@ var Magnatune = {
 			mode = mode.trim().toLowerCase();
 			$('#tree-mode-select').hide();
 			
-			// TODO: filter and keep expand and scroll state
+			// TODO: keep expand and scroll state
 			switch (mode) {
 				case 'album':
 				case 'artist/album':
@@ -1919,59 +1919,117 @@ var Magnatune = {
 			localStorage.setItem('info.hash',Magnatune.Info.hash()||'#/about');
 			localStorage.setItem('playlist.songs',JSON.stringify(Magnatune.Playlist.songs()));
 			localStorage.setItem('playlist.current',String(Magnatune.Playlist.currentIndex()));
+			localStorage.setItem('playlist.visible',String(Magnatune.Playlist.visible()));
 			localStorage.setItem('player.visible',String(Magnatune.Player.visible()));
 			localStorage.setItem('navigation.visible',String(Magnatune.Navigation.visible()));
+			localStorage.setItem('navigation.mode',Magnatune.Navigation.mode());
 		}
 	},
 	load: function () {
+		var hash, songs, current, playerVisible, navigationVisible, playlistVisible, mode;
 		if (typeof(localStorage) !== "undefined") {
-			var info = localStorage.getItem('info.hash');
-			if (info && !Magnatune.Info.visible()) {
-				Magnatune.Info.load(info,{keeptab:true});
-			}
-			var songs = localStorage.getItem('playlist.songs');
+			hash = localStorage.getItem('info.hash') || '#/about';
+			songs = localStorage.getItem('playlist.songs');
 			if (songs !== null) {
 				try {
-					Magnatune.Playlist.replace(JSON.parse(songs));
+					songs = JSON.parse(songs);
 				}
 				catch (e) {
 					console.error(e);
+					songs = null;
 				}
 			}
-			var current = parseInt(localStorage.getItem('playlist.current'),10);
-			if (!isNaN(current)) {
-				Magnatune.Playlist.setCurrentIndex(current);
-			}
-			var visible = localStorage.getItem('player.visible');
-			if (visible !== null) {
+			current = parseInt(localStorage.getItem('playlist.current'),10);
+			playlistVisible = localStorage.getItem('playlist.visible');
+			if (playlistVisible !== null) {
 				try {
-					visible = JSON.parse(visible);
-					if (visible === true) {
-						Magnatune.Player.show(true);
-					}
-					else if (visible === false) {
-						Magnatune.Player.hide(true);
-					}
+					playlistVisible = JSON.parse(playlistVisible);
 				}
 				catch (e) {
 					console.error(e);
 				}
 			}
-			visible = localStorage.getItem('navigation.visible');
-			if (visible !== null) {
+			playerVisible = localStorage.getItem('player.visible');
+			if (playerVisible !== null) {
 				try {
-					visible = JSON.parse(visible);
-					if (visible === true) {
-						Magnatune.Navigation.show(true);
-					}
-					else if (visible === false) {
-						Magnatune.Navigation.hide(true);
-					}
+					playerVisible = JSON.parse(playerVisible);
 				}
 				catch (e) {
 					console.error(e);
 				}
 			}
+			navigationVisible = localStorage.getItem('navigation.visible');
+			if (navigationVisible !== null) {
+				try {
+					navigationVisible = JSON.parse(navigationVisible);
+				}
+				catch (e) {
+					console.error(e);
+				}
+			}
+			var mode = localStorage.getItem('navigation.mode') || 'genre/artist/album';
+		}
+		else {
+			hash = '#/about';
+			songs = [];
+			current = -1;
+			playerVisible = true;
+			navigationVisible = true;
+			playlistVisible = false;
+			mode = 'genre/artist/album';
+		}
+		
+		if (/^#?$/.test(window.location.hash)) {
+			if (playlistVisible) {
+				Magnatune.Playlist.show();
+				Magnatune.Info.load(hash,{keeptab:true});
+				window.location.hash = '#/playlist';
+			}
+			else {
+				Magnatune.Info.load(hash);
+			}
+		}
+		else if (/^#\/playlist(?:\/.*)?/.test(window.location.hash)) {
+			Magnatune.Info.load(window.location.hash);
+			Magnatune.Info.load(hash,{keeptab:true});
+		}
+		else {
+			Magnatune.Info.load(window.location.hash);
+		}
+
+		if (songs !== null) {
+			try {
+				Magnatune.Playlist.replace(songs);
+			}
+			catch (e) {
+				console.error(e);
+			}
+		}
+		
+		if (!isNaN(current)) {
+			Magnatune.Playlist.setCurrentIndex(current);
+		}
+
+		if (playerVisible === true) {
+			Magnatune.Player.show(true);
+		}
+		else if (playerVisible === false) {
+			Magnatune.Player.hide(true);
+		}
+		
+		if (navigationVisible === true) {
+			Magnatune.Navigation.show(true);
+		}
+		else if (navigationVisible === false) {
+			Magnatune.Navigation.hide(true);
+		}
+		
+		try {
+			Magnatune.Navigation.setMode(mode);
+		}
+		catch (e) {
+			console.error(e);
+			Magnatune.Navigation.setMode('genre/artist/album');
 		}
 	}
 };
@@ -2049,13 +2107,6 @@ $(document).ready(function () {
 		}
 	});
 	Magnatune.Collection.on('ready', function () {
-		Magnatune.Navigation.setMode('genre/artist/album');
-		if (/^#?$/.test(window.location.hash)) {
-			window.location.hash = '#/about';
-		}
-		else {
-			Magnatune.showHash();
-		}
 		Magnatune.load();
 	});
 	$('#search').on('paste cut drop', Magnatune.Navigation.FilterInput.delayedUpdate);
@@ -2075,13 +2126,12 @@ $(document).ready(function () {
 	$('#currently-playing').on('mouseenter', Magnatune.Player._titleAnim);
 	$('#currently-playing').on('mouseleave', Magnatune.Player._stopTitleAnim);
 	Magnatune.Collection.load();
-	$(window).unload(function () {
+	$(window).unload(function (event) {
 		Magnatune.save();
 	});
-});
-
-$(window).on('hashchange',function (event) {
-	Magnatune.showHash();
+	$(window).on('hashchange',function (event) {
+		Magnatune.showHash();
+	});
 });
 
 $(document).click(function (event) {
