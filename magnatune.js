@@ -266,6 +266,23 @@ var Magnatune = {
 			return this.audio.ended;
 		},
 		audio: null,
+		showSpinner: function () {
+			$('#waiting').show().rotate({
+				angle: 0,
+				animateTo: 360,
+				easing: function (x,t,b,c,d) {
+					return c*(t/d)+b;
+				},
+				callback: function () {
+					if ($(this).is(':visible')) {
+						Magnatune.Player.showSpinner();
+					}
+				}
+			});
+		},
+		hideSpinner: function () {
+			$('#waiting').hide();
+		},
 		Handlers: {
 			progress: function (event) {
 				var duration = Magnatune.Player.duration();
@@ -300,21 +317,21 @@ var Magnatune = {
 				$('#current-duration').text(tag.time(Magnatune.Player.duration()));
 			},
 			waiting: function (event) {
-				$('#waiting').css("visibility","visible");
+				Magnatune.Player.showSpinner();
 			},
 			error: function (event) {
+				Magnatune.Player.hideSpinner();
 				// TODO
-				$('#waiting').css("visibility","hidden");
 			},
 			canplay: function (event) {
-				$('#waiting').css("visibility","hidden");
+				Magnatune.Player.hideSpinner();
 			},
 			playing: function (event) {
 				$('#play-image').hide();
 				$('#pause-image').show();
 			},
 			emptied: function (event) {
-				$('#waiting').css("visibility","hidden");
+				Magnatune.Player.hideSpinner();
 			},
 			pause: function (event) {
 				$('#play-image').show();
@@ -323,7 +340,7 @@ var Magnatune = {
 			ended: function (event) {
 				$('#play-image').show();
 				$('#pause-image').hide();
-				$('#waiting').css("visibility","hidden");
+				Magnatune.Player.hideSpinner();
 				if (!Magnatune.Drag.seeking) {
 					Magnatune.Playlist.next(true);
 				}
