@@ -421,36 +421,46 @@ var Magnatune = {
 			}
 			catch (e) {}
 		},
-		randomAlbum: function () {
-			var albums = Magnatune.Collection.SortedAlbums;
-			var album = albums[Math.round(Math.random() * (albums.length - 1))];
-
-			Magnatune.Collection.withSongs(album, function (album) {
-				for (var i = 0; i < album.songs.length; ++ i) {
-					album.songs[i].albumname = album.albumname;
-				}
-				Magnatune.Playlist.replace(album.songs,true);				
-			});
+		visible: function () {
+			return $('#player-hide').is(':visible');
 		},
-		hide: function () {
-			var d = Magnatune.Options.AnimationDuration;
+		hide: function (skipAnimation) {
 			$('#player-show').show();
 			$('#player-hide').hide();
-			$('#player-wrapper').stop().animate({top:'-60px'},d);
-			var currently_playing = $('#currently-playing').stop();
-			Magnatune.Player._stopTitleAnim();
-			currently_playing.animate({bottom:'6px',width:'265px'},d);
-			$('#navigation, #content').stop().animate({top:'50px'},d);
+			if (skipAnimation) {
+				$('#player-wrapper').stop().css({top:'-60px'});
+				var currently_playing = $('#currently-playing').stop();
+				Magnatune.Player._stopTitleAnim();
+				currently_playing.css({bottom:'6px',width:'265px'});
+				$('#navigation, #content').stop().css({top:'50px'});
+			}
+			else {
+				var d = Magnatune.Options.AnimationDuration;
+				$('#player-wrapper').stop().animate({top:'-60px'},d);
+				var currently_playing = $('#currently-playing').stop();
+				Magnatune.Player._stopTitleAnim();
+				currently_playing.animate({bottom:'6px',width:'265px'},d);
+				$('#navigation, #content').stop().animate({top:'50px'},d);
+			}
 		},
-		show: function () {
-			var d = Magnatune.Options.AnimationDuration;
+		show: function (skipAnimation) {
 			$('#player-show').hide();
 			$('#player-hide').show();
-			$('#player-wrapper').stop().animate({top:'0px'},d);
-			var currently_playing = $('#currently-playing').stop();
-			Magnatune.Player._stopTitleAnim();
-			currently_playing.animate({bottom:'60px',width:'430px'},d);
-			$('#navigation, #content').stop().animate({top:'110px'},d);
+			if (skipAnimation) {
+				$('#player-wrapper').stop().css({top:'0px'});
+				var currently_playing = $('#currently-playing').stop();
+				Magnatune.Player._stopTitleAnim();
+				currently_playing.css({bottom:'60px',width:'430px'});
+				$('#navigation, #content').stop().css({top:'110px'});
+			}
+			else {
+				var d = Magnatune.Options.AnimationDuration;
+				$('#player-wrapper').stop().animate({top:'0px'},d);
+				var currently_playing = $('#currently-playing').stop();
+				Magnatune.Player._stopTitleAnim();
+				currently_playing.animate({bottom:'60px',width:'430px'},d);
+				$('#navigation, #content').stop().animate({top:'110px'},d);
+			}
 		},
 		_stopTitleAnim: function () {
 			$('#currently-playing').stop('scroll',true,false).animate(
@@ -600,7 +610,17 @@ var Magnatune = {
 				window.location.hash = hash;
 			}
 		},
-		load: function (page,opts) {
+		load: function (hash,opts) {
+			var m = /^#?\/([^\/]+)(?:\/(.*))?/.exec(hash);
+			
+			if (!m) return false;
+
+			if (!opts) opts = {};
+			var page = m[1];
+			if (typeof(m[2]) !== "undefined") {
+				opts.id = decodeURIComponent(m[2]);
+			}
+
 			if (Object.prototype.hasOwnProperty.call(this.Pages,page)) {
 				this.Pages[page](opts||{});
 				return true;
@@ -823,17 +843,6 @@ var Magnatune = {
 		visible: function () {
 			return $('#playlist').is(':visible');
 		},
-		setCurrentIndex: function (index,forceplay) {
-			var playlist = $("#playlist");
-			var current = playlist.find("> tbody > tr")[index];
-			if (current) {
-				playlist.find("> tbody > tr.current").removeClass("current");
-				$(current).addClass('current');
-				if (forceplay || Magnatune.Player.playing()) {
-					Magnatune.Player.play();
-				}
-			}
-		},
 		_click_song: function (event) {
 			var playlist = $("#playlist");
 			var element = $(this);
@@ -897,6 +906,17 @@ var Magnatune = {
 					'\u00d7')));
 			Magnatune.Drag.draggable(tr, Magnatune.Playlist.DraggableOptions);
 			return tr;
+		},
+		randomAlbum: function () {
+			var albums = Magnatune.Collection.SortedAlbums;
+			var album = albums[Math.round(Math.random() * (albums.length - 1))];
+
+			Magnatune.Collection.withSongs(album, function (album) {
+				for (var i = 0; i < album.songs.length; ++ i) {
+					album.songs[i].albumname = album.albumname;
+				}
+				Magnatune.Playlist.replace(album.songs,true);				
+			});
 		},
 		enqueue: function (songs) {
 			var tbody = $('#playlist > tbody');
@@ -1090,6 +1110,17 @@ var Magnatune = {
 		currentIndex: function () {
 			return $('#playlist > tbody > tr.current').index();
 		},
+		setCurrentIndex: function (index,forceplay) {
+			var playlist = $("#playlist");
+			var current = playlist.find("> tbody > tr")[index];
+			if (current) {
+				playlist.find("> tbody > tr.current").removeClass("current");
+				$(current).addClass('current');
+				if (forceplay || Magnatune.Player.playing()) {
+					Magnatune.Player.play();
+				}
+			}
+		},
 		length: function () {
 			return $('#playlist > tbody > tr').length;
 		},
@@ -1244,19 +1275,34 @@ var Magnatune = {
 		}
 	},
 	Navigation: {
-		show: function () {
-			var d = Magnatune.Options.AnimationDuration;
-			$('#content').stop().animate({left:'390px'},d);
-			$('#navigation').stop().animate({left:'10px'},d);
+		show: function (skipAnimation) {
+			if (skipAnimation) {
+				$('#content').stop().css({left:'390px'});
+				$('#navigation').stop().css({left:'10px'});
+			}
+			else {
+				var d = Magnatune.Options.AnimationDuration;
+				$('#content').stop().animate({left:'390px'},d);
+				$('#navigation').stop().animate({left:'10px'},d);
+			}
 			$('#navigation-hide').show();
 			$('#navigation-show').hide();
 		},
-		hide: function () {
-			var d = Magnatune.Options.AnimationDuration;
-			$('#content').stop().animate({left:'20px'},d);
-			$('#navigation').stop().animate({left:'-360px'},d);
+		hide: function (skipAnimation) {
+			if (skipAnimation) {
+				$('#content').stop().css({left:'20px'});
+				$('#navigation').stop().css({left:'-360px'});
+			}
+			else {
+				var d = Magnatune.Options.AnimationDuration;
+				$('#content').stop().animate({left:'20px'},d);
+				$('#navigation').stop().animate({left:'-360px'},d);
+			}
 			$('#navigation-hide').hide();
 			$('#navigation-show').show();
+		},
+		visible: function () {
+			return $('#navigation-hide').is(':visible');
 		},
 		clear: function () {
 			$('#search').val('');
@@ -1314,12 +1360,12 @@ var Magnatune = {
 
 					for (var i = 0; i < genres.length; ++ i) {
 						var genre = genres[i];
+						var hash = '#/genre/'+encodeURIComponent(genre.genre);
 						list.append(tag.expander({
 							label: genre.genre,
 							head_attrs: {
-								href: '#/genre/'+encodeURIComponent(genre.genre),
-								onclick: Magnatune.Info.load.bind(Magnatune.Info,
-									'genre',{id:genre.genre,keeptab:true})
+								href: hash,
+								onclick: Magnatune.Info.load.bind(Magnatune.Info,hash,{keeptab:true})
 							},
 							render: function (parent) {
 								Magnatune.Navigation.Modes.ArtistAlbum.render(parent, this.artists, album_filter.bind(this));
@@ -1444,12 +1490,12 @@ var Magnatune = {
 
 					for (var i = 0; i < artists.length; ++ i) {
 						var artist = artists[i];
+						var hash = '#/artist/'+encodeURIComponent(artist.artist);
 						list.append(tag.expander({
 							label: artist.artist,
 							head_attrs: {
-								href: '#/artist/'+encodeURIComponent(artist.artist),
-								onclick: Magnatune.Info.load.bind(Magnatune.Info,
-									'artist',{id:artist.artist,keeptab:true}),
+								href: hash,
+								onclick: Magnatune.Info.load.bind(Magnatune.Info,hash,{keeptab:true}),
 								title: artist.artist
 							},
 							render: function (parent) {
@@ -1560,13 +1606,13 @@ var Magnatune = {
 									tag('td',{'class':'albumname'},album.albumname))));
 						Magnatune.Drag.draggable(label, this.draggable(album));
 
+						var hash = '#/album/'+encodeURIComponent(album.albumname);
 						list.append(tag.expander({
 							label: label,
 							head_attrs: {
 								'class': 'album-head',
-								href: '#/album/'+encodeURIComponent(album.albumname),
-								onclick: Magnatune.Info.load.bind(Magnatune.Info,
-									'album',{id:album.albumname,keeptab:true}),
+								href: hash,
+								onclick: Magnatune.Info.load.bind(Magnatune.Info,hash,{keeptab:true}),
 								ondblclick: Magnatune.Collection.withSongs.bind(Magnatune.Collection, album, function (album) {
 									var songs = album.songs;
 									for (var i = 0; i < songs.length; ++ i) {
@@ -1776,19 +1822,9 @@ var Magnatune = {
 			}
 			return true;
 		}
-
-		var m = /^#?\/([^\/]+)(?:\/(.*))?/.exec(window.location.hash);
-
-		if (m) {
-			var page = m[1];
-			var opts = {};
-			if (typeof(m[2]) !== "undefined") {
-				opts.id = decodeURIComponent(m[2]);
-			}
-			return Magnatune.Info.load(page, opts);
+		else {
+			return Magnatune.Info.load(window.location.hash);
 		}
-
-		return false;
 	},
 	Drag: {
 		source:  null,
@@ -1877,6 +1913,66 @@ var Magnatune = {
 				Magnatune.Drag.handler = options.create.call(this,event);
 			}
 		}
+	},
+	save: function () {
+		if (typeof(localStorage) !== "undefined") {
+			localStorage.setItem('info.hash',Magnatune.Info.hash()||'#/about');
+			localStorage.setItem('playlist.songs',JSON.stringify(Magnatune.Playlist.songs()));
+			localStorage.setItem('playlist.current',String(Magnatune.Playlist.currentIndex()));
+			localStorage.setItem('player.visible',String(Magnatune.Player.visible()));
+			localStorage.setItem('navigation.visible',String(Magnatune.Navigation.visible()));
+		}
+	},
+	load: function () {
+		if (typeof(localStorage) !== "undefined") {
+			var info = localStorage.getItem('info.hash');
+			if (info && !Magnatune.Info.visible()) {
+				Magnatune.Info.load(info,{keeptab:true});
+			}
+			var songs = localStorage.getItem('playlist.songs');
+			if (songs !== null) {
+				try {
+					Magnatune.Playlist.replace(JSON.parse(songs));
+				}
+				catch (e) {
+					console.error(e);
+				}
+			}
+			var current = parseInt(localStorage.getItem('playlist.current'),10);
+			if (!isNaN(current)) {
+				Magnatune.Playlist.setCurrentIndex(current);
+			}
+			var visible = localStorage.getItem('player.visible');
+			if (visible !== null) {
+				try {
+					visible = JSON.parse(visible);
+					if (visible === true) {
+						Magnatune.Player.show(true);
+					}
+					else if (visible === false) {
+						Magnatune.Player.hide(true);
+					}
+				}
+				catch (e) {
+					console.error(e);
+				}
+			}
+			visible = localStorage.getItem('navigation.visible');
+			if (visible !== null) {
+				try {
+					visible = JSON.parse(visible);
+					if (visible === true) {
+						Magnatune.Navigation.show(true);
+					}
+					else if (visible === false) {
+						Magnatune.Navigation.hide(true);
+					}
+				}
+				catch (e) {
+					console.error(e);
+				}
+			}
+		}
 	}
 };
 
@@ -1960,6 +2056,7 @@ $(document).ready(function () {
 		else {
 			Magnatune.showHash();
 		}
+		Magnatune.load();
 	});
 	$('#search').on('paste cut drop', Magnatune.Navigation.FilterInput.delayedUpdate);
 	$('#search').on('keydown', function (event) {
@@ -1978,6 +2075,9 @@ $(document).ready(function () {
 	$('#currently-playing').on('mouseenter', Magnatune.Player._titleAnim);
 	$('#currently-playing').on('mouseleave', Magnatune.Player._stopTitleAnim);
 	Magnatune.Collection.load();
+	$(window).unload(function () {
+		Magnatune.save();
+	});
 });
 
 $(window).on('hashchange',function (event) {
