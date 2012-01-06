@@ -20,18 +20,16 @@
 				<div id="play-progress" style="width:0px;"><div id="play-progress-knob"></div></div>
 			</div>
 
-			<div id="player-buttons">
-				<div id="play-control-buttons">
-					<a id="stop-button" href="javascript:Magnatune.Player.stop();void(0)" title="Stop">&#x25A0;</a>
-					<a id="previous-button" href="javascript:Magnatune.Playlist.previous();void(0)" title="Previous">&#x25AE;&#x25C0;</a>
-					<a id="next-button" href="javascript:Magnatune.Playlist.next();void(0)" title="Next">&#x25B6;&#x25AE;</a>
-				</div>
+			<div id="play-control-buttons">
+				<a id="stop-button" href="javascript:Magnatune.Player.stop();void(0)" title="Stop">&#x25A0;</a>
+				<a id="previous-button" href="javascript:Magnatune.Playlist.previous();void(0)" title="Previous">&#x25AE;&#x25C0;</a>
+				<a id="next-button" href="javascript:Magnatune.Playlist.next();void(0)" title="Next">&#x25B6;&#x25AE;</a>
+			</div>
 				
-				<a id="volume-button" class="button" href="javascript:Magnatune.Player.toggleVolume();void(0)">Volume</a>
-				<div id="volume-control" style="display:none;">
-					<div id="volume">100%</div>
-					<div id="volume-bar-container"><div id="volume-bar" style="height:100%;"></div></div>
-				</div>
+			<a id="volume-button" class="button" href="javascript:Magnatune.Player.toggleVolume();void(0)" title="Change Volume"><img src="volume.png" alt="Volume"/></a>
+			<div id="volume-control" style="display:none;">
+				<div id="volume">100%</div>
+				<div id="volume-bar-container"><div id="volume-bar" style="height:100%;"></div></div>
 			</div>
 
 			<div id="status">
@@ -66,7 +64,7 @@
 					<a class="input-clear" href="javascript:Magnatune.Navigation.clear();void(0)" title="Clear">&times;</a>
 				</span>
 
-				<a class="button" id="tree-mode-button" href="javascript:Magnatune.Navigation.toggleModeSelect();void(0)">Mode</a>
+				<a class="button" id="tree-mode-button" href="javascript:Magnatune.Navigation.toggleModeSelect();void(0)" title="Change Tree Display Mode">Mode</a>
 
 				<ul id="tree-mode-select" style="display:none;">
 					<li id="mode-album" class="first"><a href="javascript:Magnatune.Navigation.setMode('album');void(0)">Album</a></li>

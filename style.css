@@ -330,13 +330,19 @@ li.active {
 }
 
 #status,
-#player-buttons {
+#play-control-buttons {
 	position: absolute;
 	bottom: 6px;
 }
 
-#player-buttons {
+#play-control-buttons {
 	left: 50px;
+}
+
+#volume-button {
+	position: absolute;
+	bottom: 5px;
+	left: 150px;
 }
 
 #play-control-buttons a {
@@ -359,7 +365,6 @@ li.active {
 	border-top-left-radius: 0px;
 	border-bottom-left-radius: 0px;
 	margin-right: 10px;
-	margin-bottom: -5px;  /* why does FF need this? */
 	overflow: hidden;
 }
 
@@ -664,6 +669,10 @@ th {
 
 #volume-control {
 	width: 40px;
+}
+
+#volume-button {
+	margin: 0;
 }
 
 .about-float,

@@ -431,7 +431,7 @@ var Magnatune = {
 				$('#player-wrapper').stop().css({top:'-60px'});
 				var currently_playing = $('#currently-playing').stop();
 				Magnatune.Player._stopTitleAnim();
-				currently_playing.css({bottom:'6px',width:'265px'});
+				currently_playing.css({bottom:'6px',width:'300px'});
 				$('#navigation, #content').stop().css({top:'50px'});
 			}
 			else {
@@ -439,7 +439,7 @@ var Magnatune = {
 				$('#player-wrapper').stop().animate({top:'-60px'},d);
 				var currently_playing = $('#currently-playing').stop();
 				Magnatune.Player._stopTitleAnim();
-				currently_playing.animate({bottom:'6px',width:'265px'},d);
+				currently_playing.animate({bottom:'6px',width:'300px'},d);
 				$('#navigation, #content').stop().animate({top:'50px'},d);
 			}
 		},
@@ -477,7 +477,7 @@ var Magnatune = {
 			if (diff > 0) {
 				var d = Magnatune.Options.AnimationDuration;
 				var scroll = currently_playing.scrollLeft();
-				if (scroll >= diff) {
+				if ((scroll + 5) >= diff) {
 					currently_playing.scrollLeft(diff).animate(
 						{scrollLeft: 0},
 						{duration: (diff / 40) * d,
@@ -759,7 +759,7 @@ var Magnatune = {
 							tag('div',
 								tag('a', {'class':'button',href:'javascript:'+encodeURIComponent(
 									'Magnatune.Playlist.replace('+JSON.stringify(data.body.songs)+',true);void(0)')},
-									'Play Album'),
+									'\u25B6 Play Album'),
 								' ',
 								tag('a', {'class':'button',href:'javascript:'+encodeURIComponent(
 									'Magnatune.Playlist.enqueue('+JSON.stringify(data.body.songs)+');void(0)')},
@@ -2136,13 +2136,19 @@ $(document).ready(function () {
 
 $(document).click(function (event) {
 	var mode = $('#tree-mode-select');
-	if (!mode.is(event.target) && !$('#tree-mode-button').is(event.target) &&
-		$(event.target).parents().index(mode) === -1) {
+	var parents = $(event.target).parents();
+	var button = $('#tree-mode-button');
+	if (!mode.is(event.target) && !button.is(event.target) &&
+		parents.index(button) === -1 &&
+		parents.index(mode) === -1) {
 		mode.hide();
 	}
 	var volume = $('#volume-control');
-	if (!volume.is(event.target) && !$('#volume-button').is(event.target) &&
-		$(event.target).parents().index(volume) === -1) {
+	parents = $(event.target).parents();
+	button = $('#volume-button');
+	if (!volume.is(event.target) && !button.is(event.target) &&
+		parents.index(button) === -1 &&
+		parents.index(volume) === -1) {
 		volume.hide();
 	}
 });
