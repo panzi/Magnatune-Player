@@ -628,6 +628,10 @@ th {
 	width: 420px;
 }
 
+#play-progress {
+	max-width: 420px;
+}
+
 #currently-playing {
 	position: absolute;
 	right: 20px;
