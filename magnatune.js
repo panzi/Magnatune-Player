@@ -2023,7 +2023,8 @@ var Magnatune = {
 			}
 			current = parseInt(localStorage.getItem('playlist.current'),10);
 			playlistVisible = getBoolean('playlist.visible');
-			member = getBoolean('player.member');
+			// We cannot save username and password for security reasons which makes the member flag useless:
+			member = null; // getBoolean('player.member');
 			playerVisible = getBoolean('player.visible');
 			navigationVisible = getBoolean('navigation.visible');
 			var mode = localStorage.getItem('navigation.mode') || 'genre/artist/album';
