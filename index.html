@@ -28,13 +28,30 @@
 			</div>
 				
 			<a id="volume-button" class="button" href="javascript:Magnatune.Player.toggleVolume();void(0)" title="Change Volume"><img src="volume.png" alt="Volume"/></a>
-			<div id="volume-control" style="display:none;">
+			<div id="volume-control" class="popup-menu" style="display:none;">
 				<div id="volume">100%</div>
 				<div id="volume-bar-container"><div id="volume-bar" style="height:100%;"></div></div>
 			</div>
 
+			<div id="member-container" title="Check if you are a stream member.">
+				<input id="member" type="checkbox"/>
+				<label for="member">Member</label>
+			</div>
+			<div id="credentials" class="popup-menu" style="display:none;">
+				<div class="text-input-container">
+					<input id="username" type="text" placeholder="Username" title="Enter your username"/>
+				</div>
+				<div class="text-input-container">
+					<input id="password" type="password" placeholder="Password" title="Enter your password"/>
+				</div>
+				<div class="popup-buttons">
+					<a class="button" href="javascript:Magnatune.Player.updateCredentials();void(0)">Ok</a>
+				</div>
+			</div>
+			
+			<img id="waiting" title="Buffering..." style="display:none;" src="spinner.png" alt=""/>
+
 			<div id="status">
-				<img id="waiting" style="display:none;" src="spinner.png" alt=""/>
 				<span id="current-time-duration" onclick="$('#time-left').toggle();$('#current-time').toggle();">
 					<span id="time-left" style="display:none;">---:--</span>
 					<span id="current-time">--:--</span> /
@@ -60,14 +77,14 @@
 	<div id="body">
 		<div id="navigation">
 			<div class="navigation-head">
-				<span class="search-container">
+				<span class="search-container text-input-container">
 					<input id="search" type="text" autocomplete="off" title="Enter Search Terms"/>
 					<a class="input-clear" href="javascript:Magnatune.Navigation.clear();void(0)" title="Clear">&times;</a>
 				</span>
 
 				<a class="button" id="tree-mode-button" href="javascript:Magnatune.Navigation.toggleModeSelect();void(0)" title="Change Tree Display Mode">Mode</a>
 
-				<ul id="tree-mode-select" style="display:none;">
+				<ul id="tree-mode-select" class="popup-menu" style="display:none;">
 					<li id="mode-album" class="first"><a href="javascript:Magnatune.Navigation.setMode('album');void(0)">Album</a></li>
 					<li id="mode-artist-album"><a href="javascript:Magnatune.Navigation.setMode('artist/album');void(0)">Artist / Album</a></li>
 					<li id="mode-genre-artist-album" class="active last"><a href="javascript:Magnatune.Navigation.setMode('genre/artist/album');void(0)">Genre / Artist / Album</a></li>

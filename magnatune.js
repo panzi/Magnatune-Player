@@ -265,7 +265,12 @@ var Magnatune = {
 		ended: function () {
 			return this.audio.ended;
 		},
-		audio: null,
+		member: function () {
+			return $('#member').is(':checked');
+		},
+		setMember: function (member) {
+			$('#member').attr('checked',!!member);
+		},
 		showSpinner: function () {
 			$('#waiting').show().rotate({
 				angle: 0,
@@ -283,6 +288,7 @@ var Magnatune = {
 		hideSpinner: function () {
 			$('#waiting').hide();
 		},
+		audio: null,
 		Handlers: {
 			progress: function (event) {
 				var duration = Magnatune.Player.duration();
@@ -362,15 +368,21 @@ var Magnatune = {
 				$(this.audio).remove();
 			}
 			this.audio = new Audio();
-			$(this.audio).css('display','none');
 			this.audio.volume = volume;
 			this.audio.preload = "auto";
+			// seeking only works when controls enabled:
 			this.audio.controls = true;
+			// but I actually want to paint my own controls:
+			$(this.audio).css('display','none');
 			for (var event in this.Handlers) {
 				$(this.audio).on(event, this.Handlers[event]);
 			}
 			// seeking only works when in document! wtf?
 			$(document.body).append(this.audio);
+		},
+		credentials: {
+			username: '',
+			password: ''
 		},
 		play: function () {
 			var song = Magnatune.Playlist.current();
@@ -380,15 +392,29 @@ var Magnatune = {
 			}
 			if (!song) return;
 
+			// Replacing the source child elements did not work for me so I
+			// have to create a new audio element for each play command!
 			this.initAudio();
 			this._song = song;
 			var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
-			this.audio.appendChild(tag('source',{
-				type:'audio/ogg',
-				src:"http://he3.magnatune.com/all/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'.ogg'))}));
-			this.audio.appendChild(tag('source',{
-				type:'audio/mpeg;codecs="mp3"',
-				src:"http://he3.magnatune.com/all/"+encodeURIComponent(song.mp3)}));
+			if (this.member()) {
+				var prefix = "http://"+encodeURIComponent(this.credentials.username)+":"+
+					encodeURIComponent(this.credentials.password)+"@stream.magnatune.com/all/";
+				this.audio.appendChild(tag('source',{
+					type:'audio/ogg',
+					src:prefix+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.ogg'))}));
+				this.audio.appendChild(tag('source',{
+					type:'audio/mpeg;codecs="mp3"',
+					src:prefix+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.mp3'))}));
+			}
+			else {
+				this.audio.appendChild(tag('source',{
+					type:'audio/ogg',
+					src:"http://he3.magnatune.com/all/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'.ogg'))}));
+				this.audio.appendChild(tag('source',{
+					type:'audio/mpeg;codecs="mp3"',
+					src:"http://he3.magnatune.com/all/"+encodeURIComponent(song.mp3)}));
+			}
 			this.audio.load();
 
 			$('#play-progress').css('width','0px');
@@ -534,6 +560,28 @@ var Magnatune = {
 					visibility: ''
 				});
 			}
+		},
+		showCredentials: function () {
+			var cred = $('#credentials');
+			var member = $('#member-container');
+			var pos = member.position();
+			cred.css({
+				left: pos.left+'px',
+				top: (pos.top+member.height()+5)+'px'
+			}).show();
+		},
+		hideCredentials: function () {
+			$('#credentials').hide();
+		},
+		updateCredentials: function () {
+			this.credentials.username = $('#username').val();
+			this.credentials.password = $('#password').val();
+			this.hideCredentials();
+		},
+		cancelCredentials: function () {
+			$('#username').val(this.credentials.username);
+			$('#password').val(this.credentials.password);
+			this.hideCredentials();
 		},
 		mute: function () {
 			this.audio.muted = true;
@@ -1937,13 +1985,30 @@ var Magnatune = {
 			localStorage.setItem('playlist.songs',JSON.stringify(Magnatune.Playlist.songs()));
 			localStorage.setItem('playlist.current',String(Magnatune.Playlist.currentIndex()));
 			localStorage.setItem('playlist.visible',String(Magnatune.Playlist.visible()));
+			localStorage.setItem('player.member',String(Magnatune.Player.member()));
 			localStorage.setItem('player.visible',String(Magnatune.Player.visible()));
 			localStorage.setItem('navigation.visible',String(Magnatune.Navigation.visible()));
 			localStorage.setItem('navigation.mode',Magnatune.Navigation.mode());
 		}
 	},
 	load: function () {
-		var hash, songs, current, playerVisible, navigationVisible, playlistVisible, mode;
+		var hash, songs, current, member, playerVisible, navigationVisible, playlistVisible, mode;
+		function getBoolean (name) {
+			var value = localStorage.getItem(name);
+			if (value !== null) {
+				try {
+					value = JSON.parse(value);
+				}
+				catch (e) {
+					console.error(e);
+					return null;
+				}
+				if (typeof(value) !== "boolean") {
+					value = null;
+				}
+			}
+			return value;
+		}
 		if (typeof(localStorage) !== "undefined") {
 			hash = localStorage.getItem('info.hash') || '#/about';
 			songs = localStorage.getItem('playlist.songs');
@@ -1957,39 +2022,17 @@ var Magnatune = {
 				}
 			}
 			current = parseInt(localStorage.getItem('playlist.current'),10);
-			playlistVisible = localStorage.getItem('playlist.visible');
-			if (playlistVisible !== null) {
-				try {
-					playlistVisible = JSON.parse(playlistVisible);
-				}
-				catch (e) {
-					console.error(e);
-				}
-			}
-			playerVisible = localStorage.getItem('player.visible');
-			if (playerVisible !== null) {
-				try {
-					playerVisible = JSON.parse(playerVisible);
-				}
-				catch (e) {
-					console.error(e);
-				}
-			}
-			navigationVisible = localStorage.getItem('navigation.visible');
-			if (navigationVisible !== null) {
-				try {
-					navigationVisible = JSON.parse(navigationVisible);
-				}
-				catch (e) {
-					console.error(e);
-				}
-			}
+			playlistVisible = getBoolean('playlist.visible');
+			member = getBoolean('player.member');
+			playerVisible = getBoolean('player.visible');
+			navigationVisible = getBoolean('navigation.visible');
 			var mode = localStorage.getItem('navigation.mode') || 'genre/artist/album';
 		}
 		else {
 			hash = '#/about';
 			songs = [];
 			current = -1;
+			member = false;
 			playerVisible = true;
 			navigationVisible = true;
 			playlistVisible = false;
@@ -2025,6 +2068,13 @@ var Magnatune = {
 		
 		if (!isNaN(current)) {
 			Magnatune.Playlist.setCurrentIndex(current);
+		}
+
+		if (member === true) {
+			Magnatune.Player.setMember(true);
+		}
+		else if (member === false) {
+			Magnatune.Player.setMember(false);
 		}
 
 		if (playerVisible === true) {
@@ -2142,6 +2192,19 @@ $(document).ready(function () {
 	});
 	$('#currently-playing').on('mouseenter', Magnatune.Player._titleAnim);
 	$('#currently-playing').on('mouseleave', Magnatune.Player._stopTitleAnim);
+	$('#member').on('change', function (event) {
+		if ($(this).is(':checked')) {
+			Magnatune.Player.showCredentials();
+		}
+		else {
+			Magnatune.Player.cancelCredentials();
+		}
+	});
+	$('#username, #password').on('keydown', function (event) {
+		if (event.which === 13) {
+			Magnatune.Player.updateCredentials();
+		}
+	});
 	Magnatune.Collection.load();
 	$(window).unload(function (event) {
 		Magnatune.save();
@@ -2161,11 +2224,17 @@ $(document).click(function (event) {
 		mode.hide();
 	}
 	var volume = $('#volume-control');
-	parents = $(event.target).parents();
 	button = $('#volume-button');
 	if (!volume.is(event.target) && !button.is(event.target) &&
 		parents.index(button) === -1 &&
 		parents.index(volume) === -1) {
 		volume.hide();
+	}
+	var credentials = $('#credentials');
+	button = $('#member-container');
+	if (!credentials.is(event.target) && !button.is(event.target) &&
+		parents.index(button) === -1 &&
+		parents.index(credentials) === -1) {
+		Magnatune.Player.cancelCredentials();
 	}
 });

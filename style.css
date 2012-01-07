@@ -86,9 +86,10 @@ a {
 #breadcrumbs a,
 .button,
 #status,
+#member-container,
 #play-control-buttons a,
-#tree-mode-select a,
-#volume-control {
+.popup-menu,
+.popup-menu a {
 	font-weight: bold;
 	color: #8492B4;
 	text-shadow: 1px 1px 2px #E8EFFC;
@@ -107,7 +108,8 @@ textarea {
 	margin: 10px;
 }
 
-input[type="text"] {
+input[type="text"],
+input[type="password"] {
 	background-color: transparent;
 	border-style: none;
 	color: #e0e0e0;
@@ -117,7 +119,7 @@ textarea,
 #currently-playing,
 .tab-content,
 #tree,
-.search-container {
+.text-input-container {
 	background-color: #212733;
 }
 
@@ -129,10 +131,14 @@ textarea,
 	border-radius: 10px;
 }
 
+.text-input-container {
+	border-radius: 10px;
+}
+
 #currently-playing,
 #tree,
 .tab-content,
-.search-container,
+.text-input-container,
 #status,
 .button {
 	margin: 2px;
@@ -166,8 +172,7 @@ textarea {
 	border-radius: 15px;
 }
 
-#tree-mode-select,
-#volume-control,
+.popup-menu,
 #play-control-buttons a {
 	background: #e8effc;
 	background: -moz-linear-gradient(top, #e8effc 0%, #c1cada 72%, #959fb1 100%);
@@ -183,7 +188,7 @@ textarea {
 .button:hover,
 .slide-expand a:hover,
 .tab-content .button:hover,
-#tree-mode-select a:hover,
+.popup-menu a:hover,
 #play-control-buttons a:hover {
 	background: #e8effc; /* TODO */
 }
@@ -191,7 +196,7 @@ textarea {
 #tabs li a:active,
 .slide-expand.top a:active,
 #tabs li.active a,
-#tree-mode-select a:active,
+.popup-menu a:active,
 #tree-mode-select li.active a,
 #play-control-buttons a:active {
 	background: -moz-linear-gradient(top, #959fb1 0%, #c1cada 18%, #e8effc 100%);
@@ -266,7 +271,7 @@ li.active {
 
 .tab-content,
 #tree,
-.search-container {
+.text-input-container {
 	box-shadow:
 		 5px  5px 10px #E8EFFC,
 		-5px -5px 10px #959FB1;
@@ -345,6 +350,30 @@ li.active {
 	left: 150px;
 }
 
+#member-container {
+	position: absolute;
+	bottom: 10px;
+	left: 270px;
+}
+
+#member-container input,
+#member-container label {
+	cursor: pointer;
+}
+
+#credentials {
+	padding: 10px;
+}
+
+#credentials .text-input-container {
+	margin: 0;
+	margin-bottom: 10px;
+}
+
+.popup-buttons {
+	text-align: right;
+}
+
 #play-control-buttons a {
 	display: inline-block;
 	margin: 0px -3px;
@@ -369,19 +398,26 @@ li.active {
 }
 
 #status {
-	right: 60px;
+	right: 20px;
 }
 
 #waiting {
+	position: absolute;
+	bottom: 10px;
+	left: 360px;
 	width: 16px;
 	height: 16px;
-	margin-right: 10px;
+}
+
+.popup-menu {
+	position: absolute;
+	border-radius: 10px;
+	z-index: 1001;
+	box-shadow: 0px 0px 30px rgba(0,0,0,0.4);
 }
 
 #tree-mode-select {
-	position: absolute;
 	list-style: none;
-	border-radius: 10px;
 	padding: 0;
 	white-space: nowrap;
 	overflow: hidden;
@@ -541,12 +577,6 @@ li.active {
 	background-color: #485063;
 }
 
-#volume-control {
-	position: absolute;
-	border-radius: 10px;
-	padding: 5px;
-}
-
 th {
 	text-align: left;
 }
@@ -668,6 +698,7 @@ th {
 
 #volume-control {
 	width: 40px;
+	padding: 5px;
 }
 
 #volume-button {
@@ -689,12 +720,6 @@ th {
 
 img {
 	border-style: none;
-}
-
-#volume-control,
-#tree-mode-select {
-	z-index: 1001;
-	box-shadow: 0px 0px 30px rgba(0,0,0,0.4);
 }
 
 .navigation-head {
