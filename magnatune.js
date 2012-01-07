@@ -1906,13 +1906,16 @@ var Magnatune = {
 				mode.hide();
 			}
 			else {
-				var button = $('#tree-mode-button');
-				var pos = button.position();
+				var button = $('#tree-mode-button')[0];
 				mode.css({
-					left: (pos.left+button.width()-mode.width())+'px',
-					top: (pos.top+button.height())+'px'
+					visibility: 'hidden',
+					display: ''
 				});
-				mode.show();
+				mode.css({
+					visibility: '',
+					left: (button.offsetLeft)+'px',
+					top: (button.offsetTop+button.offsetHeight)+'px'
+				});
 			}
 		}
 	},
