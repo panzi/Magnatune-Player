@@ -2272,7 +2272,18 @@ $(document).ready(function () {
 	$('#currently-playing').on('mouseenter', Magnatune.Player._titleAnim);
 	$('#currently-playing').on('mouseleave', Magnatune.Player._stopTitleAnim);
 	$('#member').on('change', function (event) {
-		if (!Magnatune.BrowserAuthenticates) {
+		if (Magnatune.BrowserAuthenticates) {
+			if ($(this).is(':checked')) {
+				// force authentication dialog now:
+				var iframe = tag('iframe',{
+					src:'http://stream.magnatune.com/robots.txt',
+					style:'display:none;',
+					onload: function () { $(this).remove(); }
+				});
+				$(document.body).append(iframe);
+			}
+		}
+		else {
 			if ($(this).is(':checked')) {
 				Magnatune.Player.showCredentials();
 			}
