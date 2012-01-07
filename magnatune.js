@@ -398,7 +398,7 @@ var Magnatune = {
 			this.initAudio();
 			this._song = song;
 			var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
-			if (Magnatune.authenticated && this.member()) {
+			if ((Magnatune.BrowserAuthenticates || Magnatune.authenticated) && this.member()) {
 				this.audio.appendChild(tag('source',{
 					type:'audio/ogg',
 					src:"http://stream.magnatune.com/all/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.ogg'))}));
@@ -575,12 +575,8 @@ var Magnatune = {
 			$('#username, #password').val('');
 		},
 		cancelCredentials: function () {
+			var not_username_and_not_password = !$('#username').val() && !$('#password').val();
 			this.hideCredentials();
-			var username = $('#username');
-			var password = $('#password');
-			var not_username_and_not_password = !username.val() && !password.val();
-			username.val('');
-			password.val('');
 			if (not_username_and_not_password) {
 				this.setMember(false);
 			}
@@ -2015,6 +2011,7 @@ var Magnatune = {
 			}
 		}
 	},
+	BrowserAuthenticates: !!($.browser.opera || $.browser.mozilla),
 	authenticated: false,
 	login: function () {
 		var spinner = $('#login-spinner');
@@ -2275,11 +2272,13 @@ $(document).ready(function () {
 	$('#currently-playing').on('mouseenter', Magnatune.Player._titleAnim);
 	$('#currently-playing').on('mouseleave', Magnatune.Player._stopTitleAnim);
 	$('#member').on('change', function (event) {
-		if ($(this).is(':checked')) {
-			Magnatune.Player.showCredentials();
-		}
-		else {
-			Magnatune.Player.cancelCredentials();
+		if (!Magnatune.BrowserAuthenticates) {
+			if ($(this).is(':checked')) {
+				Magnatune.Player.showCredentials();
+			}
+			else {
+				Magnatune.Player.cancelCredentials();
+			}
 		}
 	});
 	$('#username, #password').on('keydown', function (event) {
