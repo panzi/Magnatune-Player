@@ -319,8 +319,10 @@ var Magnatune = {
 				$('#volume').text(Math.round(this.volume * 100)+'%');
 			},
 			durationchange: function (event) {
-				// TODO: remaining time
-				$('#current-duration').text(tag.time(Magnatune.Player.duration()));
+				var duration = Magnatune.Player.duration();
+				var remaining = duration - this.currentTime;
+				$('#time-left').text('-'+tag.time(remaining < 0 ? NaN : remaining));
+				$('#current-duration').text(tag.time(duration));
 			},
 			waiting: function (event) {
 				Magnatune.Player.showSpinner();
@@ -678,6 +680,13 @@ var Magnatune = {
 				window.location.hash = hash;
 			}
 		},
+		pageNotFound: function (hash,content,keeptab) {
+			var breadcrumbs = [{href: hash, text: 'Not Found'}];
+			content = tag('div',{'class':'notfound'},
+				tag('h2','Not Found'),
+				content);
+			this.update(hash,breadcrumbs,content,keeptab);
+		},
 		load: function (hash,opts) {
 			var m = /^#?\/([^\/]+)(?:\/(.*))?/.exec(hash);
 			
@@ -694,6 +703,10 @@ var Magnatune = {
 				return true;
 			}
 			else {
+				this.pageNotFound(
+					hash,
+					tag('p','Page not found. Please check whether you have you have misstyped the URL.'),
+					opts.keeptab);
 				return false;
 			}
 		},
@@ -713,7 +726,7 @@ var Magnatune = {
 				}
 			},
 			about: function (opts) {
-				// TODO
+				// TODO: don't inline this HTML
 				var breadcrumbs = [{href:'#/about',text:'About'}];
 				var page = tag('div',{'class':'about'});
 				var install = '';
@@ -733,8 +746,9 @@ var Magnatune = {
 					'<a href="http://dev.w3.org/html5/spec/the-audio-element.html">HTML5 Audio Element</a>. '+
 					'Because depending on the browser HTML5 Audio is still not bug free, things like the buffer '+
 					'progress display or seeking might not work 100% reliable. In Internet Explorer it doesn\'t '+
-					'work at all.</p>'+
-					'<p>I\'m not happy with the current color scheme and will most likely redo the visual style.</p>'+
+					'work at all. Please use <a href="http://www.firefox.com/">Mozilla Firefox</a>, '+
+					'<a href="http://www.google.com/chrome/">Google Chrome</a> or '+
+					'<a href="http://www.opera.com/">Opera</a>.</p>'+
 					'<p>You can download the source code of this web page on '+
 					'<a href="https://bitbucket.org/panzi/magnatune-player">bitbucket</a>.</p>'+
 					'<p>Other experiments done by me can be found <a '+
@@ -742,8 +756,15 @@ var Magnatune = {
 				Magnatune.Info.update('#/about',breadcrumbs,page,opts.keeptab);
 			},
 			genre: function (opts) {
-				var genre = Magnatune.Collection.Genres[opts.id];
 				var hash = '#/genre/'+encodeURIComponent(opts.id);
+				var genre = Magnatune.Collection.Genres[opts.id];
+				if (!genre) {
+					Magnatune.Info.pageNotFound(
+						hash,
+						tag('p','Genre \u00bb'+opts.id+'\u00ab was not found.'),
+						opts.keeptab);
+					return;
+				}
 				var breadcrumbs = [{href:hash,text:genre.genre}];
 				var page = tag('div',{'class':'genre'},
 					tag('h2',tag('a',{'class':'genre',
@@ -759,10 +780,16 @@ var Magnatune = {
 					data: {action: 'album', name: opts.id},
 					dataType: 'json',
 					success: function (data) {
-						if (!data.body) return; // TODO
+						var hash = '#/album/'+encodeURIComponent(opts.id);
+						if (!data.body) {
+							Magnatune.Info.pageNotFound(
+								hash,
+								tag('p','Album \u00bb'+opts.id+'\u00ab was not found.'),
+								opts.keeptab);
+							return;
+						}
 						var album = Magnatune.Collection.Albums[opts.id];
 						var artist = album.artist;
-						var hash = '#/album/'+encodeURIComponent(album.albumname);
 						var breadcrumbs = [
 							{href: '#/artist/'+encodeURIComponent(artist.artist), text: artist.artist},
 							{href: hash, text: album.albumname}];
@@ -864,7 +891,14 @@ var Magnatune = {
 					data: {action: 'artist', name: opts.id},
 					dataType: 'json',
 					success: function (data) {
-						if (!data.body) return; // TODO
+						var hash = '#/artist/'+encodeURIComponent(opts.id);
+						if (!data.body) {
+							Magnatune.Info.pageNotFound(
+								hash,
+								tag('p','Artist \u00bb'+opts.id+'\u00ab was not found.'),
+								opts.keeptab);
+							return;
+						}
 						var artist = Magnatune.Collection.Artists[opts.id];
 						var tbody = $(tag('tbody'));
 						for (var i = 0; i < artist.albums.length; ++ i) {
@@ -880,7 +914,6 @@ var Magnatune = {
 									{href:'#/album/'+encodeURIComponent(album.albumname)},
 									album.albumname))));
 						}
-						var hash = '#/artist/'+encodeURIComponent(artist.artist);
 						var breadcrumbs = [{href: hash, text: artist.artist}];
 						var page = tag('div',{'class':'artist'},
 							tag('h2', tag('a', {'class':'artist',
@@ -1982,6 +2015,7 @@ var Magnatune = {
 			}
 		}
 	},
+	// TODO: Hints/Tour
 	save: function () {
 		if (typeof(localStorage) !== "undefined") {
 			localStorage.setItem('info.hash',Magnatune.Info.hash()||'#/about');
