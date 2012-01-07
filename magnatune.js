@@ -328,8 +328,11 @@ var Magnatune = {
 				Magnatune.Player.showSpinner();
 			},
 			error: function (event) {
+				console.log('error',event);
 				Magnatune.Player.hideSpinner();
+				Magnatune.Player.stop();
 				// TODO
+				// XXX: chrome does not fire this event when http auth fails!
 			},
 			canplay: function (event) {
 				Magnatune.Player.hideSpinner();
@@ -382,10 +385,6 @@ var Magnatune = {
 			// seeking only works when in document! wtf?
 			$(document.body).append(this.audio);
 		},
-		credentials: {
-			username: '',
-			password: ''
-		},
 		play: function () {
 			var song = Magnatune.Playlist.current();
 			if (!song) {
@@ -399,15 +398,13 @@ var Magnatune = {
 			this.initAudio();
 			this._song = song;
 			var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
-			if (this.member()) {
-				var prefix = "http://"+encodeURIComponent(this.credentials.username)+":"+
-					encodeURIComponent(this.credentials.password)+"@stream.magnatune.com/all/";
+			if (Magnatune.authenticated && this.member()) {
 				this.audio.appendChild(tag('source',{
 					type:'audio/ogg',
-					src:prefix+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.ogg'))}));
+					src:"http://stream.magnatune.com/all/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.ogg'))}));
 				this.audio.appendChild(tag('source',{
 					type:'audio/mpeg;codecs="mp3"',
-					src:prefix+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.mp3'))}));
+					src:"http://stream.magnatune.com/all/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.mp3'))}));
 			}
 			else {
 				this.audio.appendChild(tag('source',{
@@ -573,18 +570,18 @@ var Magnatune = {
 			}).show();
 		},
 		hideCredentials: function () {
-			$('#credentials').hide();
-		},
-		updateCredentials: function () {
-			this.hideCredentials();
-			this.credentials.username = $('#username').val();
-			this.credentials.password = $('#password').val();
+			$('#credentials, #login-spinner').hide();
+			// clear form so no one can spy the credentials when pants status down:
+			$('#username, #password').val('');
 		},
 		cancelCredentials: function () {
 			this.hideCredentials();
-			$('#username').val(this.credentials.username);
-			$('#password').val(this.credentials.password);
-			if (!this.credentials.username && !this.credentials.password) {
+			var username = $('#username');
+			var password = $('#password');
+			var not_username_and_not_password = !username.val() && !password.val();
+			username.val('');
+			password.val('');
+			if (not_username_and_not_password) {
 				this.setMember(false);
 			}
 		},
@@ -2018,6 +2015,50 @@ var Magnatune = {
 			}
 		}
 	},
+	authenticated: false,
+	login: function () {
+		var spinner = $('#login-spinner');
+		function spin () {
+			spinner.show().rotate({
+				angle: 0,
+				animateTo: 360,
+				easing: function (x,t,b,c,d) {
+					return c*(t/d)+b;
+				},
+				callback: function () {
+					if (spinner.is(':visible')) {
+						spin();
+					}
+				}
+			});
+		}
+		spin();
+
+		var username = $('#username').val();
+		var password = $('#password').val();
+		var image = new Image();
+
+		Magnatune.authenticated = false;
+		image.onload = function () {
+			Magnatune.authenticated = true;
+			Magnatune.Player.hideCredentials();
+			$(this).remove();
+		};
+		
+		image.onerror = function () {
+			Magnatune.authenticated = false;
+			spinner.hide();
+			$(this).remove();
+			alert("Wrong username or password or connection problem.");
+		};
+
+		image.width  = 0;
+		image.height = 0;
+		image.style.visibility = "hidden";
+		image.src = "http://"+username+":"+password+"@stream.magnatune.com/images/logo.gif?"+(new Date().getTime());
+
+		$(document.body).append(image);
+	},
 	// TODO: Hints/Tour
 	save: function () {
 		if (typeof(localStorage) !== "undefined") {
@@ -2243,7 +2284,7 @@ $(document).ready(function () {
 	});
 	$('#username, #password').on('keydown', function (event) {
 		if (event.which === 13) {
-			Magnatune.Player.updateCredentials();
+			Magnatune.login();
 		}
 	});
 	Magnatune.Collection.load();
@@ -2259,21 +2300,27 @@ $(document).click(function (event) {
 	var mode = $('#tree-mode-select');
 	var parents = $(event.target).parents();
 	var button = $('#tree-mode-button');
-	if (!mode.is(event.target) && !button.is(event.target) &&
+	if (mode.is(':visible') &&
+		!mode.is(event.target) &&
+		!button.is(event.target) &&
 		parents.index(button) === -1 &&
 		parents.index(mode) === -1) {
 		mode.hide();
 	}
 	var volume = $('#volume-control');
 	button = $('#volume-button');
-	if (!volume.is(event.target) && !button.is(event.target) &&
+	if (volume.is(':visible') &&
+		!volume.is(event.target) &&
+		!button.is(event.target) &&
 		parents.index(button) === -1 &&
 		parents.index(volume) === -1) {
 		volume.hide();
 	}
 	var credentials = $('#credentials');
 	button = $('#member-container');
-	if (!credentials.is(event.target) && !button.is(event.target) &&
+	if (credentials.is(':visible') &&
+		!credentials.is(event.target) &&
+		!button.is(event.target) &&
 		parents.index(button) === -1 &&
 		parents.index(credentials) === -1) {
 		Magnatune.Player.cancelCredentials();

@@ -370,6 +370,10 @@ li.active {
 	margin-bottom: 10px;
 }
 
+#credentials .popup-buttons {
+	min-height: 16px;
+}
+
 .popup-buttons {
 	text-align: right;
 }
@@ -405,6 +409,10 @@ li.active {
 	position: absolute;
 	bottom: 10px;
 	left: 360px;
+}
+
+#login-spinner,
+#waiting {
 	width: 16px;
 	height: 16px;
 }
