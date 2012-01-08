@@ -403,6 +403,10 @@ var Magnatune = {
 					type:'audio/ogg',
 					src:"http://stream.magnatune.com/all/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.ogg'))}));
 				this.audio.appendChild(tag('source',{
+					type:'audio/mp4',
+					src:"http://stream.magnatune.com/music/"+encodeURIComponent(artist)+"/"+
+						encodeURIComponent(song.albumname)+"/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'.m4a'))}));
+				this.audio.appendChild(tag('source',{
 					type:'audio/mpeg;codecs="mp3"',
 					src:"http://stream.magnatune.com/all/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.mp3'))}));
 			}
@@ -2074,13 +2078,14 @@ var Magnatune = {
 			localStorage.setItem('playlist.current',String(Magnatune.Playlist.currentIndex()));
 			localStorage.setItem('playlist.visible',String(Magnatune.Playlist.visible()));
 			localStorage.setItem('player.member',String(Magnatune.Player.member()));
+			localStorage.setItem('player.volume',String(Magnatune.Player.volume()));
 			localStorage.setItem('player.visible',String(Magnatune.Player.visible()));
 			localStorage.setItem('navigation.visible',String(Magnatune.Navigation.visible()));
 			localStorage.setItem('navigation.mode',Magnatune.Navigation.mode());
 		}
 	},
 	load: function () {
-		var hash, songs, current, member, playerVisible, navigationVisible, playlistVisible, mode;
+		var hash, songs, current, member, volume, playerVisible, navigationVisible, playlistVisible, mode;
 		function getBoolean (name) {
 			var value = localStorage.getItem(name);
 			if (value !== null) {
@@ -2113,6 +2118,7 @@ var Magnatune = {
 			playlistVisible = getBoolean('playlist.visible');
 			// We cannot save username and password for security reasons which makes the member flag useless:
 			member = null; // getBoolean('player.member');
+			volume = parseFloat(localStorage.getItem('player.volume'));
 			playerVisible = getBoolean('player.visible');
 			navigationVisible = getBoolean('navigation.visible');
 			var mode = localStorage.getItem('navigation.mode') || 'genre/artist/album';
@@ -2122,6 +2128,7 @@ var Magnatune = {
 			songs = [];
 			current = -1;
 			member = false;
+			volume = 1.0;
 			playerVisible = true;
 			navigationVisible = true;
 			playlistVisible = false;
@@ -2164,6 +2171,10 @@ var Magnatune = {
 		}
 		else if (member === false) {
 			Magnatune.Player.setMember(false);
+		}
+
+		if (!isNaN(volume)) {
+			Magnatune.Player.setVolume(volume);
 		}
 
 		if (playerVisible === true) {

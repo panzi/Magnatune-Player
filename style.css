@@ -579,6 +579,7 @@ li.active {
 
 ::selection {
 	background-color: #485063;
+	text-shadow: none;
 }
 
 .playlist tr.selected {
