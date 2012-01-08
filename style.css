@@ -924,9 +924,12 @@ a.button {
 	margin-bottom: 5px;
 }
 
+.launchdate {
+	color: #5A6A8B;
+}
+
 .tab-content .album .launchdate {
 	margin-bottom: 15px;
-	color: #5A6A8B;
 }
 
 .tab-content button,

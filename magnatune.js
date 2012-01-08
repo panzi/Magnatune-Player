@@ -634,6 +634,8 @@ var Magnatune = {
 			var tbody = $(tag('tbody'));
 			for (var i = 0; i < albums.length; ++ i) {
 				var album = albums[i];
+				var launchdate = new Date();
+				launchdate.setTime(album.launchdate * 1000);
 				tbody.append(tag('tr',
 					tag('td', tag('a',
 						{href:'#/album/'+encodeURIComponent(album.albumname)},
@@ -645,6 +647,8 @@ var Magnatune = {
 						tag('a',
 							{href:'#/album/'+encodeURIComponent(album.albumname)},
 							album.albumname),
+						' ',
+						tag('span',{'class':'launchdate'},'('+launchdate.getFullYear()+')'),
 						tag('br'),
 						tag('a',
 							{href:'#/artist/'+encodeURIComponent(album.artist.artist)},
@@ -762,12 +766,14 @@ var Magnatune = {
 					return;
 				}
 				var breadcrumbs = [{href:hash,text:genre.genre}];
+				var albums = genre.albums.slice();
+				albums.sort(Magnatune.Navigation.albumSorter());
 				var page = tag('div',{'class':'genre'},
 					tag('h2',tag('a',{'class':'genre',
 						href:'http://magnatune.com/genres/'+genre.genre.replace(/\s/g,'').toLowerCase()+'/',
 						target:'_blank'},
 						genre.genre)),
-					Magnatune.Info._albumsTable(genre.albums));
+					Magnatune.Info._albumsTable(albums));
 				Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);
 			},
 			album: function (opts) {
@@ -899,6 +905,8 @@ var Magnatune = {
 						var tbody = $(tag('tbody'));
 						for (var i = 0; i < artist.albums.length; ++ i) {
 							var album = artist.albums[i];
+							var launchdate = new Date();
+							launchdate.setTime(album.launchdate * 1000);
 							tbody.append(tag('tr',
 								tag('td', tag('a',
 									{href:'#/album/'+encodeURIComponent(album.albumname)},
@@ -908,7 +916,9 @@ var Magnatune = {
 											encodeURIComponent(album.albumname)+'/cover_50.jpg'}))),
 								tag('td', tag('a',
 									{href:'#/album/'+encodeURIComponent(album.albumname)},
-									album.albumname))));
+									album.albumname),
+									' ',
+									tag('span', {'class':'launchdate'}, '('+launchdate.getFullYear()+')'))));
 						}
 						var breadcrumbs = [{href: hash, text: artist.artist}];
 						var page = tag('div',{'class':'artist'},
@@ -919,7 +929,7 @@ var Magnatune = {
 							data.body.bandphoto && tag('img', {'class': 'bandphoto',
 								src: 'http://magnatune.com/'+data.body.bandphoto,
 								alt: 'Bandphoto'}),
-							tag('table', tbody),
+							tag('table', {'class':'albums'}, tbody),
 							tag.textify(data.body.bio));
 						Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);	
 					},
@@ -1270,10 +1280,10 @@ var Magnatune = {
 			return a.albumname < b.albumname ? -1 : a.albumname > b.albumname ? 1 : 0;
 		},
 		ArtistDateSorter: function (a,b) {
-			return a.latestdate - b.latestdate;
+			return b.latestdate - a.latestdate;
 		},
-		AlbumDateSorter: function  (a,b) {
-			return a.launchdate - b.launchdate;
+		AlbumDateSorter: function (a,b) {
+			return b.launchdate - a.launchdate;
 		},
 		load: function () {
 			if (this._state !== 'init') {
@@ -1424,6 +1434,29 @@ var Magnatune = {
 			$('#search').val('');
 			this.filter('');
 		},
+		sortedGenres: function () {
+			return Magnatune.Collection.SortedGenres;
+		},
+		sortedArtists: function () {
+			if (this.order() === "name") {
+				return Magnatune.Collection.SortedArtists;
+			}
+			else {
+				var artists = Magnatune.Collection.SortedArtists.slice();
+				artists.sort(Magnatune.Collection.ArtistDateSorter);
+				return artists;
+			}
+		},
+		sortedAlbums: function () {
+			if (this.order() === "name") {
+				return Magnatune.Collection.SortedAlbums;
+			}
+			else {
+				var albums = Magnatune.Collection.SortedAlbums.slice();
+				albums.sort(Magnatune.Collection.AlbumDateSorter);
+				return albums;
+			}
+		},
 		genreSorter: function () {
 			return Magnatune.Collection.GenreNameSorter;
 		},
@@ -1503,7 +1536,9 @@ var Magnatune = {
 								onclick: Magnatune.Info.load.bind(Magnatune.Info,hash,{keeptab:true})
 							},
 							render: function (parent) {
-								Magnatune.Navigation.Modes.ArtistAlbum.render(parent, this.artists, album_filter.bind(this));
+								var artists = this.artists.slice();
+								artists.sort(Magnatune.Navigation.artistSorter());
+								Magnatune.Navigation.Modes.ArtistAlbum.render(parent, artists, album_filter.bind(this));
 							}.bind(genre)
 						}));
 					}
@@ -1524,9 +1559,6 @@ var Magnatune = {
 								parent.empty();
 								if (!data.body) return; // TODO
 
-								var genres_to_sort  = [];
-								var artists_to_sort = [];
-
 								function add_artist (artist,artist_genres) {
 									artists[artist.artist] = artist;
 									for (var j = 0; j < artist_genres.length; ++ j) {
@@ -1539,7 +1571,6 @@ var Magnatune = {
 												genre: genre.genre,
 												artists: [artist]
 											};
-											genres_to_sort.push(new_genre);
 										}
 									}
 								}
@@ -1557,7 +1588,6 @@ var Magnatune = {
 											albums: [album]
 										};
 										add_artist(new_artist, album.genres);
-										artists_to_sort.push(new_artist);
 									}
 									return new_artist;
 								}
@@ -1586,17 +1616,10 @@ var Magnatune = {
 									var new_album = {
 										albumname: albumname,
 										songs: data.body.songs[albumname],
-										genres: album.genres
+										genres: album.genres,
+										launchdate: album.launchdate
 									};
 									new_album.artist = add_album(new_album,album.artist);
-								}
-
-								for (var i = 0; i < genres_to_sort.length; ++ i) {
-									genres_to_sort[i].artists.sort(Magnatune.Navigation.artistSorter());
-								}
-
-								for (var i = 0; i < artists_to_sort.length; ++ i) {
-									artists_to_sort[i].albums.sort(Magnatune.Navigation.albumSorter());
 								}
 
 								var sorted_genres = [];
@@ -1628,8 +1651,9 @@ var Magnatune = {
 								title: artist.artist
 							},
 							render: function (parent) {
-								Magnatune.Navigation.Modes.Album.render(parent,
-									album_filter ? this.albums.filter(album_filter) : this.albums);
+								var albums = album_filter ? this.albums.filter(album_filter) : this.albums.slice();
+								albums.sort(Magnatune.Navigation.albumSorter());
+								Magnatune.Navigation.Modes.Album.render(parent, albums);
 							}.bind(artist)
 						}));
 					}
@@ -1637,10 +1661,9 @@ var Magnatune = {
 					$(parent).append(list);
 				},
 				filter: function (parent, query) {
-					// TODO
 					if (!query) {
 						parent.empty();
-						this.render(parent, Magnatune.Collection.SortedArtists);
+						this.render(parent, Magnatune.Navigation.sortedArtists());
 					}
 					else {
 						$.ajax({
@@ -1650,8 +1673,6 @@ var Magnatune = {
 							success: function (data) {
 								parent.empty();
 								if (!data.body) return; // TODO
-
-								var artists_to_sort = [];
 
 								function add_album (album,artist) {
 									var new_artist;
@@ -1666,7 +1687,6 @@ var Magnatune = {
 											albums: [album]
 										};
 										artists[artist.artist] = new_artist;
-										artists_to_sort.push(new_artist);
 									}
 									return new_artist;
 								}
@@ -1688,13 +1708,10 @@ var Magnatune = {
 									var album = Magnatune.Collection.Albums[albumname];
 									var new_album = {
 										albumname: albumname,
-										songs: data.body.songs[albumname]
+										songs: data.body.songs[albumname],
+										launchdate: album.launchdate
 									};
 									new_album.artist = add_album(new_album,album.artist);
-								}
-
-								for (var i = 0; i < artists_to_sort.length; ++ i) {
-									artists_to_sort[i].albums.sort(Magnatune.Navigation.albumSorter());
 								}
 
 								var sorted_artists = [];
@@ -1702,7 +1719,6 @@ var Magnatune = {
 									sorted_artists.push(artists[artist]);
 								}
 								sorted_artists.sort(Magnatune.Navigation.artistSorter());
-
 								Magnatune.Navigation.Modes.ArtistAlbum.render(parent, sorted_artists);
 							},
 							error: function () {
@@ -1718,6 +1734,8 @@ var Magnatune = {
 
 					for (var i = 0; i < albums.length; ++ i) {
 						var album = albums[i];
+						var launchdate = new Date();
+						launchdate.setTime(album.launchdate * 1000);
 						var label = tag('table',
 							{'class':'album',dataset:{albumname:album.albumname}},
 							tag('tbody',
@@ -1728,7 +1746,8 @@ var Magnatune = {
 											src:'http://he3.magnatune.com/music/'+
 												encodeURIComponent(album.artist.artist)+'/'+
 												encodeURIComponent(album.albumname)+'/cover_50.jpg'})),
-									tag('td',{'class':'albumname'},album.albumname))));
+									tag('td',{'class':'albumname'},album.albumname),
+									tag('td',{'class':'launchdate'}, '('+launchdate.getFullYear()+')'))));
 						Magnatune.DnD.draggable(label, this.draggable(album));
 
 						var hash = '#/album/'+encodeURIComponent(album.albumname);
@@ -1760,7 +1779,7 @@ var Magnatune = {
 				filter: function (parent, query) {
 					if (!query) {
 						parent.empty();
-						this.render(parent, Magnatune.Collection.SortedAlbums);
+						this.render(parent, Magnatune.Navigation.sortedAlbums());
 					}
 					else {
 						$.ajax({
@@ -1777,16 +1796,17 @@ var Magnatune = {
 								}
 
 								for (var albumname in data.body.songs) {
-									var album = {
+									var album = Magnatune.Collection.Albums[albumname];
+									var new_album = {
 										albumname: albumname,
-										songs: data.body.songs[albumname]
+										songs: data.body.songs[albumname],
+										launchdate: album.launchdate
 									};
-									album.artist = Magnatune.Collection.Albums[albumname].artist;
-									sorted_albums.push(album);
+									new_album.artist = Magnatune.Collection.Albums[albumname].artist;
+									sorted_albums.push(new_album);
 								}
 
 								sorted_albums.sort(Magnatune.Navigation.albumSorter());
-
 								Magnatune.Navigation.Modes.Album.render(parent, sorted_albums);
 							},
 							error: function () {
