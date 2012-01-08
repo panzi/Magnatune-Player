@@ -2176,11 +2176,12 @@ var Magnatune = {
 			localStorage.setItem('player.volume',String(Magnatune.Player.volume()));
 			localStorage.setItem('player.visible',String(Magnatune.Player.visible()));
 			localStorage.setItem('navigation.visible',String(Magnatune.Navigation.visible()));
+			localStorage.setItem('navigation.order',Magnatune.Navigation.order());
 			localStorage.setItem('navigation.mode',Magnatune.Navigation.mode());
 		}
 	},
 	load: function () {
-		var hash, songs, current, member, volume, playerVisible, navigationVisible, playlistVisible, mode;
+		var hash, songs, current, member, volume, playerVisible, navigationVisible, playlistVisible, order, mode;
 		function getBoolean (name) {
 			var value = localStorage.getItem(name);
 			if (value !== null) {
@@ -2216,7 +2217,8 @@ var Magnatune = {
 			volume = parseFloat(localStorage.getItem('player.volume'));
 			playerVisible = getBoolean('player.visible');
 			navigationVisible = getBoolean('navigation.visible');
-			var mode = localStorage.getItem('navigation.mode') || 'genre/artist/album';
+			order = localStorage.getItem('navigation.order') || 'name';
+			mode = localStorage.getItem('navigation.mode') || 'genre/artist/album';
 		}
 		else {
 			hash = '#/about';
@@ -2227,6 +2229,7 @@ var Magnatune = {
 			playerVisible = true;
 			navigationVisible = true;
 			playlistVisible = false;
+			order = 'name';
 			mode = 'genre/artist/album';
 		}
 		
@@ -2287,11 +2290,11 @@ var Magnatune = {
 		}
 		
 		try {
-			Magnatune.Navigation.setMode(mode);
+			Magnatune.Navigation.setConfig(order, mode);
 		}
 		catch (e) {
 			console.error(e);
-			Magnatune.Navigation.setMode('genre/artist/album');
+			Magnatune.Navigation.setConfig('name', 'genre/artist/album');
 		}
 	}
 };
