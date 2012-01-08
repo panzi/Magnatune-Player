@@ -1738,6 +1738,7 @@ var Magnatune = {
 						var album = albums[i];
 						var launchdate = new Date();
 						launchdate.setTime(album.launchdate * 1000);
+						launchdate = '('+launchdate.getFullYear()+')';
 						var label = tag('table',
 							{'class':'album',dataset:{albumname:album.albumname}},
 							tag('tbody',
@@ -1749,7 +1750,7 @@ var Magnatune = {
 												encodeURIComponent(album.artist.artist)+'/'+
 												encodeURIComponent(album.albumname)+'/cover_50.jpg'})),
 									tag('td',{'class':'albumname'},album.albumname),
-									tag('td',{'class':'launchdate'}, '('+launchdate.getFullYear()+')'))));
+									tag('td',{'class':'launchdate'}, launchdate))));
 						Magnatune.DnD.draggable(label, this.draggable(album));
 
 						var hash = '#/album/'+encodeURIComponent(album.albumname);
@@ -1766,7 +1767,7 @@ var Magnatune = {
 									}
 									Magnatune.Playlist.replace(songs, true);
 								}),
-								title: album.albumname
+								title: album.albumname+' '+launchdate
 							},
 							render: function (parent) {
 								Magnatune.Collection.withSongs(this, function (album) {
