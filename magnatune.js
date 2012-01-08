@@ -1424,10 +1424,6 @@ var Magnatune = {
 			$('#search').val('');
 			this.filter('');
 		},
-		order: function () {
-			// TODO
-			return "name";
-		},
 		genreSorter: function () {
 			return Magnatune.Collection.GenreNameSorter;
 		},
@@ -1905,26 +1901,54 @@ var Magnatune = {
 			}
 		},
 		setMode: function (mode) {
+			this._setMode(mode);
+			this.filter($('#search').val());
+		},
+		_setMode: function (mode) {
 			mode = mode.trim().toLowerCase();
 			$('#tree-mode-select').hide();
 			
-			// TODO: keep expand and scroll state
 			switch (mode) {
 				case 'album':
 				case 'artist/album':
 				case 'genre/artist/album':
-					$('#tree-mode-select li').removeClass('active');
+					$('#tree-mode-select li.active').removeClass('active');
 					$('#mode-'+mode.replace(/\//g,'-')).addClass('active');
-
-					this.filter($('#search').val());
 					break;
 
 				default:
 					throw new Error("Illegal mode: "+mode);
-			}	
+			}
+		},
+		setOrder: function (order) {
+			this._setOrder(order);
+			this.filter($('#search').val());
+		},
+		_setOrder: function (order) {
+			order = order.trim().toLowerCase();
+			$('#tree-order-select').hide();
+
+			switch (order) {
+				case 'name':
+				case 'date':
+					$('#tree-order-select li.active').removeClass('active');
+					$('#order-by-'+order).addClass('active');
+					break;
+
+				default:
+					throw new Error("Illegal order: "+order);
+			}
+		},
+		setConfig: function (order, mode) {
+			this._setOrder(order);
+			this._setMode(mode);
+			this.filter($('#search').val());
 		},
 		mode: function () {
-			return $('#tree-mode-select li.active')[0].id.replace(/^mode-/,'').replace(/-/g,'/');
+			return $('#tree-mode-select li.active').attr('id').replace(/^mode-/,'').replace(/-/g,'/');
+		},
+		order: function () {
+			return $('#tree-order-select li.active').attr('id').replace(/^order-by-/,'');
 		},
 		toggleModeSelect: function () {
 			var mode = $('#tree-mode-select');
@@ -1938,6 +1962,24 @@ var Magnatune = {
 					display: ''
 				});
 				mode.css({
+					visibility: '',
+					left: (button.offsetLeft)+'px',
+					top: (button.offsetTop+button.offsetHeight)+'px'
+				});
+			}
+		},
+		toggleOrderSelect: function () {
+			var order = $('#tree-order-select');
+			if (order.is(':visible')) {
+				order.hide();
+			}
+			else {
+				var button = $('#tree-order-button')[0];
+				order.css({
+					visibility: 'hidden',
+					display: ''
+				});
+				order.css({
 					visibility: '',
 					left: (button.offsetLeft)+'px',
 					top: (button.offsetTop+button.offsetHeight)+'px'
@@ -2371,32 +2413,25 @@ $(document).ready(function () {
 });
 
 $(document).click(function (event) {
-	var mode = $('#tree-mode-select');
+	var menus = $('.popup-menu');
 	var parents = $(event.target).parents();
-	var button = $('#tree-mode-button');
-	if (mode.is(':visible') &&
-		!mode.is(event.target) &&
-		!button.is(event.target) &&
-		parents.index(button) === -1 &&
-		parents.index(mode) === -1) {
-		mode.hide();
-	}
-	var volume = $('#volume-control');
-	button = $('#volume-button');
-	if (volume.is(':visible') &&
-		!volume.is(event.target) &&
-		!button.is(event.target) &&
-		parents.index(button) === -1 &&
-		parents.index(volume) === -1) {
-		volume.hide();
-	}
-	var credentials = $('#credentials');
-	button = $('#member-container');
-	if (credentials.is(':visible') &&
-		!credentials.is(event.target) &&
-		!button.is(event.target) &&
-		parents.index(button) === -1 &&
-		parents.index(credentials) === -1) {
-		Magnatune.Player.cancelCredentials();
+
+	for (var i = 0; i < menus.length; ++ i) {
+		var menu = $(menus[i]);
+		var button = $('#'+menu.dataset('button'));
+		
+		if (menu.is(':visible') &&
+			!menu.is(event.target) &&
+			!button.is(event.target) &&
+			parents.index(button) === -1 &&
+			parents.index(menu) === -1) {
+			var action = menu.dataset('hide-action');
+			if (action === undefined) {
+				menu.hide();
+			}
+			else {
+				(new Function("event",action)).call(menus[i],event);
+			}
+		}
 	}
 });

@@ -28,7 +28,7 @@
 			</div>
 				
 			<a id="volume-button" class="button" href="javascript:Magnatune.Player.toggleVolume();void(0)" title="Change Volume"><img src="volume.png" alt="Volume"/></a>
-			<div id="volume-control" class="popup-menu" style="display:none;">
+			<div id="volume-control" class="popup-menu" data-button="volume-button" style="display:none;">
 				<div id="volume">100%</div>
 				<div id="volume-bar-container"><div id="volume-bar" style="height:100%;"></div></div>
 			</div>
@@ -37,7 +37,8 @@
 				<input id="member" type="checkbox" autocomplete="off"/>
 				<label for="member">Member</label>
 			</div>
-			<form action="javascript:Magnatune.login();void(0)" id="credentials" class="popup-menu" style="display:none;">
+			<form action="javascript:Magnatune.login();void(0)" id="credentials" class="popup-menu"
+					data-button="member-container" data-hide-action="Magnatune.Player.cancelCredentials();" style="display:none;">
 				<div class="text-input-container">
 					<input id="username" type="text" placeholder="Username" title="Enter your username"/>
 				</div>
@@ -83,12 +84,17 @@
 					<a class="input-clear" href="javascript:Magnatune.Navigation.clear();void(0)" title="Clear">&times;</a>
 				</span>
 
-				<a class="button" id="tree-mode-button" href="javascript:Magnatune.Navigation.toggleModeSelect();void(0)" title="Change Tree Display Mode">Mode</a>
-
-				<ul id="tree-mode-select" class="popup-menu" style="display:none;">
+				<a class="navigation-head-button button" id="tree-mode-button" href="javascript:Magnatune.Navigation.toggleModeSelect();void(0)" title="Change Tree Display Mode">Mode</a>
+				<ul id="tree-mode-select" class="popup-menu pulldown-menu" data-button="tree-mode-button" style="display:none;">
 					<li id="mode-album" class="first"><a href="javascript:Magnatune.Navigation.setMode('album');void(0)">Album</a></li>
 					<li id="mode-artist-album"><a href="javascript:Magnatune.Navigation.setMode('artist/album');void(0)">Artist / Album</a></li>
-					<li id="mode-genre-artist-album" class="active last"><a href="javascript:Magnatune.Navigation.setMode('genre/artist/album');void(0)">Genre / Artist / Album</a></li>
+					<li id="mode-genre-artist-album" class="last active"><a href="javascript:Magnatune.Navigation.setMode('genre/artist/album');void(0)">Genre / Artist / Album</a></li>
+				</ul>
+
+				<a class="navigation-head-button button" id="tree-order-button" href="javascript:Magnatune.Navigation.toggleOrderSelect();void(0)" title="Change Sorting">Order</a>
+				<ul id="tree-order-select" class="popup-menu pulldown-menu" data-button="tree-order-button" style="display:none;">
+					<li id="order-by-name" class="first active"><a href="javascript:Magnatune.Navigation.setOrder('name');void(0)">By Name</a></li>
+					<li id="order-by-date" class="last"><a href="javascript:Magnatune.Navigation.setOrder('date');void(0)">By Date</a></li>
 				</ul>
 			</div>
 			<div id="tree">
