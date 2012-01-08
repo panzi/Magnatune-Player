@@ -55,15 +55,6 @@
        gradientUnits="userSpaceOnUse" />
     <linearGradient
        inkscape:collect="always"
-       xlink:href="#linearGradient3763"
-       id="linearGradient3766"
-       x1="20"
-       y1="1042.3622"
-       x2="20"
-       y2="1002.3622"
-       gradientUnits="userSpaceOnUse" />
-    <linearGradient
-       inkscape:collect="always"
        xlink:href="#linearGradient3763-6"
        id="linearGradient3766-5"
        x1="20"
@@ -82,16 +73,18 @@
          offset="1"
          id="stop3767-7" />
     </linearGradient>
-    <linearGradient
-       gradientTransform="translate(25,-2.2617187e-5)"
-       y2="1002.3622"
-       x2="20"
-       y1="1042.3622"
-       x1="20"
-       gradientUnits="userSpaceOnUse"
-       id="linearGradient3783"
-       xlink:href="#linearGradient3763"
-       inkscape:collect="always" />
+    <filter
+       inkscape:collect="always"
+       id="filter3792"
+       x="-0.108"
+       width="1.216"
+       y="-0.108"
+       height="1.216">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="3.15"
+         id="feGaussianBlur3794" />
+    </filter>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -100,11 +93,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="7.9195959"
-     inkscape:cx="22.198311"
-     inkscape:cy="33.895975"
+     inkscape:zoom="5.6"
+     inkscape:cx="25.388894"
+     inkscape:cy="23.16867"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="layer2"
      showgrid="true"
      inkscape:window-width="892"
      inkscape:window-height="939"
@@ -129,28 +122,38 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
-     inkscape:label="Layer 1"
+     inkscape:label="Pause"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-992.36218)">
+     transform="translate(0,-992.36218)"
+     sodipodi:insensitive="true">
     <rect
-       style="color:#000000;fill:url(#linearGradient3766);fill-opacity:1;fill-rule:nonzero;stroke:#8492b4;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       style="color:#000000;fill:#c2cbda;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
        id="rect2990"
        width="15"
        height="39.999996"
        x="10"
        y="1002.3622" />
     <rect
-       style="color:#000000;fill:url(#linearGradient3783);fill-opacity:1;fill-rule:nonzero;stroke:#8492b4;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       style="color:#000000;fill:#c2cbda;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
        id="rect2990-2"
        width="15"
        height="39.999996"
        x="35"
        y="1002.3622" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Shadow">
+    <path
+       style="color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;filter:url(#filter3792);opacity:0.8"
+       d="M -5 -5 L -5 65 L 65 65 L 65 -5 L -5 -5 z M 10 10 L 25 10 L 25 50 L 10 50 L 10 10 z M 35 10 L 50 10 L 50 50 L 35 50 L 35 10 z "
+       id="rect3779" />
   </g>
 </svg>

@@ -7,7 +7,6 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="60"
@@ -18,9 +17,18 @@
    sodipodi:docname="play.svg"
    inkscape:export-filename="/home/panzi/src/html/magnatune/play.png"
    inkscape:export-xdpi="90"
-   inkscape:export-ydpi="90">
+   inkscape:export-ydpi="90"
+   style="display:inline;enable-background:new">
   <defs
      id="defs4">
+    <inkscape:path-effect
+       is_visible="true"
+       id="path-effect3937"
+       effect="spiro" />
+    <inkscape:path-effect
+       is_visible="true"
+       id="path-effect3825"
+       effect="spiro" />
     <linearGradient
        id="linearGradient3763">
       <stop
@@ -44,15 +52,64 @@
        effect="spiro"
        id="path-effect2989"
        is_visible="true" />
-    <linearGradient
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect3761-3"
+       is_visible="true" />
+    <filter
        inkscape:collect="always"
-       xlink:href="#linearGradient3763"
-       id="linearGradient3769"
-       x1="25"
-       y1="45"
-       x2="10"
-       y2="10"
-       gradientUnits="userSpaceOnUse" />
+       id="filter3808"
+       color-interpolation-filters="sRGB">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="2.8"
+         id="feGaussianBlur3810" />
+    </filter>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect3761-1"
+       is_visible="true" />
+    <filter
+       inkscape:collect="always"
+       id="filter3860"
+       color-interpolation-filters="sRGB">
+      <feBlend
+         inkscape:collect="always"
+         mode="screen"
+         in2="BackgroundImage"
+         id="feBlend3862" />
+    </filter>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect3761-2"
+       is_visible="true" />
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath3933">
+      <path
+         style="fill:#ffffff;fill-opacity:1;stroke:none;display:inline"
+         d="m -35,-10 0,80 90,-40 -90,-40"
+         id="path3935"
+         inkscape:path-effect="#path-effect3937"
+         inkscape:original-d="m -35,-10 0,80 90,-40 z"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cccc"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+    </clipPath>
+    <filter
+       inkscape:collect="always"
+       id="filter3939"
+       x="-0.108"
+       width="1.216"
+       y="-0.108"
+       height="1.216"
+       color-interpolation-filters="sRGB">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="3.15"
+         id="feGaussianBlur3941" />
+    </filter>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -62,14 +119,14 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="7.9195959"
-     inkscape:cx="22.198311"
-     inkscape:cy="33.895975"
+     inkscape:cx="19.15035"
+     inkscape:cy="21.487529"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="layer2"
      showgrid="true"
-     inkscape:window-width="892"
+     inkscape:window-width="1092"
      inkscape:window-height="939"
-     inkscape:window-x="0"
+     inkscape:window-x="329"
      inkscape:window-y="0"
      inkscape:window-maximized="0">
     <inkscape:grid
@@ -98,9 +155,10 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-992.36218)">
+     transform="translate(0,-992.36218)"
+     style="display:inline">
     <path
-       style="fill:url(#linearGradient3769);fill-opacity:1;stroke:#8492b4;stroke-width:2;stroke-linecap:butt;stroke-linejoin:round;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       style="fill:#c2cbda;fill-opacity:1;stroke:none"
        d="M 10,10 10,50 55,30 10,10"
        id="path3759"
        inkscape:path-effect="#path-effect3761"
@@ -110,5 +168,17 @@
        sodipodi:nodetypes="cccc"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="shadow"
+     style="display:inline">
+    <path
+       style="opacity:0.8;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;filter:url(#filter3939);enable-background:accumulate"
+       d="m -5,-5 0,70 70,0 0,-70 -70,0 z M 10,10 55,30 10,50 10,10 z"
+       id="rect3789"
+       clip-path="url(#clipPath3933)"
+       inkscape:connector-curvature="0" />
   </g>
 </svg>
