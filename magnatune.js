@@ -2030,6 +2030,26 @@ var Magnatune = {
 		}
 		spin();
 
+		// HTTP Auth hack for Chrome
+		// changed.txt just contains a decimal number so it is a valid JavaScript
+		// if onload fires this means the login was ok.
+		// onerror will be fired if the login was not ok because scripts may not
+		// be transferred with the HTTP status 401. And even if they could be
+		// transferred that way the returned document contains HTML which would
+		// raise a JavaScript SyntaxError and will fire the onerror event on window.
+		
+		function onerror (event) {
+			if (event.originalEvent.target === script) {
+				Magnatune.authenticated = false;
+				spinner.hide();
+				$(window).off('error',onerror);
+				$(this).remove();
+				alert("Wrong username or password or connection problem.");
+			}
+		}
+
+		$(window).on('error',onerror);
+
 		var username = $('#username').val();
 		var password = $('#password').val();
 		var script = tag('script',{
@@ -2038,14 +2058,10 @@ var Magnatune = {
 			onload: function (event) {
 				Magnatune.authenticated = true;
 				Magnatune.Player.hideCredentials();
+				$(window).off('error',onerror);
 				$(this).remove();
 			},
-			onerror: function (event) {
-				Magnatune.authenticated = false;
-				spinner.hide();
-				$(this).remove();
-				alert("Wrong username or password or connection problem.");
-			}
+			onerror: onerror
 		});
 
 		document.body.appendChild(script);
