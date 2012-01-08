@@ -398,7 +398,7 @@ var Magnatune = {
 			this.initAudio();
 			this._song = song;
 			var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
-			if ((Magnatune.BrowserAuthenticates || Magnatune.authenticated) && this.member()) {
+			if (Magnatune.authenticated && this.member()) {
 				this.audio.appendChild(tag('source',{
 					type:'audio/ogg',
 					src:"http://stream.magnatune.com/all/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.ogg'))}));
@@ -2017,54 +2017,77 @@ var Magnatune = {
 	BrowserAuthenticates: !!($.browser.opera || $.browser.mozilla),
 	authenticated: false,
 	login: function () {
-		var spinner = $('#login-spinner');
-		function spin () {
-			spinner.show().rotate({
-				angle: 0,
-				animateTo: 360,
-				easing: function (x,t,b,c,d) {
-					return c*(t/d)+b;
-				},
-				callback: function () {
-					if (spinner.is(':visible')) {
-						spin();
-					}
+		var onload, onerror, script, src;
+		if (Magnatune.BrowserAuthenticates) {
+			// HTTP Auth hack for Firefox and Opera
+			src = "http://stream.magnatune.com/info/changed.txt?"+(new Date().getTime());
+			onerror = function (event) {
+				if (event.originalEvent.target === script) {
+					Magnatune.authenticated = false;
+					Magnatune.Player.setMember(false);
+					$(window).off('error',onerror);
+					$(this).remove();
 				}
-			});
-		}
-		spin();
+			};
 
-		// HTTP Auth hack for Chrome
-		// changed.txt just contains a decimal number so it is a valid JavaScript
-		// if onload fires this means the login was ok.
-		// onerror will be fired if the login was not ok because scripts may not
-		// be transferred with the HTTP status 401. And even if they could be
-		// transferred that way the returned document contains HTML which would
-		// raise a JavaScript SyntaxError and will fire the onerror event on window.
-		
-		function onerror (event) {
-			if (event.originalEvent.target === script) {
-				Magnatune.authenticated = false;
-				spinner.hide();
+			onload = function (event) {
+				Magnatune.authenticated = true;
 				$(window).off('error',onerror);
 				$(this).remove();
-				alert("Wrong username or password or connection problem.");
-			}
+			};
 		}
+		else {
+			// HTTP Auth hack for Chrome
+			// changed.txt just contains a decimal number so it is a valid JavaScript
+			// if onload fires this means the login was ok.
+			// onerror will be fired if the login was not ok because scripts may not
+			// be transferred with the HTTP status 401. And even if they could be
+			// transferred that way the returned document contains HTML which would
+			// raise a JavaScript SyntaxError and will fire the onerror event on window.
+			var spinner = $('#login-spinner');
+			var spin = function () {
+				spinner.show().rotate({
+					angle: 0,
+					animateTo: 360,
+					easing: function (x,t,b,c,d) {
+						return c*(t/d)+b;
+					},
+					callback: function () {
+						if (spinner.is(':visible')) {
+							spin();
+						}
+					}
+				});
+			}
+			spin();
 
-		$(window).on('error',onerror);
+			var username = $('#username').val();
+			var password = $('#password').val();		
+			src = "http://"+username+":"+password+"@stream.magnatune.com/info/changed.txt?"+(new Date().getTime());
+			onerror = function (event) {
+				if (event.originalEvent.target === script) {
+					Magnatune.authenticated = false;
+					spinner.hide();
+					$(window).off('error',onerror);
+					$(this).remove();
+					alert("Wrong username or password or connection problem.");
+				}
+			};
 
-		var username = $('#username').val();
-		var password = $('#password').val();
-		var script = tag('script',{
-			type:'text/javascript',
-			src: "http://"+username+":"+password+"@stream.magnatune.com/info/changed.txt?"+(new Date().getTime()),
-			onload: function (event) {
+			onload = function (event) {
 				Magnatune.authenticated = true;
 				Magnatune.Player.hideCredentials();
 				$(window).off('error',onerror);
 				$(this).remove();
-			},
+			};
+		}
+
+		$(window).on('error',onerror);
+
+		var script = tag('script',{
+			type:'text/javascript',
+			src: src,
+			onload: onload,
 			onerror: onerror
 		});
 
@@ -2296,12 +2319,7 @@ $(document).ready(function () {
 		if (Magnatune.BrowserAuthenticates) {
 			if ($(this).is(':checked')) {
 				// force authentication dialog now:
-				var iframe = tag('iframe',{
-					src:'http://stream.magnatune.com/robots.txt',
-					style:'display:none;',
-					onload: function () { $(this).remove(); }
-				});
-				$(document.body).append(iframe);
+				Magnatune.login();
 			}
 		}
 		else {
