@@ -37,7 +37,7 @@
 				<input id="member" type="checkbox" autocomplete="off"/>
 				<label for="member">Member</label>
 			</div>
-			<div id="credentials" class="popup-menu" style="display:none;">
+			<form id="credentials" class="popup-menu" style="display:none;" onsubmit="Magnatune.login(); return false;">
 				<div class="text-input-container">
 					<input id="username" type="text" placeholder="Username" title="Enter your username"/>
 				</div>
@@ -46,9 +46,9 @@
 				</div>
 				<div class="popup-buttons">
 					<img id="login-spinner" title="Login..." style="display:none;" src="spinner.png" alt=""/>
-					<a class="button" href="javascript:Magnatune.login();void(0)">Login</a>
+					<input type="submit" value="Login"/>
 				</div>
-			</div>
+			</form>
 			
 			<img id="waiting" title="Buffering..." style="display:none;" src="spinner.png" alt=""/>
 

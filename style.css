@@ -81,10 +81,21 @@ a {
 	color: #6789E6;
 }
 
+button,
+input[type="submit"],
+input[type="button"] {
+	border-style: none;
+	background: transparent;
+	cursor: pointer;
+}
+
 #tabs a,
 #breadcrumbs,
 #breadcrumbs a,
 .button,
+button,
+input[type="submit"],
+input[type="button"],
 #status,
 #member-container,
 #play-control-buttons a,
@@ -126,6 +137,9 @@ textarea,
 #currently-playing,
 .search-container,
 .button,
+button,
+input[type="submit"],
+input[type="button"],
 #play-control-buttons {
 	display: inline-block;
 	border-radius: 10px;
@@ -140,7 +154,10 @@ textarea,
 .tab-content,
 .text-input-container,
 #status,
-.button {
+.button,
+button,
+input[type="submit"],
+input[type="button"] {
 	margin: 2px;
 	padding: 2px 5px;
 }
@@ -151,6 +168,9 @@ textarea {
 	border-radius: 10px;
 }
 
+button,
+input[type="submit"],
+input[type="button"],
 .button {
 	box-shadow:
 		3px 3px 6px rgba(255,255,255,0.1),
@@ -159,7 +179,11 @@ textarea {
 		inset -4px -4px 8px rgba(0,0,0,0.2);
 }
 
+button:active,
+input[type="submit"]:active,
+input[type="button"]:active,
 .button:active {
+	background: #B3BDCD;
 	box-shadow:
 		3px 3px 6px rgba(255,255,255,0.1),
 		-4px -4px 8px rgba(0,0,0,0.2),
@@ -186,8 +210,14 @@ textarea {
 
 #tabs li a:hover,
 .button:hover,
+button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover,
 .slide-expand a:hover,
 .tab-content .button:hover,
+.tab-content button:hover,
+.tab-content input[type="submit"]:hover,
+.tab-content input[type="button"]:hover,
 .popup-menu a:hover,
 #play-control-buttons a:hover {
 	background: #e8effc; /* TODO */
@@ -216,10 +246,6 @@ textarea {
 	background: -ms-linear-gradient(left, #959fb1 0%,#c1cada 18%,#e8effc 100%);
 	background: linear-gradient(left, #959fb1 0%,#c1cada 18%,#e8effc 100%);
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#959fb1', endColorstr='#e8effc',GradientType=1 );
-}
-
-.button:active {
-	background: #B3BDCD;
 }
 
 #play-control-buttons {
@@ -893,6 +919,9 @@ a.button {
 	color: #5A6A8B;
 }
 
+.tab-content button,
+.tab-content input[type="submit"],
+.tab-content input[type="button"],
 .tab-content .button {
 	color: #2D3440;
 	text-shadow: none;
@@ -900,6 +929,9 @@ a.button {
 	background: #7F8FAC;
 }
 
+.tab-content button:active,
+.tab-content input[type="submit"]:active,
+.tab-content input[type="button"]:active,
 .tab-content .button:active {
 	background: #67758C;
 }

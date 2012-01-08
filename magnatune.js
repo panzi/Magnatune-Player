@@ -2331,11 +2331,6 @@ $(document).ready(function () {
 			}
 		}
 	});
-	$('#username, #password').on('keydown', function (event) {
-		if (event.which === 13) {
-			Magnatune.login();
-		}
-	});
 	Magnatune.Collection.load();
 	$(window).unload(function (event) {
 		Magnatune.save();
