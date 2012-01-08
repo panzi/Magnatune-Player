@@ -7,18 +7,23 @@
 }
 
 ::-webkit-scrollbar-thumb {
-	background-color: #C1CADA;
 	border-radius: 6px;
-	box-shadow:
-		inset  3px  3px 6px 0px #E8EFFC,
-		inset -3px -3px 6px 0px #959FB1;
 	overflow: hidden;
+	background: #7F8FAC;
+	box-shadow:
+		inset 3px 3px 6px rgba(255,255,255,0.1),
+		inset -4px -4px 8px rgba(0,0,0,0.2);
 }
 
 ::-webkit-scrollbar-thumb:active {
+	background: #B3BDCD;
 	box-shadow:
-		inset -3px -3px 6px 0px #E8EFFC,
-		inset  3px  3px 6px 0px #959FB1;
+		inset -3px -3px 6px rgba(255,255,255,0.1),
+		inset 4px 4px 8px rgba(0,0,0,0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #e8effc;
 }
 
 ::-webkit-scrollbar-button {
@@ -220,7 +225,7 @@ input[type="button"]:hover,
 .tab-content input[type="button"]:hover,
 .popup-menu a:hover,
 #play-control-buttons a:hover {
-	background: #e8effc; /* TODO */
+	background: #e8effc;
 }
 
 #tabs li a:active,
