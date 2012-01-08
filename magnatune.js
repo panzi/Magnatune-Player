@@ -903,8 +903,10 @@ var Magnatune = {
 						}
 						var artist = Magnatune.Collection.Artists[opts.id];
 						var tbody = $(tag('tbody'));
-						for (var i = 0; i < artist.albums.length; ++ i) {
-							var album = artist.albums[i];
+						var albums = artist.albums.slice();
+						albums.sort(Magnatune.Collection.AlbumDateSorter);
+						for (var i = 0; i < albums.length; ++ i) {
+							var album = albums[i];
 							var launchdate = new Date();
 							launchdate.setTime(album.launchdate * 1000);
 							tbody.append(tag('tr',
@@ -2253,6 +2255,14 @@ var Magnatune = {
 			mode = 'genre/artist/album';
 		}
 		
+		try {
+			Magnatune.Navigation.setConfig(order, mode);
+		}
+		catch (e) {
+			console.error(e);
+			Magnatune.Navigation.setConfig('name', 'genre/artist/album');
+		}
+		
 		if (/^#?$/.test(window.location.hash)) {
 			if (playlistVisible) {
 				Magnatune.Playlist.show();
@@ -2307,14 +2317,6 @@ var Magnatune = {
 		}
 		else if (navigationVisible === false) {
 			Magnatune.Navigation.hide(true);
-		}
-		
-		try {
-			Magnatune.Navigation.setConfig(order, mode);
-		}
-		catch (e) {
-			console.error(e);
-			Magnatune.Navigation.setConfig('name', 'genre/artist/album');
 		}
 	}
 };
