@@ -2032,28 +2032,23 @@ var Magnatune = {
 
 		var username = $('#username').val();
 		var password = $('#password').val();
-		var image = new Image();
+		var script = tag('script',{
+			type:'text/javascript',
+			src: "http://"+username+":"+password+"@stream.magnatune.com/info/changed.txt?"+(new Date().getTime()),
+			onload: function (event) {
+				Magnatune.authenticated = true;
+				Magnatune.Player.hideCredentials();
+				$(this).remove();
+			},
+			onerror: function (event) {
+				Magnatune.authenticated = false;
+				spinner.hide();
+				$(this).remove();
+				alert("Wrong username or password or connection problem.");
+			}
+		});
 
-		Magnatune.authenticated = false;
-		image.onload = function () {
-			Magnatune.authenticated = true;
-			Magnatune.Player.hideCredentials();
-			$(this).remove();
-		};
-		
-		image.onerror = function () {
-			Magnatune.authenticated = false;
-			spinner.hide();
-			$(this).remove();
-			alert("Wrong username or password or connection problem.");
-		};
-
-		image.width  = 0;
-		image.height = 0;
-		image.style.visibility = "hidden";
-		image.src = "http://"+username+":"+password+"@stream.magnatune.com/images/logo.gif?"+(new Date().getTime());
-
-		$(document.body).append(image);
+		document.body.appendChild(script);
 	},
 	// TODO: Hints/Tour
 	save: function () {
