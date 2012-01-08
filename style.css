@@ -453,6 +453,7 @@ li.active {
 #tree-mode-select {
 	list-style: none;
 	padding: 0;
+	margin: 0;
 	white-space: nowrap;
 	overflow: hidden;
 }
@@ -934,4 +935,10 @@ a.button {
 .tab-content input[type="button"]:active,
 .tab-content .button:active {
 	background: #67758C;
+}
+
+#credentials,
+#tree-mode-select,
+#volume-control {
+	margin-top: 5px;
 }

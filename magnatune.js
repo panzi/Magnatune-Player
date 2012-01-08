@@ -559,7 +559,7 @@ var Magnatune = {
 				});
 				control.css({
 					left: Math.round(button.offsetLeft+(button.offsetWidth-element.offsetWidth)*0.5)+'px',
-					top: (button.offsetTop+button.offsetHeight+5)+'px',
+					top: (button.offsetTop+button.offsetHeight)+'px',
 					visibility: ''
 				});
 			}
@@ -570,7 +570,7 @@ var Magnatune = {
 			var pos = member.position();
 			cred.css({
 				left: pos.left+'px',
-				top: (pos.top+member.height()+5)+'px'
+				top: (pos.top+member.height())+'px'
 			}).show();
 		},
 		hideCredentials: function () {
@@ -1260,6 +1260,21 @@ var Magnatune = {
 	},
 	Collection: {
 		_state: 'init',
+		GenreNameSorter: function (a, b) {
+			return a.genre < b.genre ? -1 : a.genre > b.genre ? 1 : 0;
+		},
+		ArtistNameSorter: function (a,b) {
+			return a.artist < b.artist ? -1 : a.artist > b.artist ? 1 : 0;
+		},
+		AlbumNameSorter: function  (a,b) {
+			return a.albumname < b.albumname ? -1 : a.albumname > b.albumname ? 1 : 0;
+		},
+		ArtistDateSorter: function (a,b) {
+			return a.latestdate - b.latestdate;
+		},
+		AlbumDateSorter: function  (a,b) {
+			return a.launchdate - b.launchdate;
+		},
 		load: function () {
 			if (this._state !== 'init') {
 				throw new Error('illegal state');
@@ -1323,9 +1338,7 @@ var Magnatune = {
 				for (var artist_name in genre_artists) {
 					genre.artists.push(genre_artists[artist_name]);
 				}
-				genre.artists.sort(function (a,b) {
-					return a.artist < b.artist ? -1 : a.artist > b.artist ? 1 : 0;
-				});
+				genre.artists.sort(this.ArtistNameSorter);
 				genres[genre.genre] = genre;
 			}
 			
@@ -1336,9 +1349,15 @@ var Magnatune = {
 				for (var genre_name in artist_genres) {
 					artist.genres.push(genres[genre_name]);
 				}
-				artist.genres.sort(function (a,b) {
-					return a.genre < b.genre ? -1 : a.genre > b.genre ? 1 : 0;
-				});
+				artist.genres.sort(this.GenreNameSorter);
+				var latestdate = -Infinity;
+				for (var j = 0; j < artist.albums.length; ++ j) {
+					var launchdate = artist.albums[j].launchdate;
+					if (launchdate > latestdate) {
+						latestdate = launchdate;
+					}
+				}
+				artist.latestdate = latestdate;
 			}
 
 			return C;
@@ -1404,6 +1423,29 @@ var Magnatune = {
 		clear: function () {
 			$('#search').val('');
 			this.filter('');
+		},
+		order: function () {
+			// TODO
+			return "name";
+		},
+		genreSorter: function () {
+			return Magnatune.Collection.GenreNameSorter;
+		},
+		artistSorter: function () {
+			if (this.order() === "name") {
+				return Magnatune.Collection.ArtistNameSorter;
+			}
+			else {
+				return Magnatune.Collection.ArtistDateSorter;
+			}
+		},
+		albumSorter: function () {
+			if (this.order() === "name") {
+				return Magnatune.Collection.AlbumNameSorter;
+			}
+			else {
+				return Magnatune.Collection.AlbumDateSorter;
+			}
 		},
 		FilterInput: {
 			timer: null,
@@ -1554,24 +1596,18 @@ var Magnatune = {
 								}
 
 								for (var i = 0; i < genres_to_sort.length; ++ i) {
-									genres_to_sort[i].artists.sort(function (a,b) {
-										return a.artist < b.artist ? -1 : a.artist > b.artist ? 1 : 0;
-									});
+									genres_to_sort[i].artists.sort(Magnatune.Navigation.artistSorter());
 								}
 
 								for (var i = 0; i < artists_to_sort.length; ++ i) {
-									artists_to_sort[i].albums.sort(function (a,b) {
-										return a.albumname < b.albumname ? -1 : a.albumname > b.albumname ? 1 : 0;
-									});
+									artists_to_sort[i].albums.sort(Magnatune.Navigation.albumSorter());
 								}
 
 								var sorted_genres = [];
 								for (var genre in genres) {
 									sorted_genres.push(genres[genre]);
 								}
-								sorted_genres.sort(function (a,b) {
-									return a.genre < b.genre ? -1 : a.genre > b.genre ? 1 : 0;
-								});
+								sorted_genres.sort(Magnatune.Navigation.genreSorter());
 								Magnatune.Navigation.Modes.GenreArtistAlbum.render(parent, sorted_genres);
 							},
 							error: function () {
@@ -1662,18 +1698,14 @@ var Magnatune = {
 								}
 
 								for (var i = 0; i < artists_to_sort.length; ++ i) {
-									artists_to_sort[i].albums.sort(function (a,b) {
-										return a.albumname < b.albumname ? -1 : a.albumname > b.albumname ? 1 : 0;
-									});
+									artists_to_sort[i].albums.sort(Magnatune.Navigation.albumSorter());
 								}
 
 								var sorted_artists = [];
 								for (var artist in artists) {
 									sorted_artists.push(artists[artist]);
 								}
-								sorted_artists.sort(function (a,b) {
-									return a.artist < b.artist ? -1 : a.artist > b.artist ? 1 : 0;
-								});
+								sorted_artists.sort(Magnatune.Navigation.artistSorter());
 
 								Magnatune.Navigation.Modes.ArtistAlbum.render(parent, sorted_artists);
 							},
@@ -1757,9 +1789,7 @@ var Magnatune = {
 									sorted_albums.push(album);
 								}
 
-								sorted_albums.sort(function (a,b) {
-									return a.albumname < b.albumname ? -1 : a.albumname > b.albumname ? 1 : 0;
-								});
+								sorted_albums.sort(Magnatune.Navigation.albumSorter());
 
 								Magnatune.Navigation.Modes.Album.render(parent, sorted_albums);
 							},
