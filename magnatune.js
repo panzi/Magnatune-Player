@@ -575,9 +575,8 @@ var Magnatune = {
 			$('#username, #password').val('');
 		},
 		cancelCredentials: function () {
-			var not_username_and_not_password = !$('#username').val() && !$('#password').val();
 			this.hideCredentials();
-			if (not_username_and_not_password) {
+			if (!Magnatune.authenticated) {
 				this.setMember(false);
 			}
 		},
