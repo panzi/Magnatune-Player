@@ -185,6 +185,44 @@ def search_artist_album(cur,query,order):
 	}
 
 @finder
+def search_genre_album(cur,query,order):
+	where, args = build_query(['genre'],query)
+	cur.execute('select distinct genre from genres where %s order by genre' % where,args)
+	genres = [row[0] for row in cur.fetchall()]
+	where, args = build_query(['albums.albumname'],query)
+	if order == "name":
+		albums_order = "albums.albumname"
+	else:
+		albums_order = "launchdate desc, albums.albumname"
+	cur.execute(
+		'select distinct albums.albumname from albums '
+		'inner join genres on genres.albumname = albums.albumname '
+		'where genre not in (%s) and %s '
+		'order by %s' % (nargs(len(genres)), where, albums_order),
+		concat(genres,args))
+	albums = [row[0] for row in cur.fetchall()]
+	where, args = build_query(['songs.desc'],query)
+	if order == "name":
+		songs_order = 'genre, songs.albumname, number'
+	else:
+		songs_order = 'launchdate desc, genre, songs.albumname, number'
+	cur.execute(
+		'select distinct number, desc, duration, mp3, songs.albumname from songs '
+		'inner join albums on songs.albumname = albums.albumname '
+		'inner join genres on albums.albumname = genres.albumname '
+		'where songs.albumname not in (%s) and '
+		'genre not in (%s) and %s '
+		'order by %s' % (
+			nargs(len(albums)), nargs(len(genres)), where, songs_order),
+		concat(albums,genres,args))
+	songs = rows_to_dicts(cur,cur.fetchall())
+	return {
+		'genres': genres,
+		'albums': albums,
+		'songs': songs_by_album(songs)
+	}
+
+@finder
 def search_genre_artist_album(cur,query,order):
 	where, args = build_query(['genre'],query)
 	cur.execute('select distinct genre from genres where %s order by genre' % where,args)
@@ -210,24 +248,17 @@ def search_genre_artist_album(cur,query,order):
 	artists = [row[0] for row in cur.fetchall()]
 	where, args = build_query(['albums.albumname'],query)
 	if order == "name":
-		cur.execute(
-			'select distinct albums.albumname from albums '
-			'inner join genres on genres.albumname = albums.albumname '
-			'where genre not in (%s) and '
-			'albums.artist not in (%s) and %s '
-			'order by albums.albumname' % (
-				nargs(len(genres)), nargs(len(artists)), where),
-			concat(genres,artists,args))
+		albums_order = "albums.albumname"
 	else:
-		cur.execute(
-			'select albums.albumname, max(launchdate) as latestdate from albums '
-			'inner join genres on genres.albumname = albums.albumname '
-			'where genre not in (%s) and '
-			'albums.artist not in (%s) and %s '
-			'group by albums.albumname '
-			'order by latestdate desc, albums.albumname' % (
-				nargs(len(genres)), nargs(len(artists)), where),
-			concat(genres,artists,args))
+		albums_order = "launchdate desc, albums.albumname"
+	cur.execute(
+		'select distinct albums.albumname from albums '
+		'inner join genres on genres.albumname = albums.albumname '
+		'where genre not in (%s) and '
+		'albums.artist not in (%s) and %s '
+		'order by %s' % (
+			nargs(len(genres)), nargs(len(artists)), where, albums_order),
+		concat(genres,artists,args))
 	albums = [row[0] for row in cur.fetchall()]
 	where, args = build_query(['songs.desc'],query)
 	if order == "name":
