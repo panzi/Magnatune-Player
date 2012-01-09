@@ -2109,30 +2109,31 @@ var Magnatune = {
 			}
 		}
 	},
-	BrowserAuthenticates: !!($.browser.opera || $.browser.mozilla),
+	BrowserAuthenticates: !$.browser.webkit,
 	authenticated: false,
 	login: function () {
-		var onload, onerror, script, src;
+		var onload, onerror, script, src, onreadystatechange;
+		var path = "/info/changed.txt?"+(new Date().getTime());
 		if (Magnatune.BrowserAuthenticates) {
 			// HTTP Auth hack for Firefox and Opera
-			src = "http://stream.magnatune.com/info/changed.txt?"+(new Date().getTime());
+			src = "http://stream.magnatune.com"+path;
 			onerror = function (event) {
 				if (event.originalEvent.target === script) {
 					Magnatune.authenticated = false;
 					Magnatune.Player.setMember(false);
 					$(window).off('error',onerror);
-					$(this).remove();
+					$(this).off('readystatechange', onreadystatechange).remove();
 				}
 			};
 
 			onload = function (event) {
 				Magnatune.authenticated = true;
 				$(window).off('error',onerror);
-				$(this).remove();
+				$(this).off('readystatechange', onreadystatechange).remove();
 			};
 		}
 		else {
-			// HTTP Auth hack for Chrome
+			// HTTP Auth hack for Chrome/WebKit
 			// changed.txt just contains a decimal number so it is a valid JavaScript
 			// if onload fires this means the login was ok.
 			// onerror will be fired if the login was not ok because scripts may not
@@ -2158,13 +2159,13 @@ var Magnatune = {
 
 			var username = $('#username').val();
 			var password = $('#password').val();		
-			src = "http://"+username+":"+password+"@stream.magnatune.com/info/changed.txt?"+(new Date().getTime());
+			src = "http://"+username+":"+password+"@stream.magnatune.com"+path;
 			onerror = function (event) {
 				if (event.originalEvent.target === script) {
 					Magnatune.authenticated = false;
 					spinner.hide();
 					$(window).off('error',onerror);
-					$(this).remove();
+					$(this).off('readystatechange', onreadystatechange).remove();
 					alert("Wrong username or password or connection problem.");
 				}
 			};
@@ -2173,18 +2174,31 @@ var Magnatune = {
 				Magnatune.authenticated = true;
 				Magnatune.Player.hideCredentials();
 				$(window).off('error',onerror);
-				$(this).remove();
+				$(this).off('readystatechange', onreadystatechange).remove();
 			};
 		}
 
 		$(window).on('error',onerror);
 
+		onreadystatechange = function (event) {
+			if (this.readyState === "loaded" || this.readyState === "complete") {
+				$(this).off('load',onload).off('error',onerror);
+				// cannot detect error in MSIE
+				onload.call(this,event);
+			}
+		};
+
 		var script = tag('script',{
 			type:'text/javascript',
 			src: src,
 			onload: onload,
-			onerror: onerror
+			onerror: onerror,
+			onabort: onerror
 		});
+
+		if ($.browser.msie) {
+			$(script).on('readystatechange',onreadystatechange);
+		}
 
 		document.body.appendChild(script);
 	},
@@ -2196,7 +2210,12 @@ var Magnatune = {
 			localStorage.setItem('playlist.current',String(Magnatune.Playlist.currentIndex()));
 			localStorage.setItem('playlist.visible',String(Magnatune.Playlist.visible()));
 			localStorage.setItem('player.member',String(Magnatune.Player.member()));
-			localStorage.setItem('player.volume',String(Magnatune.Player.volume()));
+			try {
+				localStorage.setItem('player.volume',String(Magnatune.Player.volume()));
+			}
+			catch (e) {
+				console.error(e);
+			}
 			localStorage.setItem('player.visible',String(Magnatune.Player.visible()));
 			localStorage.setItem('navigation.visible',String(Magnatune.Navigation.visible()));
 			localStorage.setItem('navigation.order',Magnatune.Navigation.order());
