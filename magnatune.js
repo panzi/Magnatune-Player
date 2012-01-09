@@ -1509,6 +1509,10 @@ var Magnatune = {
 					Magnatune.Navigation.Modes.ArtistAlbum.filter(tree, query);
 					break;
 
+				case 'genre/album':
+					Magnatune.Navigation.Modes.GenreAlbum.filter(tree, query);
+					break;
+
 				case 'genre/artist/album':
 					Magnatune.Navigation.Modes.GenreArtistAlbum.filter(tree, query);
 					break;
@@ -1815,7 +1819,7 @@ var Magnatune = {
 										genres: album.genres,
 										launchdate: album.launchdate
 									};
-									new_album.artist = add_album(new_album);
+									add_album(new_album);
 								}
 								
 								var sorted_genres = [];
@@ -2036,6 +2040,7 @@ var Magnatune = {
 			switch (mode) {
 				case 'album':
 				case 'artist/album':
+				case 'genre/album':
 				case 'genre/artist/album':
 					$('#tree-mode-select li.active').removeClass('active');
 					$('#mode-'+mode.replace(/\//g,'-')).addClass('active');
