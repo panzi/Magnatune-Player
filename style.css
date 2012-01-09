@@ -957,3 +957,28 @@ a.button {
 .popup-menu {
 	margin-top: 5px;
 }
+
+.tab-content .genre ul.albums {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+/*
+	column-width:         250px;
+	-webkit-column-width: 250px;
+	-moz-column-width:    250px;
+	column-gap:         10px;
+	-webkit-column-gap: 10px;
+	-moz-column-gap:    10px;
+*/
+}
+
+
+.tab-content .genre ul.albums li {
+	display: inline-block;
+	width: 250px;
+	height: 50px;
+	margin-right: 10px;
+	margin-bottom: 5px;
+	white-space: nowrap;
+	overflow: hidden;
+}

@@ -633,31 +633,44 @@ var Magnatune = {
 		_albumsTable: function (albums) {	
 			var tbody = $(tag('tbody'));
 			for (var i = 0; i < albums.length; ++ i) {
-				var album = albums[i];
-				var launchdate = new Date();
-				launchdate.setTime(album.launchdate * 1000);
-				launchdate = '('+launchdate.getFullYear()+')';
-				tbody.append(tag('tr',
-					{title:album.albumname+' '+launchdate+' '+album.artist.artist},
-					tag('td', tag('a',
-						{href:'#/album/'+encodeURIComponent(album.albumname)},
-						tag('img',{'class':'cover',
-							src:'http://he3.magnatune.com/music/'+
-								encodeURIComponent(album.artist.artist)+'/'+
-								encodeURIComponent(album.albumname)+'/cover_50.jpg'}))),
-					tag('td',
-						tag('a',
-							{href:'#/album/'+encodeURIComponent(album.albumname)},
-							album.albumname),
-						' ',
-						tag('span',{'class':'launchdate'},launchdate),
-						tag('br'),
-						tag('a',
-							{href:'#/artist/'+encodeURIComponent(album.artist.artist)},
-							album.artist.artist))));
+				tbody.append(this._albumRow(albums[i]));
 			}
 
 			return tag('table', {'class':'albums'}, tbody);
+		},
+		_albumRow: function (album) {
+			var launchdate = new Date();
+			launchdate.setTime(album.launchdate * 1000);
+			launchdate = '('+launchdate.getFullYear()+')';
+			return tag('tr',
+				{title:album.albumname+' '+launchdate+' '+album.artist.artist},
+				tag('td', tag('a',
+					{href:'#/album/'+encodeURIComponent(album.albumname)},
+					tag('img',{'class':'cover',
+						src:'http://he3.magnatune.com/music/'+
+							encodeURIComponent(album.artist.artist)+'/'+
+							encodeURIComponent(album.albumname)+'/cover_50.jpg'}))),
+				tag('td',
+					tag('a',
+						{href:'#/album/'+encodeURIComponent(album.albumname)},
+						album.albumname),
+					' ',
+					tag('span',{'class':'launchdate'},launchdate),
+					tag('br'),
+					tag('a',
+						{href:'#/artist/'+encodeURIComponent(album.artist.artist)},
+						album.artist.artist)));
+		},
+		_albumsList: function (albums) {	
+			var list = $(tag('ul',{'class':'albums'}));
+			for (var i = 0; i < albums.length; ++ i) {
+				list.append(tag('li',
+					tag('table',
+						tag('tbody',
+							this._albumRow(albums[i])))));
+			}
+
+			return list;
 		},
 		hash: function () {
 			return $("#info-content").dataset('hash');
@@ -749,7 +762,8 @@ var Magnatune = {
 					'Because depending on the browser HTML5 Audio is still not bug free, things like the buffer '+
 					'progress display or seeking might not work 100% reliable. In Internet Explorer it doesn\'t '+
 					'work at all. Please use <a href="http://www.firefox.com/">Mozilla Firefox</a>, '+
-					'<a href="http://www.google.com/chrome/">Google Chrome</a> or '+
+					'<a href="http://www.google.com/chrome/">Google Chrome</a>, '+
+					'<a href="http://www.apple.com/safari/">Apple Safari</a> or '+
 					'<a href="http://www.opera.com/">Opera</a>.</p>'+
 					'<p>You can download the source code of this web page on '+
 					'<a href="https://bitbucket.org/panzi/magnatune-player">bitbucket</a>.</p>'+
@@ -775,7 +789,7 @@ var Magnatune = {
 						href:'http://magnatune.com/genres/'+genre.genre.replace(/\s/g,'').toLowerCase()+'/',
 						target:'_blank'},
 						genre.genre)),
-					Magnatune.Info._albumsTable(albums));
+					Magnatune.Info._albumsList(albums));
 				Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);
 			},
 			album: function (opts) {
