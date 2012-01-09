@@ -636,7 +636,9 @@ var Magnatune = {
 				var album = albums[i];
 				var launchdate = new Date();
 				launchdate.setTime(album.launchdate * 1000);
+				launchdate = '('+launchdate.getFullYear()+')';
 				tbody.append(tag('tr',
+					{title:album.albumname+' '+launchdate+' '+album.artist.artist},
 					tag('td', tag('a',
 						{href:'#/album/'+encodeURIComponent(album.albumname)},
 						tag('img',{'class':'cover',
@@ -648,7 +650,7 @@ var Magnatune = {
 							{href:'#/album/'+encodeURIComponent(album.albumname)},
 							album.albumname),
 						' ',
-						tag('span',{'class':'launchdate'},'('+launchdate.getFullYear()+')'),
+						tag('span',{'class':'launchdate'},launchdate),
 						tag('br'),
 						tag('a',
 							{href:'#/artist/'+encodeURIComponent(album.artist.artist)},
