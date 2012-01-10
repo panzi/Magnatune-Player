@@ -1341,7 +1341,7 @@ var Magnatune = {
 				data: $.extend({changed:this.Changed}, opts.args),
 				dataType: 'json',
 				success: function (data) {
-					if (data.head.changed != Magnatune.Collection.Changed) {
+					if (data.head && data.head.changed != Magnatune.Collection.Changed) {
 						$.extend(Magnatune.Collection, Magnatune.Collection.build(data.head.index));
 						Magnatune.Collection.Changed = data.head.changed;
 						Magnatune.Navigation.FilterInput.update();
