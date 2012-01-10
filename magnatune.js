@@ -638,10 +638,8 @@ var Magnatune = {
 			}
 			else {
 				embed_container.show();
-				$.ajax({
-					url: 'cgi-bin/query.cgi',
-					data: {action: 'embed', album: albumname},
-					dataType: 'json',
+				Magnatune.Collection.request({
+					args: {action: 'embed', album: albumname},
 					success: function (data) {
 						$('#embed').val(data.html);
 					},
@@ -817,10 +815,8 @@ var Magnatune = {
 				Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);
 			},
 			album: function (opts) {
-				$.ajax({
-					url: 'cgi-bin/query.cgi',
-					data: {action: 'album', name: opts.id},
-					dataType: 'json',
+				Magnatune.Collection.request({
+					args: {action: 'album', name: opts.id},
 					success: function (data) {
 						var hash = '#/album/'+encodeURIComponent(opts.id);
 						if (!data.body) {
@@ -928,10 +924,8 @@ var Magnatune = {
 				});
 			},
 			artist: function (opts) {
-				$.ajax({
-					url: 'cgi-bin/query.cgi',
-					data: {action: 'artist', name: opts.id},
-					dataType: 'json',
+				Magnatune.Collection.request({
+					args: {action: 'artist', name: opts.id},
 					success: function (data) {
 						var hash = '#/artist/'+encodeURIComponent(opts.id);
 						if (!data.body) {
@@ -1339,6 +1333,24 @@ var Magnatune = {
 		AlbumDateSorter: function (a,b) {
 			return b.launchdate - a.launchdate;
 		},
+		request: function (opts) {
+			$.ajax({
+				url: 'cgi-bin/query.cgi',
+				data: $.extend({changed:this.Changed}, opts.args),
+				dataType: 'json',
+				success: function (data) {
+					if (data.head.changed != Magnatune.Collection.Changed) {
+						$.extend(Magnatune.Collection, Magnatune.Collection.build(data.head.index));
+						Magnatune.Collection.Changed = data.head.changed;
+						Magnatune.Navigation.FilterInput.update();
+					}
+					if (opts.success) {
+						opts.success.call(this,data);
+					}
+				},
+				error: opts.error
+			});
+		},
 		load: function () {
 			if (this._state !== 'init') {
 				throw new Error('illegal state');
@@ -1440,10 +1452,8 @@ var Magnatune = {
 				callback(album);
 			}
 			else {
-				$.ajax({
-					url: 'cgi-bin/query.cgi',
-					data: {action: 'album', name: album.albumname},
-					dataType: 'json',
+				Magnatune.Collection.request({
+					args: {action: 'album', name: album.albumname},
 					success: function (data) {
 						if (!data.body) return; // TODO
 						callback(data.body);
@@ -1610,10 +1620,8 @@ var Magnatune = {
 						this.render(parent, Magnatune.Collection.SortedGenres);
 					}
 					else {
-						$.ajax({
-							url: 'cgi-bin/query.cgi',
-							data: {action: 'search', query: query, mode: 'genre/artist/album'},
-							dataType: 'json',
+						Magnatune.Collection.request({
+							args: {action: 'search', query: query, mode: 'genre/artist/album'},
 							success: function (data) {
 								parent.empty();
 								if (!data.body) return; // TODO
@@ -1725,10 +1733,8 @@ var Magnatune = {
 						this.render(parent, Magnatune.Navigation.sortedArtists());
 					}
 					else {
-						$.ajax({
-							url: 'cgi-bin/query.cgi',
-							data: {action: 'search', query: query, mode: 'artist/album'},
-							dataType: 'json',
+						Magnatune.Collection.request({
+							args: {action: 'search', query: query, mode: 'artist/album'},
 							success: function (data) {
 								parent.empty();
 								if (!data.body) return; // TODO
@@ -1825,10 +1831,8 @@ var Magnatune = {
 						this.render(parent, Magnatune.Collection.SortedGenres);
 					}
 					else {
-						$.ajax({
-							url: 'cgi-bin/query.cgi',
-							data: {action: 'search', query: query, mode: 'genre/artist/album'},
-							dataType: 'json',
+						Magnatune.Collection.request({
+							args: {action: 'search', query: query, mode: 'genre/artist/album'},
 							success: function (data) {
 								parent.empty();
 								if (!data.body) return; // TODO
@@ -1944,10 +1948,8 @@ var Magnatune = {
 						this.render(parent, Magnatune.Navigation.sortedAlbums());
 					}
 					else {
-						$.ajax({
-							url: 'cgi-bin/query.cgi',
-							data: {action: 'search', query: query, mode: 'album'},
-							dataType: 'json',
+						Magnatune.Collection.request({
+							args: {action: 'search', query: query, mode: 'album'},
 							success: function (data) {
 								parent.empty();
 								if (!data.body) return; // TODO

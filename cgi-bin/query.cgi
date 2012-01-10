@@ -564,7 +564,7 @@ def embed(cur,params):
 		"url": 'http://magnatune.com/artists/albums/%s/' % sku
 	}
 
-def with_conn(f):
+def with_conn(f,params):
 	conn = sqlite3.connect('sqlite_magnatune.db')
 	try:
 		return f(conn.cursor(),params)
@@ -586,11 +586,11 @@ def query(params):
 	action_name = getp(params,'action')
 	if action_name is None and 'url' in params or action_name == 'embed':
 		mimetype = 'application/json+oembed;charset=utf-8'
-		body = with_conn(embed)
+		body = with_conn(embed,params)
 	elif action_name not in actions:
 		raise ValueError('Unknown action: %r' % action_name)
 	else:
-		body = with_conn(actions[action_name])
+		body = with_conn(actions[action_name],params)
 
 		fp = open('changed.txt','r')
 		try:
@@ -598,11 +598,15 @@ def query(params):
 		finally:
 			fp.close()
 		mimetype = 'application/json;charset=utf-8'
+		head = {
+			'version': '1.0',
+			'changed': changed
+		}
+		changed_param = getp(params,'changed')
+		if changed_param and changed_param != changed:
+			head['index'] = with_conn(index,params)
 		body = {
-			'head': {
-				'version': '1.0',
-				'changed': changed
-			},
+			'head': head,
 			'body': body
 		}
 
