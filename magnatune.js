@@ -417,6 +417,8 @@ var Magnatune = {
 					'href',"javascript:Magnatune.Playlist.randomAlbum();void(0)").text(
 					"[Play Random Album]");
 
+				$('#play-image').show();
+				$('#pause-image').hide();
 				$('#time-left').text('---:--');
 				$('#current-time').text('--:--');
 				$('#current-duration').text('--:--');
