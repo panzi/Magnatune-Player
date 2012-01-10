@@ -2367,6 +2367,7 @@ var Magnatune = {
 	// TODO: Hints/Tour
 	save: function () {
 		if (typeof(localStorage) !== "undefined") {
+			localStorage.setItem('collection.changed',Magnatune.Collection.Changed);
 			localStorage.setItem('info.hash',Magnatune.Info.hash()||'#/about');
 			localStorage.setItem('playlist.songs',JSON.stringify(Magnatune.Playlist.songs()));
 			localStorage.setItem('playlist.current',String(Magnatune.Playlist.currentIndex()));
