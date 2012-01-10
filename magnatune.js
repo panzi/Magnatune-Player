@@ -454,7 +454,10 @@ var Magnatune = {
 			currently_playing.attr('title',song_label);
 			currently_playing.find('> a').attr('href',album_url).text(song_label);
 
-			$('#current-duration').text(tag.time(Magnatune.Player.duration()));
+			var duration = Magnatune.Player.duration();
+			$('#time-left').text('-'+tag.time(duration));
+			$('#current-time').text(tag.time(0));
+			$('#current-duration').text(tag.time(duration));
 			$('html > head > title').text(song.desc+' - '+artist+' - Magnatune Player');
 		},
 		seek: function (time) {
