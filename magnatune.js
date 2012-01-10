@@ -1075,15 +1075,15 @@ var Magnatune = {
 		},
 		_dragover: function (event) {
 			var playlist = $('#playlist');
-			var tbody = playlist.find('> tbody');
-			(tbody.find('> tr.drop')
+			(playlist.find('> * > tr.drop')
 				.removeClass('drop')
 				.removeClass('before')
 				.removeClass('after'));
+			var tbody = playlist.find('> tbody');
 			var pos = tbody.offset();
 			var y = event.pageY;
 			var x = event.pageX;
-			if (x < pos.left || x > (pos.left + tbody.width())) {
+			if (x < pos.left || x > (pos.left + tbody.width()) || !$('#playlist-container').is(':visible')) {
 				return;
 			}
 			if (y <= pos.top) {
@@ -1106,24 +1106,34 @@ var Magnatune = {
 			}
 			else {
 				var tracks = tbody.find('> tr');
-				var prev = null;
-				for (var i = 0; i < tracks.length; ++ i) {
-					var track = $(tracks[i]);
+				
+				// binary search:
+				var start = 0;
+				var end = tracks.length;
+				while (start !== end) {
+					var index = Math.floor((start + end) * 0.5);
+					var track = $(tracks[index]);
 					var track_pos = track.offset();
 					var track_height = track.height();
-					if (track_pos.top <= y && (track_pos.top + track_height) >= y) {
+					
+					if (y < track_pos.top) {
+						end = index;
+					}
+					else if (y > (track_pos.top + track_height)) {
+						start = index + 1;
+					}
+					else {
 						if (y > (track_pos.top + track_height * 0.5)) {
 							track.addClass('drop after');
 						}
-						else if (prev) {
-							prev.addClass('drop after');
+						else if (index > 0) {
+							$(tracks[index-1]).addClass('drop after');
 						}
 						else {
 							track.addClass('drop before');
 						}
 						break;
 					}
-					prev = track;
 				}
 			}
 		},
@@ -1341,6 +1351,7 @@ var Magnatune = {
 				dataType: 'json',
 				success: function (data) {
 					$.extend(Magnatune.Collection, Magnatune.Collection.build(data.body));
+					Magnatune.Collection.Changed = data.head.changed;
 
 					Magnatune.Collection._state = 'ready';
 					Magnatune.Collection.trigger('ready');
