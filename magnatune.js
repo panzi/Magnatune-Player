@@ -374,7 +374,7 @@ var Magnatune = {
 			}
 			this.audio = new Audio();
 			this.audio.volume = volume;
-			this.audio.preload = "auto";
+			this.audio.preload = "none";
 			// seeking only works when controls enabled:
 			this.audio.controls = true;
 			// but I actually want to paint my own controls:
@@ -385,18 +385,46 @@ var Magnatune = {
 			// seeking only works when in document! wtf?
 			$(document.body).append(this.audio);
 		},
-		play: function () {
+		play: function (norewind) {
+			this._update(norewind);
+			if (this._song) {
+				this.audio.load();
+				this.audio.play();
+			}
+		},
+		_update: function (norewind) {
 			var song = Magnatune.Playlist.current();
-			if (!song) {
+			if (!song && !norewind) {
 				song = Magnatune.Playlist.first();
 				$('#playlist > tbody > tr:first').addClass('current');
 			}
-			if (!song) return;
+
+			$('#play-progress').css('width','0px');
+			var buffered = $('#buffer-progress')[0];
+			var ctx = buffered.getContext('2d');
+			ctx.clearRect(0,0,buffered.width,buffered.height);
+
+			var currently_playing = $('#currently-playing');
 
 			// Replacing the source child elements did not work for me so I
 			// have to create a new audio element for each play command!
 			this.initAudio();
 			this._song = song;
+
+			if (!song) {
+				currently_playing.removeAttr('title');
+				currently_playing.find('> a').attr(
+					'href',"javascript:Magnatune.Playlist.randomAlbum();void(0)").text(
+					"[Play Random Album]");
+
+				$('#time-left').text('---:--');
+				$('#current-time').text('--:--');
+				$('#current-duration').text('--:--');
+				$('html > head > title').text('Magnatune Player');
+
+				return;
+			}
+
 			var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
 			if (Magnatune.authenticated && this.member()) {
 				this.audio.appendChild(tag('source',{
@@ -418,23 +446,14 @@ var Magnatune = {
 					type:'audio/mpeg;codecs="mp3"',
 					src:"http://he3.magnatune.com/all/"+encodeURIComponent(song.mp3)}));
 			}
-			this.audio.load();
-
-			$('#play-progress').css('width','0px');
-			var buffered = $('#buffer-progress')[0];
-			var ctx = buffered.getContext('2d');
-			ctx.clearRect(0,0,buffered.width,buffered.height);
 
 			var album_url = '#/album/'+encodeURIComponent(song.albumname);
-			var currently_playing = $('#currently-playing');
 			var song_label = song.desc+' - '+song.albumname+' - '+artist;
 			currently_playing.attr('title',song_label);
 			currently_playing.find('> a').attr('href',album_url).text(song_label);
 
 			$('#current-duration').text(tag.time(Magnatune.Player.duration()));
 			$('html > head > title').text(song.desc+' - '+artist+' - Magnatune Player');
-			
-			this.audio.play();
 		},
 		seek: function (time) {
 			try {
@@ -1177,7 +1196,7 @@ var Magnatune = {
 		replace: function (songs, forceplay) {
 			this.clear();
 			this.enqueue(songs);
-			if (forceplay || Magnatune.Player.playing()) Magnatune.Player.play();
+			this.setCurrentIndex(0, forceplay);
 		},
 		clear: function () {
 			$('#playlist > tbody').empty();
@@ -1238,12 +1257,18 @@ var Magnatune = {
 		setCurrentIndex: function (index,forceplay) {
 			var playlist = $("#playlist");
 			var current = playlist.find("> tbody > tr")[index];
+			playlist.find("> tbody > tr.current").removeClass("current");
 			if (current) {
-				playlist.find("> tbody > tr.current").removeClass("current");
 				$(current).addClass('current');
-				if (forceplay || Magnatune.Player.playing()) {
-					Magnatune.Player.play();
-				}
+			}
+			this._updatePlayer(forceplay);
+		},
+		_updatePlayer: function (forceplay) {
+			if (forceplay || Magnatune.Player.playing()) {
+				Magnatune.Player.play(true);
+			}
+			else {
+				Magnatune.Player._update(true);
 			}
 		},
 		length: function () {
@@ -1255,17 +1280,15 @@ var Magnatune = {
 
 			var next;
 			if (current.length === 0) {
-				next = $('#playlist > tbody > tr:first');
+				next = tbody.find('> tr:first');
 			}
 			else {
 				next = current.next();
 			}
 
-			if (next.length > 0) {
-				current.removeClass('current');
-				next.addClass('current');
-				if (forceplay || Magnatune.Player.playing()) Magnatune.Player.play();
-			}
+			current.removeClass('current');
+			next.addClass('current');
+			this._updatePlayer(forceplay);
 		},
 		previous: function (forceplay) {
 			var tbody = $('#playlist > tbody');
@@ -1273,17 +1296,15 @@ var Magnatune = {
 
 			var prev;
 			if (current.length === 0) {
-				prev = $('#playlist > tbody > tr:first');
+				prev = tbody.find('> tr:last');
 			}
 			else {
 				prev = current.prev();
 			}
 
-			if (prev.length > 0) {
-				current.removeClass('current');
-				prev.addClass('current');
-				if (forceplay || Magnatune.Player.playing()) Magnatune.Player.play();
-			}
+			current.removeClass('current');
+			prev.addClass('current');
+			this._updatePlayer(forceplay);
 		}
 	},
 	Collection: {
