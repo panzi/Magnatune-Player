@@ -637,9 +637,11 @@ var Magnatune = {
 				embed_container.hide();
 			}
 			else {
-				embed_container.show();
-				Magnatune.Collection.request({
-					args: {action: 'embed', album: albumname},
+				embed_container.show();				
+				$.ajax({
+					url: 'cgi-bin/query.cgi',
+					data: {action: 'embed', album: albumname},
+					dataType: 'json',
 					success: function (data) {
 						$('#embed').val(data.html);
 					},
