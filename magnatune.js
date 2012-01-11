@@ -2795,37 +2795,35 @@ $(document).on('mouseup', function (event) {
 	}
 });
 
-if (!$.browser.msie) {
-	document.addEventListener('touchmove', function (event) {
-		if (Magnatune.DnD.handler && Magnatune.DnD.handler.drag) {
-			event.preventDefault();
-			event = Magnatune.DnD.convertEvent(event);
-			Magnatune.DnD.handler.drag.call(Magnatune.DnD.source, event);
-		}
-	}, true);
+$(document).on('touchmove', function (event) {
+	if (Magnatune.DnD.handler && Magnatune.DnD.handler.drag) {
+		event.preventDefault();
+		event = Magnatune.DnD.convertEvent(event);
+		Magnatune.DnD.handler.drag.call(Magnatune.DnD.source, event);
+	}
+});
 
-	document.addEventListener('touchend', function (event) {
-		if (Magnatune.DnD.handler) {
-			if (Magnatune.DnD.handler.drop) {
-				event = Magnatune.DnD.convertEvent(event);
-				Magnatune.DnD.handler.drop.call(Magnatune.DnD.source, event);
-			}
-			Magnatune.DnD.source  = null;
-			Magnatune.DnD.handler = null;
+$(document).on('touchend', function (event) {
+	if (Magnatune.DnD.handler) {
+		if (Magnatune.DnD.handler.drop) {
+			event = Magnatune.DnD.convertEvent(event);
+			Magnatune.DnD.handler.drop.call(Magnatune.DnD.source, event);
 		}
-	}, true);
+		Magnatune.DnD.source  = null;
+		Magnatune.DnD.handler = null;
+	}
+});
 	
-	document.addEventListener('touchcancel', function (event) {
-		if (Magnatune.DnD.handler) {
-			if (Magnatune.DnD.handler.cancel) {
-				event = Magnatune.DnD.convertEvent(event);
-				Magnatune.DnD.handler.cancel.call(Magnatune.DnD.source, event);
-			}
-			Magnatune.DnD.source  = null;
-			Magnatune.DnD.handler = null;
+$(document).on('touchcancel', function (event) {
+	if (Magnatune.DnD.handler) {
+		if (Magnatune.DnD.handler.cancel) {
+			event = Magnatune.DnD.convertEvent(event);
+			Magnatune.DnD.handler.cancel.call(Magnatune.DnD.source, event);
 		}
-	}, true);
-}
+		Magnatune.DnD.source  = null;
+		Magnatune.DnD.handler = null;
+	}
+});
 
 $(document).ready(function () {
 	if (!document.body.scrollIntoView && !document.body.scrollIntoViewIfNeeded) {
