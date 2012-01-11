@@ -766,9 +766,11 @@ var Magnatune = {
 		toggleEmbed: function (albumname,sku) {
 			var embed_container = $('#embed-container');
 			if (embed_container.is(':visible')) {
+				$('#embed-button').removeClass('toggled');
 				embed_container.hide();
 			}
 			else {
+				$('#embed-button').addClass('toggled');
 				embed_container.show();
 				this.updateEmbed(albumname,sku);
 			}
@@ -1072,7 +1074,7 @@ var Magnatune = {
 									'Magnatune.Playlist.enqueue('+JSON.stringify(data.body.songs)+');void(0)')},
 									'Enqueue Album'),
 								' ',
-								tag('a', {'class':'button',href:'javascript:'+encodeURIComponent(
+								tag('a', {'class':'button',id:'embed-button',href:'javascript:'+encodeURIComponent(
 									'Magnatune.Info.toggleEmbed('+embed_args+');void(0)')},
 									'Embed Code')),
 							tag('table',{'id':'embed-container','style':'display:none;'},

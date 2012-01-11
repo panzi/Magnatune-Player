@@ -188,6 +188,10 @@ input[type="button"],
 		inset -4px -4px 8px rgba(0,0,0,0.2);
 }
 
+button.toggled,
+input[type="submit"].toggled,
+input[type="button"].toggled,
+.button.toggled,
 button:active,
 input[type="submit"]:active,
 input[type="button"]:active,
@@ -951,11 +955,22 @@ a.button {
 	background: #7F8FAC;
 }
 
+.tab-content button.toggled,
+.tab-content input[type="submit"].toggled,
+.tab-content input[type="button"].toggled,
+.tab-content .button.toggled,
 .tab-content button:active,
 .tab-content input[type="submit"]:active,
 .tab-content input[type="button"]:active,
 .tab-content .button:active {
 	background: #67758C;
+}
+
+button.toggled:hover,
+input[type="submit"].toggled:hover,
+input[type="button"].toggled:hover,
+.button.toggled:hover {
+	background: #e8effc;
 }
 
 .popup-menu {
