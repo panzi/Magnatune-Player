@@ -187,6 +187,116 @@ var tag = (function ($) {
 		}
 	};
 
+	var next_number_id = 0;
+	tag.number = function (opts) {
+		var attrs = {
+			'class':'number',
+			type: 'text',
+			id: 'id' in opts ? opts.id : 'number_input_'+(next_number_id ++),
+			value: 'value' in opts ? opts.value : 0,
+			size: 'size' in opts ? opts.size : 3,
+			autocomplete: 'off',
+			onchange: numberFieldChanged
+		};
+		attrs.dataset = {
+			value: attrs.value
+		};
+		if ('min' in opts) attrs.dataset.min = opts.min;
+		if ('max' in opts) attrs.dataset.max = opts.max;
+		if ('decimals' in opts) attrs.dataset.decimals = opts.decimals;
+		if ('step'     in opts) attrs.dataset.step     = opts.step;
+		var input = tag('input',attrs);
+		if ('onchange' in opts) {
+			add(input,{'onnumberchange':opts.onchange});
+		}
+		return {
+			input: tag('span',{'class':'number-container text-input-container'},input),
+			plus:  tag('button',{'class':'number-button',onclick:increaseNumberField,dataset:{'for':attrs.id}},'+'),
+			minus: tag('button',{'class':'number-button',onclick:decreaseNumberField,dataset:{'for':attrs.id}},'\u2013')
+		};
+	};
+
+	tag.number.get = function (field) {
+		field = $(field);
+		var value = field.dataset('value');
+		if (value === undefined) {
+			var decimals = field.dataset("decimals");
+
+			value = parseFloat(field.val());
+			if (decimals !== undefined) {
+				value = parseFloat(value.toFixed(parseInt(decimals)));
+			}
+		}
+		else {
+			value = parseFloat(value);
+		}
+		return value;
+	};
+	
+	tag.number.set = function (field, value) {
+		if (!isNaN(value)) {
+			value = parseFloat(value);
+			field = $(field);
+			var min   = field.dataset("min");
+			var max   = field.dataset("max");
+			var decimals = field.dataset("decimals");
+			if (min !== undefined) {
+				value = Math.max(parseFloat(min),value);
+			}
+			if (max !== undefined) {
+				value = Math.min(parseFloat(max),value);
+			}
+			if (decimals !== undefined) {
+				value = value.toFixed(parseInt(decimals));
+			}
+			else {
+				value = String(value);
+			}
+
+			field.val(value);
+			field.dataset("value",value);
+		}
+	};
+	
+	function numberFieldChanged () {
+		var field = $(this);
+		if (isNaN(field.val())) {
+			field.val(field.dataset('value') || field.dataset('min') || '0');
+		}
+		else {
+			tag.number.set(field,field.val());
+		}
+		field.trigger('numberchange');
+	}
+
+	function increaseNumberField () {
+		var button = $(this);
+		var field = $('#'+button.dataset('for'));
+		var step = field.dataset('step');
+		if (step === undefined) {
+			step = 1;
+		}
+		else {
+			step = parseFloat(step);
+		}
+		tag.number.set(field,tag.number.get(field) + step);
+		field.trigger('numberchange');
+	}
+
+	function decreaseNumberField () {
+		var button = $(this);
+		var field = $('#'+button.dataset('for'));
+		var step = field.dataset('step');
+		if (step === undefined) {
+			step = 1;
+		}
+		else {
+			step = parseFloat(step);
+		}
+		tag.number.set(field,tag.number.get(field) - step);
+		field.trigger('numberchange');
+	}
+
 	tag.expander = function (opts) {
 		function expand (event) {
 			var self = $(this).parent();
@@ -660,15 +770,15 @@ var Magnatune = {
 			}
 			else {
 				embed_container.show();
-				this.updateEmbed();
+				this.updateEmbed(albumname,sku);
 			}
 		},
 		updateEmbed: function (albumname,sku) {
 			var artist = Magnatune.Collection.Albums[albumname].artist.artist;
-			var large = true;
-			var autoplay = true;
-			var width = 400;
-			var height = 300;
+			var large    = $('#embed_large').is(':checked');
+			var autoplay = $('#embed_autoplay').is(':checked');
+			var width  = tag.number.get('#embed_width');
+			var height = tag.number.get('#embed_height');
 			var player;
 
 			if (large) {
@@ -917,6 +1027,10 @@ var Magnatune = {
 						}
 						var launchdate = new Date();
 						launchdate.setTime(data.body.launchdate * 1000);
+						var embed_args   = JSON.stringify(album.albumname)+','+JSON.stringify(data.body.sku);
+						var embed_update = 'Magnatune.Info.updateEmbed('+embed_args+');'
+						var embed_width  = tag.number({id: 'embed_width',  value: 400, min: 0, max: 1920, decimals: 0, step: 10, onchange: embed_update});
+						var embed_height = tag.number({id: 'embed_height', value: 300, min: 0, max: 1080, decimals: 0, step: 10, onchange: embed_update});
 						var page = tag('div',{'class':'album'},
 							tag('h2', tag('a', {'class':'albumname',
 								href:'http://magnatune.com/artists/albums/'+data.body.sku+'/',
@@ -959,11 +1073,30 @@ var Magnatune = {
 									'Enqueue Album'),
 								' ',
 								tag('a', {'class':'button',href:'javascript:'+encodeURIComponent(
-									'Magnatune.Info.toggleEmbed('+JSON.stringify(album.albumname)+','+
-										JSON.stringify(data.body.sku)+');void(0)')},
+									'Magnatune.Info.toggleEmbed('+embed_args+');void(0)')},
 									'Embed Code')),
-							tag('div',{'id':'embed-container','style':'display:none;'},
-								tag('textarea',{'id':'embed',title:'Copy this HTML code into your website.',onclick:'this.select();'})),
+							tag('table',{'id':'embed-container','style':'display:none;'},
+								tag('tbody',
+									tag('tr',
+										tag('td',{'class':'embed-config'},
+											tag('table',{'class':'embed-dimensions'},
+												tag('tbody',
+													tag('tr',
+														tag('td', tag('label',{'for':'embed_width'},'Width:')),
+														tag('td', embed_width.input),
+														tag('td', 'px'),
+														tag('td', embed_width.plus, embed_width.minus)),
+													tag('tr',
+														tag('td', tag('label',{'for':'embed_height'},'Height:')),
+														tag('td', embed_height.input),
+														tag('td', 'px'),
+														tag('td', embed_height.plus, embed_height.minus))))),
+										tag('td',{'class':'embed-config'},
+											tag('div',{'class':'embed-flags'},
+												tag('div',tag('input',{type:'checkbox',id:'embed_large',onchange:embed_update,checked:true}),' ',tag('label',{'for':'embed_large'},'Large')),
+												tag('div',tag('input',{type:'checkbox',id:'embed_autoplay',onchange:embed_update}),' ',tag('label',{'for':'embed_autoplay'},'Autoplay')))),
+										tag('td',{'class':'embed-code'},
+											tag('textarea',{'id':'embed',title:'Copy this HTML code into your website.',onclick:'this.select();'}))))),
 							tag('table',
 								tag('thead',
 									tag('tr',
