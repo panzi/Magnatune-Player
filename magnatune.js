@@ -2440,11 +2440,17 @@ var Magnatune = {
 		draggable: function (element, options) {
 			$(element).on('mousedown touchstart', function (event) {
 				if (Magnatune.DnD.source) return;
+
 				if (event.type === 'touchstart') {
-					event.preventDefault();
 					event = Magnatune.DnD.convertEvent(event);
 				}
-				else if (event.which !== 1) return;
+				else if (event.which !== 1) {
+					return;
+				}
+				else {
+					event.preventDefault();
+				}
+
 				Magnatune.DnD.source = this;
 
 				if (options.distance) {
@@ -2465,8 +2471,6 @@ var Magnatune = {
 				else {
 					Magnatune.DnD.start.call(this,event,options);
 				}
-
-				event.preventDefault();
 			});
 			element = null;
 		},
@@ -2802,7 +2806,6 @@ if (!$.browser.msie) {
 
 	document.addEventListener('touchend', function (event) {
 		if (Magnatune.DnD.handler) {
-			event.preventDefault();
 			if (Magnatune.DnD.handler.drop) {
 				event = Magnatune.DnD.convertEvent(event);
 				Magnatune.DnD.handler.drop.call(Magnatune.DnD.source, event);
@@ -2814,7 +2817,6 @@ if (!$.browser.msie) {
 	
 	document.addEventListener('touchcancel', function (event) {
 		if (Magnatune.DnD.handler) {
-			event.preventDefault();
 			if (Magnatune.DnD.handler.cancel) {
 				event = Magnatune.DnD.convertEvent(event);
 				Magnatune.DnD.handler.cancel.call(Magnatune.DnD.source, event);
