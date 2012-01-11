@@ -2919,7 +2919,7 @@ $(document).ready(function () {
 	});
 });
 
-$(document).click(function (event) {
+$(document).on('click touchend touchcancel', function (event) {
 	var menus = $('.popup-menu');
 	var parents = $(event.target).parents();
 
