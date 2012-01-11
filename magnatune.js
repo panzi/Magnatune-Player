@@ -1065,13 +1065,13 @@ var Magnatune = {
 									encodeURIComponent(album.albumname)+'/cover_300.jpg',
 								alt: 'Cover'}),
 							tag.textify(data.body.description),
-							tag('div',
-								tag('a', {'class':'button',href:'javascript:'+encodeURIComponent(
-									'Magnatune.Playlist.replace('+JSON.stringify(data.body.songs)+',true);void(0)')},
+							tag('div',{dataset:{songs:JSON.stringify(data.body.songs)}},
+								tag('a', {'class':'button',href:'javascript:void(0)',
+									onclick:'Magnatune.Playlist.replace(JSON.parse($(this).parent().dataset("songs")),true);'},
 									'\u25B6 Play Album'),
 								' ',
-								tag('a', {'class':'button',href:'javascript:'+encodeURIComponent(
-									'Magnatune.Playlist.enqueue('+JSON.stringify(data.body.songs)+');void(0)')},
+								tag('a', {'class':'button',href:'javascript:void(0)',
+									onclick:'Magnatune.Playlist.enqueue(JSON.parse($(this).parent().dataset("songs")),true);'},
 									'Enqueue Album'),
 								' ',
 								tag('a', {'class':'button',id:'embed-button',href:'javascript:'+encodeURIComponent(
