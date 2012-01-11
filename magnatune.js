@@ -1,6 +1,28 @@
 "use strict";
 
 $.fx.interval = 40;
+$.format = function (fmt, args) {
+	var index = 0;
+	return fmt.replace(/{[^{}]*}|{{|}}|{|}/g, function (found) {
+		switch (found) {
+			case '{{': return '{';
+			case '}}': return '}';
+			case '{': throw new SyntaxError("Single '{' encountered in format string");
+			case '}': throw new SyntaxError("Single '}' encountered in format string");
+			default:
+				var key = found.slice(1,found.length-1);
+				if (!key) {
+					key = index ++;
+				}
+				if (key in args) {
+					return String(args[key]);
+				}
+				else {
+					throw new ReferenceError(key+" is not defined");
+				}
+		}
+	});
+};
 
 var tag = (function ($) {
 	var add = function (element, arg) {
@@ -631,25 +653,61 @@ var Magnatune = {
 			$('#playlist-container').hide();
 			$('#info').show();
 		},
-		toggleEmbed: function (albumname) {
+		toggleEmbed: function (albumname,sku) {
 			var embed_container = $('#embed-container');
 			if (embed_container.is(':visible')) {
 				embed_container.hide();
 			}
 			else {
-				embed_container.show();				
-				$.ajax({
-					url: 'cgi-bin/query.cgi',
-					data: {action: 'embed', album: albumname},
-					dataType: 'json',
-					success: function (data) {
-						$('#embed').val(data.html);
-					},
-					error: function () {
-						// TODO
-					}
-				});
+				embed_container.show();
+				this.updateEmbed();
 			}
+		},
+		updateEmbed: function (albumname,sku) {
+			var artist = Magnatune.Collection.Albums[albumname].artist.artist;
+			var large = true;
+			var autoplay = true;
+			var width = 400;
+			var height = 300;
+			var player;
+
+			if (large) {
+				if (width  <  150) width  =  150;
+				if (width  >  600) width  =  600;
+				if (height <  140) height =  140;
+				if (height > 1000) height = 1000;
+				player = "http://embed.magnatune.com/img/magnatune_player_embedded.swf";
+			}
+			else {
+				if (width  < 100) width  = 100;
+				if (width  > 600) width  = 600;
+				if (height <  15) height =  15;
+				if (height >  15) height =  15;
+				player = "http://embed.magnatune.com/img/magnatune_player_embedded_single.swf";
+			}
+
+			var html = $.format(
+				'<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" '+
+				'codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0" '+
+				'width="{WIDTH}" height="{HEIGHT}">'+
+				'<param name="allowScriptAccess" value="sameDomain"/>'+
+				'<param name="movie" value="{PLAYER}?playlist_url=http://embed.magnatune.com/artists/albums/{ALBUM_SKU}/hifi.xspf&autoload=true&autoplay={AUTOPLAY}&playlist_title={PLAYLIST_TITLE}"/>'+
+				'<param name="quality" value="high"/>'+
+				'<param name="bgcolor" value="#E6E6E6"/>'+
+				'<embed src="{PLAYER}?playlist_url=http://embed.magnatune.com/artists/albums/{ALBUM_SKU}/hifi.xspf&autoload=true&autoplay={AUTOPLAY}&playlist_title={PLAYLIST_TITLE}" '+
+				'quality="high" bgcolor="#E6E6E6" name="xspf_player" allowscriptaccess="sameDomain" '+
+				'type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" '+
+				'align="center" width="{WIDTH}" height="{HEIGHT}"></embed>'+
+				'</object>', {
+					WIDTH: width,
+					HEIGHT: height,
+					PLAYER: player,
+					ALBUM_SKU: sku,
+					AUTOPLAY: autoplay ? 't' : '',
+					PLAYLIST_TITLE: encodeURIComponent(albumname+' - '+artist)
+				});
+
+			$('#embed').val(html);
 		},
 		visible: function () {
 			return $('#info').is(':visible');
@@ -901,7 +959,8 @@ var Magnatune = {
 									'Enqueue Album'),
 								' ',
 								tag('a', {'class':'button',href:'javascript:'+encodeURIComponent(
-									'Magnatune.Info.toggleEmbed('+JSON.stringify(album.albumname)+');void(0)')},
+									'Magnatune.Info.toggleEmbed('+JSON.stringify(album.albumname)+','+
+										JSON.stringify(data.body.sku)+');void(0)')},
 									'Embed Code')),
 							tag('div',{'id':'embed-container','style':'display:none;'},
 								tag('textarea',{'id':'embed',title:'Copy this HTML code into your website.',onclick:'this.select();'})),
