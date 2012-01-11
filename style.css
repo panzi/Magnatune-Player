@@ -117,7 +117,7 @@ textarea {
 }
 
 #embed {
-	width: 150px;
+	width: 100%;
 	height: 50px;
 	overflow: hidden;
 	resize: none;
