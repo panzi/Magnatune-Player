@@ -1263,6 +1263,12 @@ var Magnatune = {
 				tbody.append(this._buildTrack(songs[i]));
 			}
 		},
+		_dragcancel: function (event) {
+			($('#playlist .drop')
+				.removeClass('drop')
+				.removeClass('before')
+				.removeClass('after'));
+		},
 		_dragover: function (event) {
 			var playlist = $('#playlist');
 			(playlist.find('> * > tr.drop')
@@ -1394,7 +1400,8 @@ var Magnatune = {
 							.removeClass('drop')
 							.removeClass('before')
 							.removeClass('after'));
-					}
+					},
+					cancel: Magnatune.Playlist._dragcancel
 				};
 			}
 		},
@@ -2215,7 +2222,8 @@ var Magnatune = {
 										.removeClass('drop')
 										.removeClass('before')
 										.removeClass('after'));
-								}
+								},
+								cancel: Magnatune.Playlist._dragcancel
 							};
 						}
 					};
@@ -2274,7 +2282,8 @@ var Magnatune = {
 									.removeClass('drop')
 									.removeClass('before')
 									.removeClass('after'));
-							}
+							},
+							cancel: Magnatune.Playlist._dragcancel
 						};
 					}
 				}
@@ -2380,11 +2389,62 @@ var Magnatune = {
 		}
 	},
 	DnD: {
+		convertEvent: function (event) {
+			var type;
+
+			if (!event.originalEvent) {
+				return event;
+			}
+
+			switch (event.type) {
+				case "touchstart":  type = "mousedown"; break;
+				case "touchmove":   type = "mousemove"; break;        
+				case "touchend":
+				case "touchcancel": type = "mouseup";   break;
+				default: return event;
+			}
+
+			// initMouseEvent(type, canBubble, cancelable, view, clickCount, 
+			//           screenX, screenY, clientX, clientY, ctrlKey, 
+			//           altKey, shiftKey, metaKey, button, relatedTarget);
+    
+			event = event.originalEvent;
+			var first = event.changedTouches[0];
+			var mouseEvent;
+
+			if (document.createEvent) {
+				mouseEvent = document.createEvent("MouseEvent");
+				mouseEvent.initMouseEvent(type, true, true, window, 1, 
+					first.screenX, first.screenY, 
+					first.clientX, first.clientY, !!event.ctrlKey,
+					!!event.altKey, !!event.shiftKey, !!event.metaKey, 0,
+					event.relatedTarget || null);
+			}
+			else {
+				mouseEvent = document.createEventObject();
+				mouseEvent.eventType = 'on'+type;
+				mouseEvent.screenX  = first.screenX;
+				mouseEvent.screenY  = first.screenY;
+				mouseEvent.clientX  = first.clientX;
+				mouseEvent.clientY  = first.clientY;
+				mouseEvent.ctrlKey  = !!event.ctrlKey;
+				mouseEvent.altKey   = !!event.altKey;
+				mouseEvent.shiftKey = !!event.shiftKey;
+				mouseEvent.metaKey  = !!event.metaKey;
+				mouseEvent.button   = 1;
+			}
+			return $.Event(mouseEvent);
+		},
 		source:  null,
 		handler: null,
 		draggable: function (element, options) {
-			$(element).on('mousedown', function (event) {
-				if (Magnatune.DnD.source || event.which !== 1) return;
+			$(element).on('mousedown touchstart', function (event) {
+				if (Magnatune.DnD.source) return;
+				if (event.type === 'touchstart') {
+					event.preventDefault();
+					event = Magnatune.DnD.convertEvent(event);
+				}
+				else if (event.which !== 1) return;
 				Magnatune.DnD.source = this;
 
 				if (options.distance) {
@@ -2435,6 +2495,9 @@ var Magnatune = {
 					else if ($.nodeName(clone,'tbody') || $.nodeName(clone,'thead')) {
 						clone = tag('table',clone);
 					}
+					else if ($.nodeName(clone,'li')) {
+						clone = tag('ul',clone);
+					}
 					Magnatune.DnD.element = $(clone);
 					Magnatune.DnD.element.addClass('dragged').css({
 						left: offset.left+'px',
@@ -2459,6 +2522,11 @@ var Magnatune = {
 						Magnatune.DnD.element.remove();
 						Magnatune.DnD.element = null;
 						if (handler.drop) handler.drop.call(this,event);
+					},
+					cancel: function (event) {
+						Magnatune.DnD.element.remove();
+						Magnatune.DnD.element = null;
+						if (handler.cancel) handler.cancel.call(this,event);
 					}
 				};
 			}
@@ -2723,6 +2791,40 @@ $(document).on('mouseup', function (event) {
 	}
 });
 
+if (!$.browser.msie) {
+	document.addEventListener('touchmove', function (event) {
+		if (Magnatune.DnD.handler && Magnatune.DnD.handler.drag) {
+			event.preventDefault();
+			event = Magnatune.DnD.convertEvent(event);
+			Magnatune.DnD.handler.drag.call(Magnatune.DnD.source, event);
+		}
+	}, true);
+
+	document.addEventListener('touchend', function (event) {
+		if (Magnatune.DnD.handler) {
+			event.preventDefault();
+			if (Magnatune.DnD.handler.drop) {
+				event = Magnatune.DnD.convertEvent(event);
+				Magnatune.DnD.handler.drop.call(Magnatune.DnD.source, event);
+			}
+			Magnatune.DnD.source  = null;
+			Magnatune.DnD.handler = null;
+		}
+	}, true);
+	
+	document.addEventListener('touchcancel', function (event) {
+		if (Magnatune.DnD.handler) {
+			event.preventDefault();
+			if (Magnatune.DnD.handler.cancel) {
+				event = Magnatune.DnD.convertEvent(event);
+				Magnatune.DnD.handler.cancel.call(Magnatune.DnD.source, event);
+			}
+			Magnatune.DnD.source  = null;
+			Magnatune.DnD.handler = null;
+		}
+	}, true);
+}
+
 $(document).ready(function () {
 	if (!document.body.scrollIntoView && !document.body.scrollIntoViewIfNeeded) {
 		$('#show-current').hide();
@@ -2755,6 +2857,7 @@ $(document).ready(function () {
 					}
 				}
 			};
+			handler.cancel = handler.drop;
 			handler.drag.call(this,event);
 			return handler;
 		}
