@@ -2378,18 +2378,46 @@ var Magnatune = {
 		}
 	},
 	DnD: {
+		touch: null,
+		relatedTouch: function (event) {
+			for (var i = 0; i < event.changedTouches.length; ++ i) {
+				var touch = event.changedTouches[i];
+				if (this.touch === touch.identifier) {
+					return touch;
+				}
+			}
+			return null;
+		},
 		convertEvent: function (event) {
-			var type;
+			var type, touch;
 
 			switch (event.type) {
-				case "touchstart":  type = "mousedown"; break;
-				case "touchmove":   type = "mousemove"; break;        
+				case "touchstart":
+					if (event.touches.length !== 1) return null;
+					type = "mousedown";
+					touch = event.changedTouches[0];
+					this.touch = touch.identifier;
+					break;
+
+				case "touchmove":
+					if (event.touches.length !== 1) return null;
+					touch = this.relatedTouch(event);
+					if (!touch) return null;
+					type = "mousemove";
+					break;
+
 				case "touchend":
-				case "touchcancel": type = "mouseup";   break;
-				default: return event;
+				case "touchcancel":
+					touch = this.relatedTouch(event);
+					if (!touch) return null;
+					type = "mouseup";
+					this.touch = null;
+					break;
+
+				default:
+					return event;
 			}
 
-			var first = event.changedTouches[0] || event.targetTouches[0];
 			var mouseEvent;
 
 			if (document.createEvent) {
@@ -2400,20 +2428,20 @@ var Magnatune = {
 				//           altKey, shiftKey, metaKey, button, relatedTarget);
     
 				mouseEvent.initMouseEvent(type, true, true, window, 1, 
-					first.screenX, first.screenY, 
-					first.clientX, first.clientY, !!event.ctrlKey,
+					touch.screenX, touch.screenY, 
+					touch.clientX, touch.clientY, !!event.ctrlKey,
 					!!event.altKey, !!event.shiftKey, !!event.metaKey, 0,
 					event.relatedTarget || null);
 			}
 			else {
 				mouseEvent = document.createEventObject();
 				mouseEvent.eventType = 'on'+type;
-				mouseEvent.screenX  = first.screenX;
-				mouseEvent.screenY  = first.screenY;
-				mouseEvent.clientX  = first.clientX;
-				mouseEvent.clientY  = first.clientY;
-				mouseEvent.pageX    = first.pageX;
-				mouseEvent.pageY    = first.pageY;
+				mouseEvent.screenX  = touch.screenX;
+				mouseEvent.screenY  = touch.screenY;
+				mouseEvent.clientX  = touch.clientX;
+				mouseEvent.clientY  = touch.clientY;
+				mouseEvent.pageX    = touch.pageX;
+				mouseEvent.pageY    = touch.pageY;
 				mouseEvent.ctrlKey  = !!event.ctrlKey;
 				mouseEvent.altKey   = !!event.altKey;
 				mouseEvent.shiftKey = !!event.shiftKey;
@@ -2422,7 +2450,7 @@ var Magnatune = {
 			}
 			// sadly target is not directly settable
 			// the only way to set it is via dispatchEvent
-			// mouseEvent.target = first.target;
+			// mouseEvent.target = touch.target;
 			return mouseEvent;
 		},
 		source:  null,
@@ -2431,12 +2459,9 @@ var Magnatune = {
 			$(element).on('mousedown touchstart', function (event) {
 				if (Magnatune.DnD.source) return;
 
-				var touch = false;
 				if (event.type === 'touchstart') {
-					event = event.originalEvent;
-					if (event.changedTouches.length !== 1) return;
-					event = Magnatune.DnD.convertEvent(event);
-					touch = true;
+					event = Magnatune.DnD.convertEvent(event.originalEvent);
+					if (!event) return;
 				}
 				else if (event.which !== 1) {
 					return;
@@ -2447,7 +2472,7 @@ var Magnatune = {
 
 				Magnatune.DnD.source = this;
 
-				if (!touch && options.distance) {
+				if (options.distance) {
 					var startEvent = event;
 					Magnatune.DnD.handler = {
 						drag: function (event) {
@@ -2791,17 +2816,19 @@ $(document).on('mouseup', function (event) {
 
 $(document).on('touchmove', function (event) {
 	if (Magnatune.DnD.handler && Magnatune.DnD.handler.drag) {
+		var mouseEvent = Magnatune.DnD.convertEvent(event.originalEvent);
+		if (!mouseEvent) return;
 		event.preventDefault();
-		event = Magnatune.DnD.convertEvent(event.originalEvent);
-		Magnatune.DnD.handler.drag.call(Magnatune.DnD.source, event);
+		Magnatune.DnD.handler.drag.call(Magnatune.DnD.source, mouseEvent);
 	}
 });
 
 $(document).on('touchend', function (event) {
 	if (Magnatune.DnD.handler) {
+		var mouseEvent = Magnatune.DnD.convertEvent(event.originalEvent);
+		if (!mouseEvent) return;
 		if (Magnatune.DnD.handler.drop) {
-			event = Magnatune.DnD.convertEvent(event.originalEvent);
-			Magnatune.DnD.handler.drop.call(Magnatune.DnD.source, event);
+			Magnatune.DnD.handler.drop.call(Magnatune.DnD.source, mouseEvent);
 		}
 		Magnatune.DnD.source  = null;
 		Magnatune.DnD.handler = null;
@@ -2810,9 +2837,10 @@ $(document).on('touchend', function (event) {
 
 $(document).on('touchcancel', function (event) {
 	if (Magnatune.DnD.handler) {
+		var mouseEvent = Magnatune.DnD.convertEvent(event.originalEvent);
+		if (!mouseEvent) return;
 		if (Magnatune.DnD.handler.cancel) {
-			event = Magnatune.DnD.convertEvent(event.originalEvent);
-			Magnatune.DnD.handler.cancel.call(Magnatune.DnD.source, event);
+			Magnatune.DnD.handler.cancel.call(Magnatune.DnD.source, mouseEvent);
 		}
 		Magnatune.DnD.source  = null;
 		Magnatune.DnD.handler = null;
