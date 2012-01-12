@@ -1340,12 +1340,7 @@ var Magnatune = {
 				return {
 					render: function () {
 						var playlist = $('#playlist');
-
-						var track = $(event.target);
-						if (!track.is('tr')) {
-							track = track.parents('tr').first();
-						}
-
+						var track = $(this);
 						var selection;
 						if (!track.hasClass('selected')) {
 							playlist.find('> tbody > tr.selected').removeClass('selected').removeClass('selection-start');
@@ -1360,9 +1355,7 @@ var Magnatune = {
 							style:{width:playlist.width()+'px'}},
 							tag('tbody',selection.clone()));
 					},
-					drag: function (event) {
-						Magnatune.Playlist._dragover(event);
-					},
+					drag: Magnatune.Playlist._dragover,
 					drop: function (event) {
 						var playlist = $('#playlist');
 						var target = playlist.find('.drop');
@@ -2188,9 +2181,7 @@ var Magnatune = {
 						distance: 4,
 						create: function (event) {
 							return {
-								drag: function (event) {
-									Magnatune.Playlist._dragover(event);
-								},
+								drag: Magnatune.Playlist._dragover,
 								drop: function (event) {
 									var playlist = $('#playlist');
 									var target = playlist.find('.drop');
@@ -2251,15 +2242,13 @@ var Magnatune = {
 					visual: true,
 					distance: 4,
 					create: function (event) {
-						var song = $(event.target).dataset();
+						var song = $(this).dataset();
 						return {
 							render: function () {
 								return tag('span',song.desc+' - '+song.albumname+' - '+
 									Magnatune.Collection.Albums[song.albumname].artist.artist);
 							},
-							drag: function (event) {
-								Magnatune.Playlist._dragover(event);
-							},
+							drag: Magnatune.Playlist._dragover,
 							drop: function (event) {
 								var playlist = $('#playlist');
 								var target = playlist.find('.drop');
@@ -2392,10 +2381,6 @@ var Magnatune = {
 		convertEvent: function (event) {
 			var type;
 
-			if (!event.originalEvent) {
-				return event;
-			}
-
 			switch (event.type) {
 				case "touchstart":  type = "mousedown"; break;
 				case "touchmove":   type = "mousemove"; break;        
@@ -2404,16 +2389,16 @@ var Magnatune = {
 				default: return event;
 			}
 
-			// initMouseEvent(type, canBubble, cancelable, view, clickCount, 
-			//           screenX, screenY, clientX, clientY, ctrlKey, 
-			//           altKey, shiftKey, metaKey, button, relatedTarget);
-    
-			event = event.originalEvent;
-			var first = event.changedTouches[0];
+			var first = event.changedTouches[0] || event.targetTouches[0];
 			var mouseEvent;
 
 			if (document.createEvent) {
 				mouseEvent = document.createEvent("MouseEvent");
+
+				// initMouseEvent(type, canBubble, cancelable, view, clickCount, 
+				//           screenX, screenY, clientX, clientY, ctrlKey, 
+				//           altKey, shiftKey, metaKey, button, relatedTarget);
+    
 				mouseEvent.initMouseEvent(type, true, true, window, 1, 
 					first.screenX, first.screenY, 
 					first.clientX, first.clientY, !!event.ctrlKey,
@@ -2427,13 +2412,18 @@ var Magnatune = {
 				mouseEvent.screenY  = first.screenY;
 				mouseEvent.clientX  = first.clientX;
 				mouseEvent.clientY  = first.clientY;
+				mouseEvent.pageX    = first.pageX;
+				mouseEvent.pageY    = first.pageY;
 				mouseEvent.ctrlKey  = !!event.ctrlKey;
 				mouseEvent.altKey   = !!event.altKey;
 				mouseEvent.shiftKey = !!event.shiftKey;
 				mouseEvent.metaKey  = !!event.metaKey;
 				mouseEvent.button   = 1;
 			}
-			return $.Event(mouseEvent);
+			// sadly target is not directly settable
+			// the only way to set it is via dispatchEvent
+			// mouseEvent.target = first.target;
+			return mouseEvent;
 		},
 		source:  null,
 		handler: null,
@@ -2441,8 +2431,12 @@ var Magnatune = {
 			$(element).on('mousedown touchstart', function (event) {
 				if (Magnatune.DnD.source) return;
 
+				var touch = false;
 				if (event.type === 'touchstart') {
+					event = event.originalEvent;
+					if (event.changedTouches.length !== 1) return;
 					event = Magnatune.DnD.convertEvent(event);
+					touch = true;
 				}
 				else if (event.which !== 1) {
 					return;
@@ -2453,7 +2447,7 @@ var Magnatune = {
 
 				Magnatune.DnD.source = this;
 
-				if (options.distance) {
+				if (!touch && options.distance) {
 					var startEvent = event;
 					Magnatune.DnD.handler = {
 						drag: function (event) {
@@ -2798,7 +2792,7 @@ $(document).on('mouseup', function (event) {
 $(document).on('touchmove', function (event) {
 	if (Magnatune.DnD.handler && Magnatune.DnD.handler.drag) {
 		event.preventDefault();
-		event = Magnatune.DnD.convertEvent(event);
+		event = Magnatune.DnD.convertEvent(event.originalEvent);
 		Magnatune.DnD.handler.drag.call(Magnatune.DnD.source, event);
 	}
 });
@@ -2806,18 +2800,18 @@ $(document).on('touchmove', function (event) {
 $(document).on('touchend', function (event) {
 	if (Magnatune.DnD.handler) {
 		if (Magnatune.DnD.handler.drop) {
-			event = Magnatune.DnD.convertEvent(event);
+			event = Magnatune.DnD.convertEvent(event.originalEvent);
 			Magnatune.DnD.handler.drop.call(Magnatune.DnD.source, event);
 		}
 		Magnatune.DnD.source  = null;
 		Magnatune.DnD.handler = null;
 	}
 });
-	
+
 $(document).on('touchcancel', function (event) {
 	if (Magnatune.DnD.handler) {
 		if (Magnatune.DnD.handler.cancel) {
-			event = Magnatune.DnD.convertEvent(event);
+			event = Magnatune.DnD.convertEvent(event.originalEvent);
 			Magnatune.DnD.handler.cancel.call(Magnatune.DnD.source, event);
 		}
 		Magnatune.DnD.source  = null;
@@ -2921,15 +2915,16 @@ $(document).ready(function () {
 
 $(document).on('click touchend touchcancel', function (event) {
 	var menus = $('.popup-menu');
-	var parents = $(event.target).parents();
+	var target = event.target;
+	var parents = $(target).parents();
 
 	for (var i = 0; i < menus.length; ++ i) {
 		var menu = $(menus[i]);
 		var button = $('#'+menu.dataset('button'));
 		
 		if (menu.is(':visible') &&
-			!menu.is(event.target) &&
-			!button.is(event.target) &&
+			!menu.is(target) &&
+			!button.is(target) &&
 			parents.index(button) === -1 &&
 			parents.index(menu) === -1) {
 			var action = menu.dataset('hide-action');
