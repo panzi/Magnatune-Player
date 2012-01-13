@@ -627,21 +627,23 @@ var Magnatune = {
 			return $('#player-hide').is(':visible');
 		},
 		hide: function (skipAnimation) {
+			var currently_playing;
+			var new_width = $('#volume-button').is(':visible') ? '300px' : '340px';
 			$('#player-show').show();
 			$('#player-hide').hide();
 			if (skipAnimation) {
 				$('#player-wrapper').stop().css({top:'-60px'});
-				var currently_playing = $('#currently-playing').stop();
+				currently_playing = $('#currently-playing').stop();
 				Magnatune.Player._stopTitleAnim();
-				currently_playing.css({bottom:'6px',width:'300px'});
+				currently_playing.css({bottom:'6px',width:new_width});
 				$('#navigation, #content').stop().css({top:'50px'});
 			}
 			else {
 				var d = Magnatune.Options.AnimationDuration;
 				$('#player-wrapper').stop().animate({top:'-60px'},d);
-				var currently_playing = $('#currently-playing').stop();
+				currently_playing = $('#currently-playing').stop();
 				Magnatune.Player._stopTitleAnim();
-				currently_playing.animate({bottom:'6px',width:'300px'},d);
+				currently_playing.animate({bottom:'6px',width:new_width},d);
 				$('#navigation, #content').stop().animate({top:'50px'},d);
 			}
 		},
@@ -1241,7 +1243,9 @@ var Magnatune = {
 				tag('td',tag('a',{href:'#/artist/'+encodeURIComponent(artist)},artist)),
 				tag('td',tag('a',{href:'#/album/'+encodeURIComponent(song.albumname)},song.albumname)),
 				tag('td',{'class':'remove'},
-					tag('a',{href:'javascript:void(0)',onclick:'$(this).parents("tr").first().remove();'},
+					tag('a',{href:'javascript:void(0)',
+					         title: 'Remove Track',
+					         onclick:'$(this).parents("tr").first().remove();'},
 					'\u00d7')));
 			Magnatune.DnD.draggable(tr, Magnatune.Playlist.DraggableOptions);
 			return tr;
@@ -2870,21 +2874,76 @@ $(document).ready(function () {
 		Magnatune.Player.initAudio();
 	}
 	catch (e) {}
+	
+	var ua = navigator.userAgent.toLowerCase();
+	// got information from jplayer:
+	var noVolume = [
+		/ipad/,
+		/iphone/,
+		/ipod/,
+		/android(?!.*?mobile)/,
+		/android.*?mobile/,
+		/blackberry/,
+		/windows ce/,
+		/webos/,
+		/playbook/
+	];
+	for (var i = 0; i < noVolume.length; ++ i) {
+		if (noVolume[i].test(ua)) {
+			$('#volume-button').hide();
+			break;
+		}
+	}
+
+	function move_seek_tooltip (x, time) {
+		var tooltip = $('#seek-tooltip');
+		$('#seek-position').text(tag.time(time));
+		if (tooltip.is(':visible')) {
+			tooltip.css({
+				left: Math.round(x - tooltip.width() * 0.5)+'px'
+			});
+		}
+		else {
+			tooltip.css({
+				visibility: 'hidden',
+				display: ''
+			});
+			tooltip.css({
+				top: (-tooltip.height())+'px',
+				left: Math.round(x - tooltip.width() * 0.5)+'px',
+				visibility: ''
+			});
+		}
+	}
+	$('#play-progress-container').on('mousemove', function (event) {
+		var container = $(this);
+		var x = event.pageX - container.offset().left;
+		var duration = Magnatune.Player.duration();
+		var time = Math.max(0,
+			Math.min(duration, duration * x / container.width()));
+		move_seek_tooltip(x, time);
+	});
+	$('#play-progress-container').on('mouseleave', function (event) {
+		$('#seek-tooltip').hide();
+	});
 	Magnatune.DnD.draggable($('#play-progress-container'), {
 		create: function (event) {
 			Magnatune.DnD.seeking = true;
 			var playing = Magnatune.Player.playing();
 			var handler = {
 				drag: function (event) {
-					var x = event.pageX - $(this).offset().left;
+					var container = $(this);
+					var x = event.pageX - container.offset().left;
 					var duration = Magnatune.Player.duration();
 					var time = Math.max(0,
-						Math.min(duration, duration * x / $(this).width()));
+						Math.min(duration, duration * x / container.width()));
 					if (!isNaN(time)) {
 						Magnatune.Player.audio.currentTime = time;
 					}
+					move_seek_tooltip(x, time);
 				},
 				drop: function (event) {
+					$('#seek-tooltip').hide();
 					Magnatune.DnD.seeking = false;
 					if (playing) {
 						var x = event.pageX - $(this).offset().left;
@@ -2892,6 +2951,9 @@ $(document).ready(function () {
 							Magnatune.Playlist.next(true);
 						}
 					}
+				},
+				cancel: function (event) {
+					$('#seek-tooltip').hide();
 				}
 			};
 			handler.cancel = handler.drop;

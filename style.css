@@ -131,6 +131,7 @@ input[type="password"] {
 	color: #e0e0e0;
 }
 
+#seek-position,
 textarea,
 #currently-playing,
 .tab-content,
@@ -692,6 +693,24 @@ th {
 	height: 10px;
 	cursor: pointer;
 	border-radius: 10px;
+}
+
+#seek-tooltip {
+	position: absolute;
+	z-index: 1001;
+}
+
+#seek-position {
+	border-radius: 5px;
+	box-shadow:	0px 0px 10px rgba(0,0,0,0.6);
+	padding: 2px 5px;
+	min-width: 32px;
+	text-align: center;
+}
+
+#seek-tooltip img {
+	display: block;
+	margin: auto;
 }
 
 #play-progress {
