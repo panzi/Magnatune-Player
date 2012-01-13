@@ -706,6 +706,7 @@ th {
 	padding: 2px 5px;
 	min-width: 32px;
 	text-align: center;
+	font-family: 'Ubuntu Mono', monospace;
 }
 
 #seek-tooltip img {
