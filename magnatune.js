@@ -339,6 +339,7 @@ var tag = (function ($) {
 })(jQuery);
 
 var Magnatune = {
+	TouchDevice: 'ontouchstart' in window && 'createTouch' in document,
 	Options: {
 		AnimationDuration: 500
 	},
@@ -2465,7 +2466,7 @@ var Magnatune = {
 		source:  null,
 		handler: null,
 		draggable: function (element, options) {
-			$(element).on('mousedown touchstart', function (event) {
+			$(element).on(Magnatune.TouchDevice ? 'touchstart' : 'mousedown', function (event) {
 				if (Magnatune.DnD.source) return;
 
 				if (event.type === 'touchstart') {
@@ -2800,71 +2801,72 @@ var Magnatune = {
 	}
 };
 
-Magnatune.Events.extend(Magnatune);
-Magnatune.Events.extend(Magnatune.Player);
-Magnatune.Events.extend(Magnatune.Info);
-Magnatune.Events.extend(Magnatune.Playlist);
 Magnatune.Events.extend(Magnatune.Collection);
-Magnatune.Events.extend(Magnatune.Navigation);
 
-$(document).on('mousemove', function (event) {
-	if (Magnatune.DnD.handler && Magnatune.DnD.handler.drag) {
-		Magnatune.DnD.handler.drag.call(Magnatune.DnD.source, event);
-	}
-});
+if (Magnatune.TouchDevice) {
+	// assume touch devices don't have a mouse
+	// in fact iOS sends sometimes bogus mouseover events
 
-$(document).on('mouseup', function (event) {
-	if (Magnatune.DnD.handler) {
-		if (Magnatune.DnD.handler.drop) {
-			Magnatune.DnD.handler.drop.call(Magnatune.DnD.source, event);
+	$(document).on('touchmove', function (event) {
+		if (Magnatune.DnD.handler && Magnatune.DnD.handler.drag) {
+			var mouseEvent = Magnatune.DnD.convertEvent(event.originalEvent);
+			if (!mouseEvent) return;
+			if (mouseEvent.type === "mouseup") {
+				// moved with more than one finger, so cancel
+				if (Magnatune.DnD.handler.cancel) {
+					Magnatune.DnD.handler.cancel.call(Magnatune.DnD.source, mouseEvent);
+				}
+				Magnatune.DnD.source  = null;
+				Magnatune.DnD.handler = null;
+			}
+			else {
+				event.preventDefault();
+				Magnatune.DnD.handler.drag.call(Magnatune.DnD.source, mouseEvent);
+			}
 		}
-		Magnatune.DnD.source  = null;
-		Magnatune.DnD.handler = null;
-	}
-});
+	});
 
-$(document).on('touchmove', function (event) {
-	if (Magnatune.DnD.handler && Magnatune.DnD.handler.drag) {
-		var mouseEvent = Magnatune.DnD.convertEvent(event.originalEvent);
-		if (!mouseEvent) return;
-		if (mouseEvent.type === "mouseup") {
-			// moved with more than one finger, so cancel
+	$(document).on('touchend', function (event) {
+		if (Magnatune.DnD.handler) {
+			var mouseEvent = Magnatune.DnD.convertEvent(event.originalEvent);
+			if (!mouseEvent) return;
+			if (Magnatune.DnD.handler.drop) {
+				Magnatune.DnD.handler.drop.call(Magnatune.DnD.source, mouseEvent);
+			}
+			Magnatune.DnD.source  = null;
+			Magnatune.DnD.handler = null;
+		}
+	});
+
+	$(document).on('touchcancel', function (event) {
+		if (Magnatune.DnD.handler) {
+			var mouseEvent = Magnatune.DnD.convertEvent(event.originalEvent);
+			if (!mouseEvent) return;
 			if (Magnatune.DnD.handler.cancel) {
 				Magnatune.DnD.handler.cancel.call(Magnatune.DnD.source, mouseEvent);
 			}
 			Magnatune.DnD.source  = null;
 			Magnatune.DnD.handler = null;
 		}
-		else {
-			event.preventDefault();
-			Magnatune.DnD.handler.drag.call(Magnatune.DnD.source, mouseEvent);
+	});
+}
+else {
+	$(document).on('mousemove', function (event) {
+		if (Magnatune.DnD.handler && Magnatune.DnD.handler.drag) {
+			Magnatune.DnD.handler.drag.call(Magnatune.DnD.source, event);
 		}
-	}
-});
+	});
 
-$(document).on('touchend', function (event) {
-	if (Magnatune.DnD.handler) {
-		var mouseEvent = Magnatune.DnD.convertEvent(event.originalEvent);
-		if (!mouseEvent) return;
-		if (Magnatune.DnD.handler.drop) {
-			Magnatune.DnD.handler.drop.call(Magnatune.DnD.source, mouseEvent);
+	$(document).on('mouseup', function (event) {
+		if (Magnatune.DnD.handler) {
+			if (Magnatune.DnD.handler.drop) {
+				Magnatune.DnD.handler.drop.call(Magnatune.DnD.source, event);
+			}
+			Magnatune.DnD.source  = null;
+			Magnatune.DnD.handler = null;
 		}
-		Magnatune.DnD.source  = null;
-		Magnatune.DnD.handler = null;
-	}
-});
-
-$(document).on('touchcancel', function (event) {
-	if (Magnatune.DnD.handler) {
-		var mouseEvent = Magnatune.DnD.convertEvent(event.originalEvent);
-		if (!mouseEvent) return;
-		if (Magnatune.DnD.handler.cancel) {
-			Magnatune.DnD.handler.cancel.call(Magnatune.DnD.source, mouseEvent);
-		}
-		Magnatune.DnD.source  = null;
-		Magnatune.DnD.handler = null;
-	}
-});
+	});
+}
 
 $(document).ready(function () {
 	if (!document.body.scrollIntoView && !document.body.scrollIntoViewIfNeeded) {
@@ -2915,19 +2917,23 @@ $(document).ready(function () {
 			});
 		}
 	}
-	$('#play-progress-container').on('mousemove', function (event) {
-		var target = $(event.target);
-		if (target.is('#seek-tooltip') || target.parents().index('#seek-tooltip') !== -1) {
-			$('#seek-tooltip').hide();
-			return;
-		}
-		var container = $(this);
-		var x = event.pageX - container.offset().left;
-		var duration = Magnatune.Player.duration();
-		var time = Math.max(0,
-			Math.min(duration, duration * x / container.width()));
-		move_seek_tooltip(x, time);
-	});
+	if (!Magnatune.TouchDevice) {
+		// assume touch devices don't have a mouse
+		// in fact iOS sends sometimes bogus mouseover events
+		$('#play-progress-container').on('mousemove', function (event) {
+			var target = $(event.target);
+			if (target.is('#seek-tooltip') || target.parents().index('#seek-tooltip') !== -1) {
+				$('#seek-tooltip').hide();
+				return;
+			}
+			var container = $(this);
+			var x = event.pageX - container.offset().left;
+			var duration = Magnatune.Player.duration();
+			var time = Math.max(0,
+				Math.min(duration, duration * x / container.width()));
+			move_seek_tooltip(x, time);
+		});
+	}
 	$('#play-progress-container').on('mouseleave', function (event) {
 		$('#seek-tooltip').hide();
 	});
