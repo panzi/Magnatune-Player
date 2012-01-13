@@ -2400,10 +2400,15 @@ var Magnatune = {
 					break;
 
 				case "touchmove":
-					if (event.touches.length !== 1) return null;
 					touch = this.relatedTouch(event);
 					if (!touch) return null;
-					type = "mousemove";
+					if (event.touches.length === 1) {
+						type = "mousemove";
+					}
+					else {
+						type = "mouseup";
+						this.touch = null;
+					}
 					break;
 
 				case "touchend":
@@ -2818,8 +2823,18 @@ $(document).on('touchmove', function (event) {
 	if (Magnatune.DnD.handler && Magnatune.DnD.handler.drag) {
 		var mouseEvent = Magnatune.DnD.convertEvent(event.originalEvent);
 		if (!mouseEvent) return;
-		event.preventDefault();
-		Magnatune.DnD.handler.drag.call(Magnatune.DnD.source, mouseEvent);
+		if (mouseEvent.type === "mouseup") {
+			// moved with more than one finger, so cancel
+			if (Magnatune.DnD.handler.cancel) {
+				Magnatune.DnD.handler.cancel.call(Magnatune.DnD.source, mouseEvent);
+			}
+			Magnatune.DnD.source  = null;
+			Magnatune.DnD.handler = null;
+		}
+		else {
+			event.preventDefault();
+			Magnatune.DnD.handler.drag.call(Magnatune.DnD.source, mouseEvent);
+		}
 	}
 });
 
