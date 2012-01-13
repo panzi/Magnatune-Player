@@ -2916,6 +2916,11 @@ $(document).ready(function () {
 		}
 	}
 	$('#play-progress-container').on('mousemove', function (event) {
+		var target = $(event.target);
+		if (target.is('#seek-tooltip') || target.parents().index('#seek-tooltip') !== -1) {
+			$('#seek-tooltip').hide();
+			return;
+		}
 		var container = $(this);
 		var x = event.pageX - container.offset().left;
 		var duration = Magnatune.Player.duration();
@@ -2925,6 +2930,9 @@ $(document).ready(function () {
 	});
 	$('#play-progress-container').on('mouseleave', function (event) {
 		$('#seek-tooltip').hide();
+	});
+	$('#seek-tooltip').on('mouseenter', function (event) {
+		$(this).hide();
 	});
 	Magnatune.DnD.draggable($('#play-progress-container'), {
 		create: function (event) {
