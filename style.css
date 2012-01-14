@@ -549,10 +549,6 @@ li.active {
 	user-select: none;
 }
 
-#tree ul.songs {
-	cursor: default;
-}
-
 #tree li {
 	clear: both;
 }
@@ -562,7 +558,6 @@ li.active {
 	filter: alpha(opacity = 50) !important;
 	opacity: 0.5 !important;
 	pointer-events: none !important;
-	cursor: default;
 	z-index: 2000;
 }
 
@@ -590,10 +585,6 @@ li.active {
 
 .playlist tr.current {
 	font-weight: bold;
-}
-
-.playlist tr {
-	cursor: default;
 }
 
 .playlist tr td,
@@ -691,7 +682,6 @@ th {
 	bottom: 40px;
 	background-color: #212733;
 	height: 10px;
-	cursor: pointer;
 	border-radius: 10px;
 }
 
@@ -749,7 +739,6 @@ th {
 	height: 150px;
 	margin: auto;
 	margin-top: 5px;
-	cursor: pointer;
 	position: relative;
 	width: 10px;
 	border-radius: 5px;
@@ -1015,4 +1004,17 @@ input[type="button"].toggled:hover,
 
 td.embed-config {
 	padding-right: 20px;
+}
+
+@media not handheld {
+	#tree ul.songs,
+	.playlist tr,
+	.dragged {
+		cursor: default;
+	}
+
+	#play-progress-container *,
+	#volume-bar-container {
+		cursor: pointer;
+	}
 }

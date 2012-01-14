@@ -1185,28 +1185,52 @@ var Magnatune = {
 		visible: function () {
 			return $('#playlist').is(':visible');
 		},
-		_click_song: function (event) {
+		toggleSelectAll: function () {
+			var tbody = $("#playlist > tbody");
+			if (tbody.find("> tr.selected").length > 0) {
+				tbody.find("> tr").removeClass("selected").removeClass("selection-start");
+			}
+			else {
+				tbody.find("> tr").addClass("selected");
+				tbody.find("> tr.selection-start").removeClass("selection-start");
+				tbody.find("> tr:first").addClass("selection-start");
+			}
+		},
+		_toggle_select: function (element) {
 			var playlist = $("#playlist");
-			var element = $(this);
-			if (event.ctrlKey) {
-				if (element.hasClass('selected')) {
-					element.removeClass('selected');
-					
-					if (element.hasClass('selection-start')) {
-						element.removeClass('selection-start');
-						playlist.find('> tbody > tr.selected').first().addClass('selection-start');
-					}
-				}
-				else {
-					if (playlist.find('> tbody > tr.selected').length === 0) {
-						element.addClass('selected selection-start');
-					}
-					else {
-						element.addClass('selected');
-					}
+			if (element.hasClass('selected')) {
+				element.removeClass('selected');
+				
+				if (element.hasClass('selection-start')) {
+					element.removeClass('selection-start');
+					playlist.find('> tbody > tr.selected').first().addClass('selection-start');
 				}
 			}
+			else {
+				if (playlist.find('> tbody > tr.selected').length === 0) {
+					element.addClass('selected selection-start');
+				}
+				else {
+					element.addClass('selected');
+				}
+			}
+		},
+		_touch_song: function (event) {
+			if (event.originalEvent.touches.length !== 1) return;
+			setTimeout(function () {
+				// hack so it won't deselect when starting to drag
+				if (!Magnatune.DnD.handler) {
+					Magnatune.Playlist._toggle_select($(this));
+				}
+			}.bind(this), 250);
+		},
+		_click_song: function (event) {
+			if (event.ctrlKey) {
+				Magnatune.Playlist._toggle_select($(this));
+			}
 			else if (event.shiftKey) {
+				var playlist = $("#playlist");
+				var element = $(this);
 				var start = playlist.find('> tbody > tr.selection-start');
 				if (start.length === 0) {
 					element.addClass('selected selection-start');
@@ -1224,10 +1248,10 @@ var Magnatune = {
 				}
 			}
 			else {
-				(playlist.find('> tbody > tr.selected')
+				($("#playlist").find('> tbody > tr.selected')
 					.removeClass('selected')
 					.removeClass('selection-start'));
-				element.addClass('selected selection-start');
+				$(this).addClass('selected selection-start');
 			}
 		},
 		_dblclick_song: function (event) {
@@ -1235,9 +1259,15 @@ var Magnatune = {
 		},
 		_buildTrack: function (song) {
 			var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
-			var tr = tag('tr',{dataset:song,
-				onclick:Magnatune.Playlist._click_song,
-				ondblclick:Magnatune.Playlist._dblclick_song},
+			var attrs = {dataset:song};
+			if (Magnatune.TouchDevice) {
+				attrs.ontouchstart = Magnatune.Playlist._touch_song;
+			}
+			else {
+				attrs.onclick    = Magnatune.Playlist._click_song;
+				attrs.ondblclick = Magnatune.Playlist._dblclick_song;
+			}
+			var tr = tag('tr',attrs,
 				tag('td',{'class':'number'},song.number),
 				tag('td',song.desc),
 				tag('td',{'class':'duration'},tag.time(song.duration)),
@@ -1276,36 +1306,51 @@ var Magnatune = {
 		},
 		_dragover: function (event) {
 			var playlist = $('#playlist');
-			(playlist.find('> * > tr.drop')
-				.removeClass('drop')
-				.removeClass('before')
-				.removeClass('after'));
+			var track, before = false;
 			var tbody = playlist.find('> tbody');
 			var pos = tbody.offset();
 			var y = event.pageY;
 			var x = event.pageX;
-			if (x < pos.left || x > (pos.left + tbody.width()) || !$('#playlist-container').is(':visible')) {
-				return;
-			}
-			if (y <= pos.top) {
-				var track = tbody.find('> tr:first');
-				if (track.length === 0) {
-					playlist.find('> thead > tr').addClass('drop after');
+			if (!Magnatune.TouchDevice && (track = $(event.target).closest('tr')) && track.parent().parent().is(playlist)) {
+				// on browsers that support "pointer-events: none"
+				var track_pos = track.offset();
+				var track_height = track.height();
+				if (y > (track_pos.top + track_height * 0.5)) {
+					before = false;
 				}
 				else {
-					track.addClass('drop before');
+					var prev = track.prev();
+					if (prev.length > 0) {
+						before = false;
+						track = prev;
+					}
+					else {
+						before = true;
+					}
+				}
+			}
+			else if (x < pos.left || x > (pos.left + tbody.width()) || !$('#playlist-container').is(':visible')) {
+				track = $();
+			}
+			else if (y <= pos.top) {
+				track = tbody.find('> tr:first');
+				if (track.length === 0) {
+					track = playlist.find('> thead > tr');
+					before = false;
+				}
+				else {
+					before = true;
 				}
 			}
 			else if (y >= (pos.top + tbody.height())) {
-				var track = tbody.find('> tr:last');
+				before = false;
+				track = tbody.find('> tr:last');
 				if (track.length === 0) {
-					playlist.find('> thead > tr').addClass('drop after');
-				}
-				else {
-					track.addClass('drop after');
+					track = playlist.find('> thead > tr');
 				}
 			}
-			else {
+			else if (Magnatune.TouchDevice || $(event.target).closest('.dragged').length > 0) {
+				// fallback for browsers that do not support "pointer-events: none"
 				var tracks = tbody.find('> tr');
 				
 				// binary search:
@@ -1313,7 +1358,7 @@ var Magnatune = {
 				var end = tracks.length;
 				while (start !== end) {
 					var index = Math.floor((start + end) * 0.5);
-					var track = $(tracks[index]);
+					track = $(tracks[index]);
 					var track_pos = track.offset();
 					var track_height = track.height();
 					
@@ -1325,18 +1370,25 @@ var Magnatune = {
 					}
 					else {
 						if (y > (track_pos.top + track_height * 0.5)) {
-							track.addClass('drop after');
+							before = false;
 						}
 						else if (index > 0) {
-							$(tracks[index-1]).addClass('drop after');
+							before = false;
+							track = $(tracks[index-1]);
 						}
 						else {
-							track.addClass('drop before');
+							before = true;
 						}
 						break;
 					}
 				}
+				if (start === end) track = $();
 			}
+			(playlist.find('> * > tr.drop')
+				.removeClass('drop')
+				.removeClass('before')
+				.removeClass('after'));
+			track.addClass(before ? 'drop before' : 'drop after');
 		},
 		DraggableOptions: {
 			visual: true,
@@ -2394,11 +2446,12 @@ var Magnatune = {
 			return null;
 		},
 		convertEvent: function (event) {
-			var type, touch;
+			var type, touch, detail;
 
 			switch (event.type) {
 				case "touchstart":
 					if (event.touches.length !== 1) return null;
+					detail = 1;
 					type = "mousedown";
 					touch = event.changedTouches[0];
 					this.touch = touch.identifier;
@@ -2408,9 +2461,11 @@ var Magnatune = {
 					touch = this.relatedTouch(event);
 					if (!touch) return null;
 					if (event.touches.length === 1) {
+						detail = 0;
 						type = "mousemove";
 					}
 					else {
+						detail = 1;
 						type = "mouseup";
 						this.touch = null;
 					}
@@ -2420,6 +2475,7 @@ var Magnatune = {
 				case "touchcancel":
 					touch = this.relatedTouch(event);
 					if (!touch) return null;
+					detail = 1;
 					type = "mouseup";
 					this.touch = null;
 					break;
@@ -2428,40 +2484,25 @@ var Magnatune = {
 					return event;
 			}
 
-			var mouseEvent;
-
-			if (document.createEvent) {
-				mouseEvent = document.createEvent("MouseEvent");
-
-				// initMouseEvent(type, canBubble, cancelable, view, clickCount, 
-				//           screenX, screenY, clientX, clientY, ctrlKey, 
-				//           altKey, shiftKey, metaKey, button, relatedTarget);
-    
-				mouseEvent.initMouseEvent(type, true, true, window, 1, 
-					touch.screenX, touch.screenY, 
-					touch.clientX, touch.clientY, !!event.ctrlKey,
-					!!event.altKey, !!event.shiftKey, !!event.metaKey, 0,
-					event.relatedTarget || null);
-			}
-			else {
-				mouseEvent = document.createEventObject();
-				mouseEvent.eventType = 'on'+type;
-				mouseEvent.screenX  = touch.screenX;
-				mouseEvent.screenY  = touch.screenY;
-				mouseEvent.clientX  = touch.clientX;
-				mouseEvent.clientY  = touch.clientY;
-				mouseEvent.pageX    = touch.pageX;
-				mouseEvent.pageY    = touch.pageY;
-				mouseEvent.ctrlKey  = !!event.ctrlKey;
-				mouseEvent.altKey   = !!event.altKey;
-				mouseEvent.shiftKey = !!event.shiftKey;
-				mouseEvent.metaKey  = !!event.metaKey;
-				mouseEvent.button   = 1;
-			}
-			// sadly target is not directly settable
-			// the only way to set it is via dispatchEvent
-			// mouseEvent.target = touch.target;
-			return mouseEvent;
+			// I don't need a real event anyway
+			return $.Event(event, {
+				target: touch.target, // not the target I want but the only one I can get
+				type: type,
+				detail: detail,
+				eventType: 'on'+type, // IE
+				button:   $.browser.msie ? 1 : 0,
+				buttons:  1,
+				screenX:  touch.screenX,
+				screenY:  touch.screenY,
+				clientX:  touch.clientX,
+				clientY:  touch.clientY,
+				pageX:    touch.pageX,
+				pageY:    touch.pageY,
+				ctrlKey:  !!event.ctrlKey,
+				altKey:   !!event.altKey,
+				shiftKey: !!event.shiftKey,
+				metaKey:  !!event.metaKey
+			});
 		},
 		source:  null,
 		handler: null,
@@ -2811,6 +2852,7 @@ if (Magnatune.TouchDevice) {
 		if (Magnatune.DnD.handler && Magnatune.DnD.handler.drag) {
 			var mouseEvent = Magnatune.DnD.convertEvent(event.originalEvent);
 			if (!mouseEvent) return;
+			event.preventDefault();
 			if (mouseEvent.type === "mouseup") {
 				// moved with more than one finger, so cancel
 				if (Magnatune.DnD.handler.cancel) {
@@ -2820,7 +2862,6 @@ if (Magnatune.TouchDevice) {
 				Magnatune.DnD.handler = null;
 			}
 			else {
-				event.preventDefault();
 				Magnatune.DnD.handler.drag.call(Magnatune.DnD.source, mouseEvent);
 			}
 		}
