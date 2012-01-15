@@ -1186,15 +1186,68 @@ var Magnatune = {
 			return $('#playlist').is(':visible');
 		},
 		toggleSelectAll: function () {
-			var tbody = $("#playlist > tbody");
-			if (tbody.find("> tr.selected").length > 0) {
-				tbody.find("> tr").removeClass("selected").removeClass("selection-start");
+			if ($("#playlist > tbody > tr.selected").length > 0) {
+				this.selectNone();
 			}
 			else {
-				tbody.find("> tr").addClass("selected");
-				tbody.find("> tr.selection-start").removeClass("selection-start");
-				tbody.find("> tr:first").addClass("selection-start");
+				this.selectAll();
 			}
+		},
+		selectNone: function () {
+			var tbody = $("#playlist > tbody");
+			tbody.find("> tr").removeClass("selected").removeClass("selection-start");
+		},
+		selectAll: function () {
+			var tbody = $("#playlist > tbody");
+			tbody.find("> tr").addClass("selected");
+			tbody.find("> tr.selection-start").removeClass("selection-start");
+			tbody.find("> tr:first").addClass("selection-start");
+		},
+		addSelection: function (fromIndex, toIndex) {
+			if (toIndex === undefined) toIndex = fromIndex + 1;
+			var tbody = $("#playlist > tbody");
+			var tracks = tbody.find("> tr");
+			var start = $(tracks[fromIndex]);
+			(toIndex < fromIndex ?
+				start.prevUntil(tracks[toIndex]) :
+				start.nextUntil(tracks[toIndex])).andSelf().addClass('selected');
+			if (tbody.find("> tr.selection-start").length === 0) {
+				start.addClass('selection-start');
+			}
+		},
+		removeSelection: function (fromIndex, toIndex) {
+			if (toIndex === undefined) toIndex = fromIndex + 1;
+			var tbody = $("#playlist > tbody");
+			var tracks = tbody.find("> tr");
+			var start = $(tracks[fromIndex]);
+			(toIndex < fromIndex ?
+				start.prevUntil(tracks[toIndex]) :
+				start.nextUntil(tracks[toIndex])).andSelf().removeClass('selected');
+			if (tbody.find("> tr.slected").length === 0) {
+				tbody.find("> tr.selection-start").removeClass("selection-start");
+			}
+		},
+		remove: function (fromIndex, toIndex) {
+			if (toIndex === undefined) toIndex = fromIndex + 1;
+			var tbody = $("#playlist > tbody");
+			var tracks = tbody.find("> tr");
+			var start = $(tracks[fromIndex]);
+			(toIndex < fromIndex ?
+				start.prevUntil(tracks[toIndex]) :
+				start.nextUntil(tracks[toIndex])).andSelf().remove();
+			var selected = tbody.find("> tr.selected:first");
+			if (selected.length > 0 && tbody.find("> tr.selection-start").length === 0) {
+				selected.addClass("selection-start");
+			}
+		},
+		move: function (fromIndex, toIndex, targetIndex) {
+			var tracks = $('#playlist > tbody > tr');
+			if (tracks.length === 0) return;
+			if (fromIndex   >= tracks.length) fromIndex   = tracks.length;
+			if (toIndex     >  tracks.length) toIndex     = tracks.length;
+			if (targetIndex >  tracks.length) targetIndex = tracks.length;
+			if (toIndex <= fromIndex || (targetIndex >= fromIndex && targetIndex < toIndex)) return;
+			$(tracks[fromIndex]).nextUntil(tracks[toIndex]).andSelf().insertBefore(tracks[targetIndex]);
 		},
 		_toggle_select: function (element) {
 			var playlist = $("#playlist");
@@ -1239,10 +1292,10 @@ var Magnatune = {
 					playlist.find('> tbody > tr.selected').removeClass('selected');
 					var selection;
 					if (start.index() < element.index()) {
-						selection = start.nextUntil(element).add(start).add(element);
+						selection = start.nextUntil(element).andSelf().add(element);
 					}
 					else {
-						selection = start.prevUntil(element).add(start).add(element);
+						selection = start.prevUntil(element).andSelf().add(element);
 					}
 					selection.addClass('selected');
 				}
@@ -1289,7 +1342,7 @@ var Magnatune = {
 				for (var i = 0; i < album.songs.length; ++ i) {
 					album.songs[i].albumname = album.albumname;
 				}
-				Magnatune.Playlist.replace(album.songs,true);				
+				Magnatune.Playlist.replace(album.songs,true);
 			});
 		},
 		enqueue: function (songs) {
@@ -1414,37 +1467,8 @@ var Magnatune = {
 					},
 					drag: Magnatune.Playlist._dragover,
 					drop: function (event) {
-						var playlist = $('#playlist');
-						var target = playlist.find('.drop');
-
-						if (target.length > 0) {
-							var selection = playlist.find('> tbody > tr.selected');
-							if (target.parent().is('thead')) {
-								playlist.find('> tbody').append(selection);
-							}
-							else {
-								var realTarget = target;
-								var before = target.hasClass('before');
-								if (realTarget.is('.selected')) {
-									realTarget = realTarget.prevAll(':not(.selected):first');
-									if (realTarget.length === 0) {
-										realTarget = target.nextAll(':not(.selected):first');
-										before = true;
-									}
-									else {
-										before = false;
-									}
-								}
-								if (realTarget.length > 0) {
-									if (before) {
-										selection.insertBefore(realTarget);
-									}
-									else {
-										selection.insertAfter(realTarget);
-									}
-								}
-							}
-						}
+						var target = $('#playlist .drop');
+						Magnatune.Playlist._moveSelected(target, target.hasClass('before'));
 
 						(target
 							.removeClass('drop')
@@ -1458,7 +1482,7 @@ var Magnatune = {
 		replace: function (songs, forceplay) {
 			this.clear();
 			this.enqueue(songs);
-			this.setCurrentIndex(0, forceplay);
+			if (forceplay) this.setCurrentIndex(0, forceplay);
 		},
 		clear: function () {
 			$('#playlist > tbody').empty();
@@ -1471,6 +1495,52 @@ var Magnatune = {
 		},
 		removeSelected: function () {
 			$('#playlist > tbody > tr.selected').remove();
+		},
+		moveSelected: function (index) {
+			var tracks = $('#playlist > tbody > tr');
+			if (tracks.length > 0) {
+				var target, before;
+				if (index >= tracks.length) {
+					target = $(tracks[tracks.length-1]);
+					before = false;
+				}
+				else {
+					target = $(tracks[index < 0 ? 0 : index]);
+					before = true;
+				}
+				this._moveSelected(target, before);
+			}
+		},
+		_moveSelected: function (target, before) {
+			if (target.length > 0) {
+				var tbody = $('#playlist > tbody');
+				var selection = tbody.find('> tr.selected');
+				if (target.parent().is('thead')) {
+					tbody.append(selection);
+				}
+				else {
+					var realTarget = target;
+					var before = target.hasClass('before');
+					if (realTarget.is('.selected')) {
+						realTarget = realTarget.prevAll(':not(.selected):first');
+						if (realTarget.length === 0) {
+							realTarget = target.nextAll(':not(.selected):first');
+							before = true;
+						}
+						else {
+							before = false;
+						}
+					}
+					if (realTarget.length > 0) {
+						if (before) {
+							selection.insertBefore(realTarget);
+						}
+						else {
+							selection.insertAfter(realTarget);
+						}
+					}
+				}
+			}
 		},
 		showCurrent: function () {
 			var current = $('#playlist .current')[0];
@@ -1701,6 +1771,10 @@ var Magnatune = {
 			}
 		},
 		withSongs: function (album, callback) {
+			if (typeof(album) === "string") {
+				album = Magnatune.Collection.Albums[album];
+				// if (!album) error
+			}
 			if (album.songs) {
 				callback(album);
 			}
@@ -1749,7 +1823,6 @@ var Magnatune = {
 			return $('#navigation-hide').is(':visible');
 		},
 		clear: function () {
-			$('#search').val('');
 			this.filter('');
 		},
 		sortedGenres: function () {
@@ -2738,12 +2811,6 @@ var Magnatune = {
 				onshow: function () {
 					Magnatune.Navigation.show(true);
 				},
-				next: 'search'
-			},
-			search: {
-				text: "...",
-				context: '#search',
-				placed: 'below',
 				next: 'search_hidden'
 			},
 			search_hidden: {
@@ -2753,25 +2820,8 @@ var Magnatune = {
 				onshow: function () {
 					Magnatune.Navigation.filter("hidden");
 				},
-				next: 'nav_ambient'
-			},
-			nav_ambient: {
-				text: "...",
-				context: "#tree a[href='#/genre/Ambient']",
-				placed: {left: 100},
-				arrow: 'left',
-				onshow: function () {
-					$(this.context).click();
-				},
-				next: 'nav_jami_sieber'
-			},
-			nav_jami_sieber: {
-				text: "...",
-				context: "#tree a[href='#/artist/Jami%20Sieber']",
-				placed: {left: 150},
-				arrow: 'left',
-				onshow: function () {
-					$(this.context).click();
+				onbackward: function () {
+					Magnatune.Navigation.clear();
 				},
 				next: 'nav_hidden_sky'
 			},
@@ -2781,25 +2831,100 @@ var Magnatune = {
 				placed: {left: 200},
 				arrow: 'left',
 				onshow: function () {
-					$(this.context).click();
+					var genre = $("#tree a[href='#/genre/Ambient']");
+					if (!genre.next(".body").is(":visible")) genre.click();
+					var artist = $("#tree a[href='#/artist/Jami%20Sieber']");
+					if (!artist.next(".body").is(":visible")) artist.click();
+					var album = $(this.context);
+					if (!album.next(".body").is(":visible")) album.click();
 				},
-				next: 'nav_hidden_sky_tracks'
+				onbackward: function () {
+					var genre = $("#tree a[href='#/genre/Ambient']");
+					if (genre.next(".body").is(":visible")) genre.click();
+				},
+				next: 'playlist'
 			},
-			nav_hidden_sky_tracks: {
+			playlist: {
+				text: "...",
+				context: "#playlist-button a",
+				placed: "below",
+				onshow: function () {
+					Magnatune.Playlist.clear();
+					window.location = '#/playlist';
+				},
+				onbackward: function () {
+					window.location = '#/album/Hidden%20Sky';
+				},
+				next: 'dnd_song'
+			},
+			dnd_song: {
 				text: "...",
 				context: "#tree li[data-desc='Maenam']",
-				placed: {left: 150},
+				placed: {left: 200},
 				arrow: 'left',
 				onshow: function () {
-					$(this.context).click();
-				}
+					Magnatune.Playlist.replace([$(this.context).dataset()]);
+				},
+				onbackward: function () {
+					Magnatune.Playlist.clear();
+				},
+				next: 'dnd_album'
 			},
-			order: {
+			dnd_album: {
 				text: "...",
-				context: '#tree-order-select',
-				placed: 'right',
+				context: "#tree a[href='#/album/Hidden%20Sky']",
+				placed: {left: 200},
+				arrow: 'left',
+				onforward: function () {
+					Magnatune.Collection.withSongs("Hidden Sky", function (album) {
+						for (var i = 0; i < album.songs.length; ++ i) {
+							album.songs[i].albumname = album.albumname;
+						}
+						Magnatune.Playlist.enqueue(album.songs);
+					});
+				},
+				onbackward: function () {
+					Magnatune.Playlist.remove(1,Magnatune.Playlist.length());
+				},
+				next: 'select_range'
+			},
+			select_range: {
+				text: "...",
+				context: '#playlist > tbody > tr[data-desc="Homage"]',
+				placed: {left: 200},
+				arrow: 'left',
 				onshow: function () {
-					Magnatune.Navigation.showOrderSelect();
+					Magnatune.Playlist.addSelection(3,8);
+				},
+				onbackward: function () {
+					Magnatune.Playlist.removeSelection(3,8);
+				},
+				next: 'deselect_one'
+			},
+			deselect_one: {
+				text: "...",
+				context: '#playlist > tbody > tr[data-desc="Sukhothai Rain"]',
+				placed: {left: 200},
+				arrow: 'left',
+				onshow: function () {
+					Magnatune.Playlist.removeSelection(4);
+				},
+				onbackward: function () {
+					Magnatune.Playlist.addSelection(4);
+				},
+				next: 'move_selection'
+			},
+			move_selection: {
+				text: "...",
+				context: '#playlist > tbody > tr[data-desc="Homage"]',
+				placed: {left: 200},
+				arrow: 'left',
+				onshow: function () {
+					Magnatune.Playlist.moveSelected(0);
+				},
+				onbackward: function () {
+					Magnatune.Playlist.move(2,5,8);
+					Magnatune.Playlist.move(1,2,4);
 				}
 			}
 		},
@@ -2837,11 +2962,15 @@ var Magnatune = {
 			}
 			return arrow;
 		},
+		_trigger: function (page, event) {
+			event = 'on'+event;
+			if (page[event]) {
+				page[event]();
+			}
+		},
 		_render: function (page,opts) {
 			if (!opts) opts = {};
-			if (page.onshow) {
-				page.onshow();
-			}
+			this._trigger(page,'show');
 			var content = tag('div',{'class':'tour-page-content'});
 			$(content).html(page.text);
 			var element = tag('div',{'class':'tour-page-wrapper'},
@@ -2901,7 +3030,7 @@ var Magnatune = {
 				}
 			}
 			else {
-				var distance = 25;
+				var distance = 15;
 				switch (placed) {
 					case "left":
 						if (!arrow_pos) arrow_pos = 'right';
@@ -2952,6 +3081,7 @@ var Magnatune = {
 		},
 		start: function () {
 			var page = this.Pages[this.first];
+			this._trigger(page,'forward');
 			var element = this._render(page);
 			this.stop();
 			this.element = element;
@@ -2962,9 +3092,7 @@ var Magnatune = {
 		stop: function () {
 			if (this.history.length > 0) {
 				var page = this.Pages[this.history[this.history.length - 1]];
-				if (page.onhide) {
-					page.onhide();
-				}
+				this._trigger(page,'hide');
 			}
 			$(this.element).remove();
 			this.element = null;
@@ -2973,11 +3101,10 @@ var Magnatune = {
 		next: function () {
 			if (this.history.length > 0) {
 				var page = this.Pages[this.history[this.history.length - 1]];
-				if (page.onhide) {
-					page.onhide();
-				}
+				this._trigger(page,'hide');
 				if (page.next) {
 					var next = this.Pages[page.next];
+					this._trigger(next,'forward');
 					var element = this._render(next,{previous:true});
 					$(this.element).remove();
 					this.element = element;
@@ -2994,9 +3121,8 @@ var Magnatune = {
 		previous: function () {
 			if (this.history.length > 0) {
 				var page = this.Pages[this.history[this.history.length - 1]];
-				if (page.onhide) {
-					page.onhide();
-				}
+				this._trigger(page,'backward');
+				this._trigger(page,'hide');
 				this.history.pop();
 			}
 			if (this.history.length > 0) {
@@ -3014,11 +3140,10 @@ var Magnatune = {
 		goto: function (pagename) {
 			if (this.history.length > 0) {
 				var page = this.Pages[this.history[this.history.length - 1]];
-				if (page.onhide) {
-					page.onhide();
-				}
+				this._trigger(page,'hide');
 			}
 			var page = this.Pages[pagename];
+			this._trigger(page,'forward');
 			var element = this._render(page,{previous:this.history.length > 0});
 			$(this.element).remove();
 			this.element = element;
