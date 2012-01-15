@@ -1018,3 +1018,88 @@ td.embed-config {
 		cursor: pointer;
 	}
 }
+
+.tour-page-wrapper {
+	position: absolute;
+	z-index: 1001;
+}
+
+.tour-page {
+	position: relative;
+	max-width: 250px;
+	background: rgba(0,0,0,0.7);
+	border-radius: 10px;
+	padding: 10px;
+	box-shadow:	0px 0px 10px rgba(0,0,0,0.6);
+}
+
+.tour-page-buttons {
+	text-align: right;
+	margin-top: 10px;
+}
+
+.tour-page .button.close {
+	box-shadow: none;
+	width: 16px;
+	height: 16px;
+	line-height: 16px;
+	border-radius: 8px;
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	text-align: center;
+	margin: 0;
+	padding: 0;
+}
+
+.tour-page .button {
+	text-shadow: none;
+	color: #9F9F9F;
+	font-weight: normal;
+}
+
+.tour-page .button.disabled {
+	color: #303030;
+}
+
+.tour-page .button:hover {
+	color: #000000;
+	background: rgba(255,255,255,0.4);
+}
+
+.tour-page .button.disabled:hover {
+	color: #303030;
+	background: transparent;
+}
+
+.tour-arrow {
+	position: absolute;
+}
+
+.tour-up-arrow,
+.tour-down-arrow {
+	width:  20px;
+	height: 10px;
+}
+
+.tour-left-arrow,
+.tour-right-arrow {
+	width:  10px;
+	height: 20px;
+}
+
+.tour-up-arrow {
+	background-image: url("tour-up-arrow.png");
+}
+
+.tour-down-arrow {
+	background-image: url("tour-down-arrow.png");
+}
+
+.tour-left-arrow {
+	background-image: url("tour-left-arrow.png");
+}
+
+.tour-right-arrow {
+	background-image: url("tour-right-arrow.png");
+}

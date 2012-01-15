@@ -2703,6 +2703,228 @@ var Magnatune = {
 		document.body.appendChild(script);
 	},
 	// TODO: Hints/Tour
+	Tour: {
+		Pages: {
+			info: {
+				text: "This is the info area. Here information about genres, albums and artists are displayed.",
+				context: "#info-content",
+				placed: {
+					left:  20,
+					top:  250
+				},
+				arrow: 'up',
+				next: "collection",
+				onshow: function () {
+					Magnatune.Info.show();
+				}
+			},
+			collection: {
+				text: "Here the you can browse the music collection of "+
+				      "<a href='http://magnatune.com/' target='_blank'>Magnatune.com</a>.",
+				context: "#navigation",
+				placed: {
+					left: 300,
+					top:  100
+				},
+				arrow: 'left',
+				onshow: function () {
+					Magnatune.Navigation.show(true);
+				}
+			},
+			tabs: {
+				text: ""
+			}
+		},
+		first: "info",
+		history: [],
+		element: null,
+		_render_arrow: function (element, direction) {
+			var arrow = tag('div',{'class':'tour-arrow'},' ');
+			var page_element = $(element).find('> .tour-page');
+			page_element.append(arrow);
+			switch (direction) {
+				case "right":
+					arrow.className += ' tour-right-arrow';
+					arrow.style.right = (-$(arrow).width())+'px';
+					arrow.style.top   = Math.round((page_element.outerHeight() - $(arrow).height()) * 0.5)+'px';
+					break;
+
+				case "left":
+					arrow.className += ' tour-left-arrow';
+					arrow.style.left = (-$(arrow).width())+'px';
+					arrow.style.top  = Math.round((page_element.outerHeight() - $(arrow).height()) * 0.5)+'px';
+					break;
+
+				case "down":
+					arrow.className += ' tour-down-arrow';
+					arrow.style.left   = Math.round((page_element.outerWidth() - $(arrow).width()) * 0.5)+'px';
+					arrow.style.bottom = (-$(arrow).height())+'px';
+					break;
+
+				case "up":
+					arrow.className += ' tour-up-arrow';
+					arrow.style.left = Math.round((page_element.outerWidth() - $(arrow).width()) * 0.5)+'px';
+					arrow.style.top  = (-$(arrow).height())+'px';
+					break;
+			}
+			return arrow;
+		},
+		_render: function (page,opts) {
+			if (!opts) opts = {};
+			if (page.onshow) {
+				page.onshow();
+			}
+			var content = tag('div',{'class':'tour-page-content'});
+			$(content).html(page.text);
+			var element = tag('div',{'class':'tour-page-wrapper'},
+				tag('div',{'class':'tour-page'},
+					tag('a',{'class':'button close',
+						href:'javascript:Magnatune.Tour.stop();void(0)'},
+						'\u00d7'),
+					content,
+					tag('div',{'class':'tour-page-buttons'},
+						tag('a',{'class':opts.previous ? 'button' : 'button disabled',
+							href:'javascript:Magnatune.Tour.previous();void(0)'},
+							'\u00ab Previous'),
+						page.next ?
+							tag('a',{'class':'button',
+								href:'javascript:Magnatune.Tour.next();void(0)'},
+								'Next \u00bb') :
+							tag('a',{'class':'button',
+								href:'javascript:Magnatune.Tour.stop();void(0)'},
+								'Finish'))));
+			var placed = page.placed || "below";
+			var context = $(page.context||"body");
+			var ctx_pos = context.offset();
+			var ctx_width  = context.width();
+			var ctx_height = context.height();
+			
+			element.style.visibility = "hidden";
+			$(document.body).append(element);
+
+			if (typeof(placed) === "object") {
+				if ('left' in placed) {
+					element.style.left = (ctx_pos.left + placed.left)+'px';
+				}
+				if ('right' in placed) {
+					element.style.left = (ctx_pos.left + ctx_width - $(element).width() - placed.right)+'px';
+				}
+				if ('top' in placed) {
+					element.style.top = (ctx_pos.top + placed.top)+'px';
+				}
+				if ('bottom' in placed) {
+					element.style.top = (ctx_pos.top + ctx_height - $(element).height() - placed.bottom)+'px';
+				}
+				if (page.arrow) {
+					this._render_arrow(element, page.arrow);
+				}
+			}
+			else {
+				var distance = 25;
+				switch (placed) {
+					case "left":
+						this._render_arrow(element, page.arrow || 'right');
+						element.style.left = (ctx_pos.left - $(element).width() - distance)+'px';
+						element.style.top  = Math.round(ctx_pos.top + (ctx_height - $(element).height()) * 0.5)+'px';
+						break;
+
+					case "right":
+						this._render_arrow(element, page.arrow || 'left');
+						element.style.left = (ctx_pos.left + ctx_width + distance)+'px';
+						element.style.top  = Math.round(ctx_pos.top + (ctx_height - $(element).height()) * 0.5)+'px';
+						break;
+
+					case "above":
+						this._render_arrow(element, page.arrow || 'down');
+						element.style.left = Math.round(ctx_pos.left + (ctx_width + $(element).width()) * 0.5)+'px';
+						element.style.top  = (ctx_pos.top - $(element).height() - distance)+'px';
+						break;
+
+					case "below":
+						this._render_arrow(element, page.arrow || 'up');
+						element.style.left = Math.round(ctx_pos.left + (ctx_width + $(element).width()) * 0.5)+'px';
+						element.style.top  = (ctx_pos.top + ctx_height + distance)+'px';
+						break;
+				}
+			}
+			return element;
+		},
+		start: function () {
+			var page = this.Pages[this.first];
+			var element = this._render(page);
+			this.stop();
+			this.element = element;
+			element.style.visibility = "";
+
+			this.history = [this.first];
+		},
+		stop: function () {
+			if (this.history.length > 0) {
+				var page = this.Pages[this.history[this.history.length - 1]];
+				if (page.onhide) {
+					page.onhide();
+				}
+			}
+			$(this.element).remove();
+			this.element = null;
+			this.history = [];
+		},
+		next: function () {
+			if (this.history.length > 0) {
+				var page = this.Pages[this.history[this.history.length - 1]];
+				if (page.onhide) {
+					page.onhide();
+				}
+				if (page.next) {
+					var next = this.Pages[page.next];
+					var element = this._render(next,{previous:true});
+					$(this.element).remove();
+					this.element = element;
+					element.style.visibility = "";	
+					this.history.push(page.next);
+				}
+				else {
+					$(this.element).remove();
+					this.element = null;
+					this.history = [];
+				}
+			}
+		},
+		previous: function () {
+			if (this.history.length > 0) {
+				var page = this.Pages[this.history[this.history.length - 1]];
+				if (page.onhide) {
+					page.onhide();
+				}
+				this.history.pop();
+			}
+			if (this.history.length > 0) {
+				var page = this.Pages[this.history[this.history.length - 1]];
+				var element = this._render(page,{previous:this.history.length > 1});
+				$(this.element).remove();
+				this.element = element;
+				element.style.visibility = "";
+			}
+			else {
+				$(this.element).remove();
+				this.element = null;
+			}
+		},
+		goto: function (pagename) {
+			if (this.history.length > 0) {
+				var page = this.Pages[this.history[this.history.length - 1]];
+				if (page.onhide) {
+					page.onhide();
+				}
+			}
+			var page = this.Pages[pagename];
+			var element = this._render(page,{previous:this.history.length > 0});
+			$(this.element).remove();
+			this.element = element;
+			element.style.visibility = "";	
+			this.history.push(pagename);
+		}
+	},
 	save: function () {
 		if (typeof(localStorage) !== "undefined") {
 			localStorage.setItem('collection.changed',Magnatune.Collection.Changed);
