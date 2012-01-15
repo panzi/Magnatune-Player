@@ -1815,6 +1815,7 @@ var Magnatune = {
 		filter: function (query) {
 			// TODO: keep expansion state and scroll position
 			query = query.trim();
+			$('#search').val(query);
 			var tree = $('#tree');
 			switch (this.mode()) {
 				case 'album':
@@ -2386,40 +2387,52 @@ var Magnatune = {
 		order: function () {
 			return $('#tree-order-select li.active').attr('id').replace(/^order-by-/,'');
 		},
-		toggleModeSelect: function () {
+		showModeSelect: function () {
 			var mode = $('#tree-mode-select');
-			if (mode.is(':visible')) {
-				mode.hide();
+			var button = $('#tree-mode-button')[0];
+			mode.css({
+				visibility: 'hidden',
+				display: ''
+			});
+			mode.css({
+				visibility: '',
+				left: (button.offsetLeft)+'px',
+				top: (button.offsetTop+button.offsetHeight)+'px'
+			});
+		},
+		hideModeSelect: function () {
+			$('#tree-mode-select').hide();
+		},
+		toggleModeSelect: function () {
+			if ($('#tree-mode-select').is(':visible')) {
+				this.hideModeSelect();
 			}
 			else {
-				var button = $('#tree-mode-button')[0];
-				mode.css({
-					visibility: 'hidden',
-					display: ''
-				});
-				mode.css({
-					visibility: '',
-					left: (button.offsetLeft)+'px',
-					top: (button.offsetTop+button.offsetHeight)+'px'
-				});
+				this.showModeSelect();
 			}
 		},
-		toggleOrderSelect: function () {
+		showOrderSelect: function () {
 			var order = $('#tree-order-select');
-			if (order.is(':visible')) {
-				order.hide();
+			var button = $('#tree-order-button')[0];
+			order.css({
+				visibility: 'hidden',
+				display: ''
+			});
+			order.css({
+				visibility: '',
+				left: (button.offsetLeft)+'px',
+				top: (button.offsetTop+button.offsetHeight)+'px'
+			});
+		},
+		hideOrderSelect: function () {
+			$('#tree-order-select').hide();
+		},
+		toggleOrderSelect: function () {
+			if ($('#tree-order-select').is(':visible')) {
+				this.hideOrderSelect();
 			}
 			else {
-				var button = $('#tree-order-button')[0];
-				order.css({
-					visibility: 'hidden',
-					display: ''
-				});
-				order.css({
-					visibility: '',
-					left: (button.offsetLeft)+'px',
-					top: (button.offsetTop+button.offsetHeight)+'px'
-				});
+				this.showOrderSelect();
 			}
 		}
 	},
@@ -2706,20 +2719,20 @@ var Magnatune = {
 	Tour: {
 		Pages: {
 			info: {
-				text: "This is the info area. Here information about genres, albums and artists are displayed.",
+				text: "This is the info area. Here is information about genres, albums and artists displayed.",
 				context: "#info-content",
 				placed: {
 					left:  20,
-					top:  250
+					top:  150
 				},
 				arrow: 'up',
 				next: "collection",
 				onshow: function () {
-					Magnatune.Info.show();
+					Magnatune.Info.load('#/about');
 				}
 			},
 			collection: {
-				text: "Here the you can browse the music collection of "+
+				text: "Here you can browse the music collection of "+
 				      "<a href='http://magnatune.com/' target='_blank'>Magnatune.com</a>.",
 				context: "#navigation",
 				placed: {
@@ -2729,10 +2742,70 @@ var Magnatune = {
 				arrow: 'left',
 				onshow: function () {
 					Magnatune.Navigation.show(true);
+				},
+				next: 'search'
+			},
+			search: {
+				text: "...",
+				context: '#search',
+				placed: 'below',
+				next: 'search_hidden'
+			},
+			search_hidden: {
+				text: "...",
+				context: '#search',
+				placed: 'below',
+				onshow: function () {
+					Magnatune.Navigation.filter("hidden")
+				},
+				next: 'nav_ambient'
+			},
+			nav_ambient: {
+				text: "...",
+				context: "#tree a[href='#/genre/Ambient']",
+				placed: {left: 100},
+				arrow: 'left',
+				onshow: function () {
+					$(this.context).click();
+				},
+				next: 'nav_jami_sieber'
+			},
+			nav_jami_sieber: {
+				text: "...",
+				context: "#tree a[href='#/artist/Jami%20Sieber']",
+				placed: {left: 150},
+				arrow: 'left',
+				onshow: function () {
+					$(this.context).click();
+				},
+				next: 'nav_hidden_sky'
+			},
+			nav_hidden_sky: {
+				text: "...",
+				context: "#tree a[href='#/album/Hidden%20Sky']",
+				placed: {left: 200},
+				arrow: 'left',
+				onshow: function () {
+					$(this.context).click();
+				},
+				next: 'nav_hidden_sky_tracks'
+			},
+			nav_hidden_sky_tracks: {
+				text: "...",
+				context: "#tree li[data-desc='Maenam']",
+				placed: {left: 150},
+				arrow: 'left',
+				onshow: function () {
+					$(this.context).click();
 				}
 			},
-			tabs: {
-				text: ""
+			order: {
+				text: "...",
+				context: '#tree-order-select',
+				placed: 'right',
+				onshow: function () {
+					Magnatune.Navigation.showOrderSelect();
+				}
 			}
 		},
 		first: "info",
@@ -2793,59 +2866,92 @@ var Magnatune = {
 							tag('a',{'class':'button',
 								href:'javascript:Magnatune.Tour.stop();void(0)'},
 								'Finish'))));
-			var placed = page.placed || "below";
-			var context = $(page.context||"body");
-			var ctx_pos = context.offset();
-			var ctx_width  = context.width();
-			var ctx_height = context.height();
 			
 			element.style.visibility = "hidden";
 			$(document.body).append(element);
 
+			var placed = page.placed || "below";
+			var context = $(page.context||"body");
+			var ctx_pos = context.offset();
+			var ctx_width  = context.outerWidth();
+			var ctx_height = context.outerHeight();
+			var el_width  = $(element).width();
+			var el_height = $(element).height();
+			var top, left, arrow_pos = page.arrow;
+			
 			if (typeof(placed) === "object") {
 				if ('left' in placed) {
-					element.style.left = (ctx_pos.left + placed.left)+'px';
+					left = ctx_pos.left + placed.left;
+					if (!('top' in placed) && !('bottom' in placed)) {
+						top = Math.round(ctx_pos.top + (ctx_height - el_height) * 0.5);
+					}
 				}
 				if ('right' in placed) {
-					element.style.left = (ctx_pos.left + ctx_width - $(element).width() - placed.right)+'px';
+					left = ctx_pos.left + ctx_width - el_width - placed.right;
+					if (!('top' in placed) && !('bottom' in placed)) {
+						top = Math.round(ctx_pos.top + (ctx_height - el_height) * 0.5);
+					}
 				}
 				if ('top' in placed) {
-					element.style.top = (ctx_pos.top + placed.top)+'px';
+					top = ctx_pos.top + placed.top;
+					if (!('left' in placed) && !('right' in placed)) {
+						left = Math.round(ctx_pos.left + (ctx_width - el_width) * 0.5);
+					}
 				}
 				if ('bottom' in placed) {
-					element.style.top = (ctx_pos.top + ctx_height - $(element).height() - placed.bottom)+'px';
-				}
-				if (page.arrow) {
-					this._render_arrow(element, page.arrow);
+					top = ctx_pos.top + ctx_height - el_height - placed.bottom;
+					if (!('left' in placed) && !('right' in placed)) {
+						left = Math.round(ctx_pos.left + (ctx_width - el_width) * 0.5);
+					}
 				}
 			}
 			else {
 				var distance = 25;
 				switch (placed) {
 					case "left":
-						this._render_arrow(element, page.arrow || 'right');
-						element.style.left = (ctx_pos.left - $(element).width() - distance)+'px';
-						element.style.top  = Math.round(ctx_pos.top + (ctx_height - $(element).height()) * 0.5)+'px';
+						if (!arrow_pos) arrow_pos = 'right';
+						left = ctx_pos.left - el_width - distance;
+						top  = Math.round(ctx_pos.top + (ctx_height - el_height) * 0.5);
 						break;
 
 					case "right":
-						this._render_arrow(element, page.arrow || 'left');
-						element.style.left = (ctx_pos.left + ctx_width + distance)+'px';
-						element.style.top  = Math.round(ctx_pos.top + (ctx_height - $(element).height()) * 0.5)+'px';
+						if (!arrow_pos) arrow_pos = 'left';
+						left = ctx_pos.left + ctx_width + distance;
+						top  = Math.round(ctx_pos.top + (ctx_height - el_height) * 0.5);
 						break;
 
 					case "above":
-						this._render_arrow(element, page.arrow || 'down');
-						element.style.left = Math.round(ctx_pos.left + (ctx_width + $(element).width()) * 0.5)+'px';
-						element.style.top  = (ctx_pos.top - $(element).height() - distance)+'px';
+						if (!arrow_pos) arrow_pos = 'down';
+						left = Math.round(ctx_pos.left + (ctx_width - el_width) * 0.5);
+						top  = ctx_pos.top - $(element).height() - distance;
 						break;
 
 					case "below":
-						this._render_arrow(element, page.arrow || 'up');
-						element.style.left = Math.round(ctx_pos.left + (ctx_width + $(element).width()) * 0.5)+'px';
-						element.style.top  = (ctx_pos.top + ctx_height + distance)+'px';
+						if (!arrow_pos) arrow_pos = 'up';
+						left = Math.round(ctx_pos.left + (ctx_width - el_width) * 0.5);
+						top  = ctx_pos.top + ctx_height + distance;
 						break;
 				}
+			}
+
+			if (left < 0) {
+				left = 0;
+			}
+			else if (left + el_width > $(window).innerWidth()) {
+				left = $(window).innerWidth() - el_width;
+			}
+
+			if (top < 0) {
+				top = 0;
+			}
+			else if (top + el_height > $(window).innerHeight()) {
+				top = $(window).innerHeight() - el_height;
+			}
+
+			element.style.left = left+'px';
+			element.style.top  = top+'px';
+			if (arrow_pos) {
+				this._render_arrow(element, arrow_pos);
 			}
 			return element;
 		},
