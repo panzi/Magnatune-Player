@@ -946,7 +946,7 @@ var Magnatune = {
 					install = '<a class="button app" href="app/magnatune-player.crx">Install App</a>'
 				}
 				$(page).html(
-					'<h2>About Magnatune Player</h2>'+
+					'<h2>Magnatune Player</h2>'+
 					'<div class="about-float">'+
 					'<a class="logo" title="Magnatune" href="http://magnatune.com/"><img alt="" src="logo.png"/></a>'+
 					install+
@@ -2721,24 +2721,19 @@ var Magnatune = {
 			info: {
 				text: "This is the info area. Here is information about genres, albums and artists displayed.",
 				context: "#info-content",
-				placed: {
-					left:  20,
-					top:  150
-				},
+				placed: {left: 20, top: 150},
 				arrow: 'up',
 				next: "collection",
 				onshow: function () {
 					Magnatune.Info.load('#/about');
+					Magnatune.Navigation.setConfig("name","genre/artist/album");
 				}
 			},
 			collection: {
 				text: "Here you can browse the music collection of "+
 				      "<a href='http://magnatune.com/' target='_blank'>Magnatune.com</a>.",
 				context: "#navigation",
-				placed: {
-					left: 300,
-					top:  100
-				},
+				placed: {left: 300, top: 100},
 				arrow: 'left',
 				onshow: function () {
 					Magnatune.Navigation.show(true);
@@ -2756,7 +2751,7 @@ var Magnatune = {
 				context: '#search',
 				placed: 'below',
 				onshow: function () {
-					Magnatune.Navigation.filter("hidden")
+					Magnatune.Navigation.filter("hidden");
 				},
 				next: 'nav_ambient'
 			},
