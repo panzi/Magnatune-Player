@@ -2360,6 +2360,8 @@ $.extend(Magnatune, {
 						visual: true,
 						distance: 4,
 						create: function (event) {
+							var was_visible = Magnatune.Playlist.visible();
+							if (!was_visible) Magnatune.Playlist.show();
 							return {
 								drag: Magnatune.Playlist._dragover,
 								drop: function (event) {
@@ -2393,8 +2395,12 @@ $.extend(Magnatune, {
 										.removeClass('drop')
 										.removeClass('before')
 										.removeClass('after'));
+									if (!was_visible) Magnatune.Info.show();
 								},
-								cancel: Magnatune.Playlist._dragcancel
+								cancel: function (event) {
+									Magnatune.Playlist._dragcancel(event);
+									if (!was_visible) Magnatune.Info.show();
+								}
 							};
 						}
 					};
@@ -2422,6 +2428,8 @@ $.extend(Magnatune, {
 					visual: true,
 					distance: 4,
 					create: function (event) {
+						var was_visible = Magnatune.Playlist.visible();
+						if (!was_visible) Magnatune.Playlist.show();
 						var song = $(this).dataset();
 						return {
 							render: function () {
@@ -2451,8 +2459,12 @@ $.extend(Magnatune, {
 									.removeClass('drop')
 									.removeClass('before')
 									.removeClass('after'));
+								if (!was_visible) Magnatune.Info.show();
 							},
-							cancel: Magnatune.Playlist._dragcancel
+							cancel: function (event) {
+								Magnatune.Playlist._dragcancel(event);
+								if (!was_visible) Magnatune.Info.show();
+							}
 						};
 					}
 				}
