@@ -308,7 +308,7 @@ def search(cur,params):
 		find = finders[mode.strip().lower().replace('-','/')]
 	except KeyError:
 		raise ValueError('Unknown search mode: %r' % mode)
-	query = [word for word in set(query.split()) if len(word) > 2]
+	query = [word for word in set(query.split()) if len(word) > 1]
 	if not query:
 		return None
 	return find(cur,query,order)
