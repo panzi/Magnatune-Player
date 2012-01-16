@@ -1,3 +1,21 @@
+/**
+ * Copyright (C) 2012  Mathias Panzenböck
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 "use strict";
 
 $.fx.interval = 40;
@@ -340,9 +358,33 @@ var tag = (function ($) {
 
 var Magnatune = {
 	TouchDevice: 'ontouchstart' in window && 'createTouch' in document,
+	VolumeControl: (function () {
+		var ua = navigator.userAgent.toLowerCase();
+		// got information from jplayer:
+		var noVolume = [
+			/ipad/,
+			/iphone/,
+			/ipod/,
+			/android(?!.*?mobile)/,
+			/android.*?mobile/,
+			/blackberry/,
+			/windows ce/,
+			/webos/,
+			/playbook/
+		];
+		for (var i = 0; i < noVolume.length; ++ i) {
+			if (noVolume[i].test(ua)) {
+				return false;
+			}
+		}
+		return true;
+	})(),
 	Options: {
 		AnimationDuration: 500
-	},
+	}
+};
+
+$.extend(Magnatune, {
 	Events: {
 		extend: function (obj) {
 			var events = {};
@@ -827,7 +869,7 @@ var Magnatune = {
 		visible: function () {
 			return $('#info').is(':visible');
 		},
-		_albumsTable: function (albums) {	
+		_albumsTable: function (albums) {
 			var tbody = $(tag('tbody'));
 			for (var i = 0; i < albums.length; ++ i) {
 				tbody.append(this._albumRow(albums[i]));
@@ -858,7 +900,7 @@ var Magnatune = {
 						{href:'#/artist/'+encodeURIComponent(album.artist.artist)},
 						album.artist.artist)));
 		},
-		_albumsList: function (albums) {	
+		_albumsList: function (albums) {
 			var list = $(tag('ul',{'class':'albums'}));
 			for (var i = 0; i < albums.length; ++ i) {
 				list.append(tag('li',
@@ -962,10 +1004,17 @@ var Magnatune = {
 					'<a href="http://www.google.com/chrome/">Google Chrome</a>, '+
 					'<a href="http://www.apple.com/safari/">Apple Safari</a> or '+
 					'<a href="http://www.opera.com/">Opera</a>.</p>'+
+					'<p><a id="start-tour" href="javascript:Magnatune.Tour.start();void(0)">Take a Tour</a> to '+
+					'get an overview of the features of the Magnatune Player.</p>'+
 					'<p>You can download the source code of this web page on '+
-					'<a href="https://bitbucket.org/panzi/magnatune-player">bitbucket</a>.</p>'+
-					'<p>Other experiments done by me can be found <a '+
-					'href="http://web.student.tuwien.ac.at/~e0427417/">here</a>.</p>');
+					'<a href="https://bitbucket.org/panzi/magnatune-player">bitbucket</a>. '+
+					'Other experiments done by me can be found <a '+
+					'href="http://web.student.tuwien.ac.at/~e0427417/">here</a>.</p>'+
+					'<p>Copyright &copy; 2012 Mathias Panzenb&ouml;ck<br/>'+
+					'License <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="_blank">GPLv2+</a>: '+
+					'GNU GPL version 2 or later</p>'+
+					'<p>This is free software; you are free to change and redistribute it.<br/>'+
+					'There is NO WARRANTY, to the extent permitted by law.</p>');
 				Magnatune.Info.update('#/about',breadcrumbs,page,opts.keeptab);
 			},
 			genre: function (opts) {
@@ -1115,7 +1164,7 @@ var Magnatune = {
 							tag('div',{'class':'also'},
 								tag('h3','Related Albums'),
 								Magnatune.Info._albumsTable(also)));
-						Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);			
+						Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);
 					},
 					error: function () {
 						// TODO
@@ -1166,7 +1215,7 @@ var Magnatune = {
 								alt: 'Bandphoto'}),
 							tag('table', {'class':'albums'}, tbody),
 							tag.textify(data.body.bio));
-						Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);	
+						Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);
 					},
 					error: function () {
 						// TODO
@@ -2744,7 +2793,7 @@ var Magnatune = {
 			spin();
 
 			var username = $('#username').val();
-			var password = $('#password').val();		
+			var password = $('#password').val();
 			src = "http://"+username+":"+password+"@stream.magnatune.com"+path;
 			onerror = function (event) {
 				if (event.originalEvent.target === script) {
@@ -2788,18 +2837,18 @@ var Magnatune = {
 
 		document.body.appendChild(script);
 	},
-	// TODO: Hints/Tour
 	Tour: {
 		Pages: {
 			info: {
-				text: "This is the info area. Here is information about genres, albums and artists displayed.",
+				text: "This is the information area. Here is information about genres, albums and artists displayed.",
 				context: "#info-content",
-				placed: {left: 20, top: 150},
+				placed: {left: 20, top: 60},
 				arrow: 'up',
 				next: "collection",
 				onshow: function () {
 					Magnatune.Info.load('#/about');
 					Magnatune.Navigation.setConfig("name","genre/artist/album");
+					Magnatune.Player.stop();
 				}
 			},
 			collection: {
@@ -2811,10 +2860,30 @@ var Magnatune = {
 				onshow: function () {
 					Magnatune.Navigation.show(true);
 				},
+				next: 'player'
+			},
+			player: {
+				text: "<p>Here you can control music playback.</p>"+
+				      "<p>Per default Magnatune Player will play versions of the songs which contain "+
+				      "spoken text that prompts you to buy a membership. If you are already a "+
+				      "Magnatune stream member you can check the Member-option and enter your "+
+				      "username and password. This setting will become effective for the next "+
+				      "song you play.</p>"+
+				      "<p>Your username and password will never be sent to anyone else than Magnatune "+
+				      "and won't even be cached by the Magnatune Player. However, your browser will "+
+				      "only sign-out of Magnatune when you close the last browser window.</p>",
+				context: "#player",
+				placed: "below",
+				onshow: function () {
+					Magnatune.Player.show(true);
+				},
 				next: 'search_hidden'
 			},
 			search_hidden: {
-				text: "...",
+				text: "<p>Using the search field you can filter the collection. "+
+				      "A search term musst be at least 2 characters long.</p>"+
+				      "<p>You can order the results alphabetically by name or by the release "+
+				      "date of the albums and you can group the results by several different ways.</p>",
 				context: '#search',
 				placed: 'below',
 				onshow: function () {
@@ -2826,7 +2895,7 @@ var Magnatune = {
 				next: 'nav_hidden_sky'
 			},
 			nav_hidden_sky: {
-				text: "...",
+				text: "When you navigate through the results context information is displayed in the information area.",
 				context: "#tree a[href='#/album/Hidden%20Sky']",
 				placed: {left: 200},
 				arrow: 'left',
@@ -2845,7 +2914,7 @@ var Magnatune = {
 				next: 'playlist'
 			},
 			playlist: {
-				text: "...",
+				text: "Using this tabs you can switch between the context information and the playlist.",
 				context: "#playlist-button a",
 				placed: "below",
 				onshow: function () {
@@ -2858,7 +2927,7 @@ var Magnatune = {
 				next: 'dnd_song'
 			},
 			dnd_song: {
-				text: "...",
+				text: "You can drag single songs...",
 				context: "#tree li[data-desc='Maenam']",
 				placed: {left: 200},
 				arrow: 'left',
@@ -2871,7 +2940,7 @@ var Magnatune = {
 				next: 'dnd_album'
 			},
 			dnd_album: {
-				text: "...",
+				text: "...or whole albums from the collection into the playlist.",
 				context: "#tree a[href='#/album/Hidden%20Sky']",
 				placed: {left: 200},
 				arrow: 'left',
@@ -2889,7 +2958,10 @@ var Magnatune = {
 				next: 'select_range'
 			},
 			select_range: {
-				text: "...",
+				text: Magnatune.TouchDevice ?
+					"Touch songs to select them." :
+					"Click to select a single song. "+
+					"Hold <code>Shift</code> and click a second song to select multiple songs.",
 				context: '#playlist > tbody > tr[data-desc="Homage"]',
 				placed: {left: 200},
 				arrow: 'left',
@@ -2902,7 +2974,9 @@ var Magnatune = {
 				next: 'deselect_one'
 			},
 			deselect_one: {
-				text: "...",
+				text: Magnatune.TouchDevice ?
+					"Touch a song a second time to deselect it." :
+					"Hold <code>Ctrl</code> and click to select/deselect single songs.",
 				context: '#playlist > tbody > tr[data-desc="Sukhothai Rain"]',
 				placed: {left: 200},
 				arrow: 'left',
@@ -2915,7 +2989,12 @@ var Magnatune = {
 				next: 'move_selection'
 			},
 			move_selection: {
-				text: "...",
+				text: (Magnatune.TouchDevice ?
+					"Swipe over the selection and drag the songs to mobe them." :
+					"Click into the selection and drag the songs to move them.")+
+					(typeof(localStorage) === "undefined" ? "" :
+						" The playlist is remembered in the local storage of your browser "+
+						"and will be restored the next time you surf to this website."),
 				context: '#playlist > tbody > tr[data-desc="Homage"]',
 				placed: {left: 200},
 				arrow: 'left',
@@ -2925,6 +3004,19 @@ var Magnatune = {
 				onbackward: function () {
 					Magnatune.Playlist.move(2,5,8);
 					Magnatune.Playlist.move(1,2,4);
+				},
+				next: Magnatune.TouchDevice ? null : "play_dblclick"
+			},
+			play_dblclick: {
+				text: "Double-click a song to play it.",
+				context: '#playlist > tbody > tr[data-desc="Homage"]',
+				placed: {left: 200},
+				arrow: 'left',
+				onshow: function () {
+					$(this.context).dblclick();
+				},
+				onbackward: function () {
+					Magnatune.Player.stop();
 				}
 			}
 		},
@@ -3030,7 +3122,7 @@ var Magnatune = {
 				}
 			}
 			else {
-				var distance = 15;
+				var distance = 20;
 				switch (placed) {
 					case "left":
 						if (!arrow_pos) arrow_pos = 'right';
@@ -3058,18 +3150,18 @@ var Magnatune = {
 				}
 			}
 
-			if (left < 0) {
-				left = 0;
+			if (left < 10) {
+				left = 10;
 			}
-			else if (left + el_width > $(window).innerWidth()) {
-				left = $(window).innerWidth() - el_width;
+			else if (left + el_width > $(window).innerWidth() - 10) {
+				left = $(window).innerWidth() - el_width - 10;
 			}
 
-			if (top < 0) {
-				top = 0;
+			if (top < 10) {
+				top = 10;
 			}
-			else if (top + el_height > $(window).innerHeight()) {
-				top = $(window).innerHeight() - el_height;
+			else if (top + el_height > $(window).innerHeight() - 10) {
+				top = $(window).innerHeight() - el_height - 10;
 			}
 
 			element.style.left = left+'px';
@@ -3108,7 +3200,7 @@ var Magnatune = {
 					var element = this._render(next,{previous:true});
 					$(this.element).remove();
 					this.element = element;
-					element.style.visibility = "";	
+					element.style.visibility = "";
 					this.history.push(page.next);
 				}
 				else {
@@ -3147,7 +3239,7 @@ var Magnatune = {
 			var element = this._render(page,{previous:this.history.length > 0});
 			$(this.element).remove();
 			this.element = element;
-			element.style.visibility = "";	
+			element.style.visibility = "";
 			this.history.push(pagename);
 		}
 	},
@@ -3288,7 +3380,7 @@ var Magnatune = {
 			Magnatune.Navigation.hide(true);
 		}
 	}
-};
+});
 
 Magnatune.Events.extend(Magnatune.Collection);
 
@@ -3366,24 +3458,8 @@ $(document).ready(function () {
 	}
 	catch (e) {}
 	
-	var ua = navigator.userAgent.toLowerCase();
-	// got information from jplayer:
-	var noVolume = [
-		/ipad/,
-		/iphone/,
-		/ipod/,
-		/android(?!.*?mobile)/,
-		/android.*?mobile/,
-		/blackberry/,
-		/windows ce/,
-		/webos/,
-		/playbook/
-	];
-	for (var i = 0; i < noVolume.length; ++ i) {
-		if (noVolume[i].test(ua)) {
-			$('#volume-button').hide();
-			break;
-		}
+	if (!Magnatune.VolumeControl) {
+		$('#volume-button').hide();
 	}
 
 	function move_seek_tooltip (x, time) {
