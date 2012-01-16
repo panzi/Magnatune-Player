@@ -994,7 +994,7 @@ $.extend(Magnatune, {
 					install+
 					'</div>'+
 					'<p>This is a proof of concept interface to <a href="http://magnatune.com/">magnatune.com</a> '+
-					'that is organized like a music player, written by Mathias Panzenb&ouml;ck. It uses the '+
+					'that is organized like a music player. It uses the '+
 					'<a href="http://www.sqlite.org/">SQLite</a> export from the '+
 					'<a href="http://magnatune.com/info/api">Magnatune API</a> and the '+
 					'<a href="http://dev.w3.org/html5/spec/the-audio-element.html">HTML5 Audio Element</a>. '+
