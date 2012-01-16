@@ -2864,7 +2864,7 @@ $.extend(Magnatune, {
 			},
 			player: {
 				text: "<p>Here you can control music playback.</p>"+
-				      "<p>Per default the songs will contain spoken text that prompts you to buy a "
+				      "<p>Per default the songs will contain spoken text that prompts you to buy a "+
 				      "Magnatune membership. If you are already a member you can check the Member-"+
 				      "option and enter your username and password. This setting will become "+
 				      "effective for the next song you play.</p>"+
