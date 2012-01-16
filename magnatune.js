@@ -2913,7 +2913,7 @@ $.extend(Magnatune, {
 				next: 'playlist'
 			},
 			playlist: {
-				text: "Using this tabs you can switch between the context information and the playlist.",
+				text: "With this tabs you can switch between the context information and the playlist.",
 				context: "#playlist-button a",
 				placed: "below",
 				onshow: function () {
