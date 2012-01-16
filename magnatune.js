@@ -2989,11 +2989,11 @@ $.extend(Magnatune, {
 			},
 			move_selection: {
 				text: (Magnatune.TouchDevice ?
-					"Swipe over the selection and drag the songs to mobe them." :
-					"Click into the selection and drag the songs to move them.")+
+					"<p>Swipe over the selection and drag the songs to mobe them.</p>" :
+					"<p>Click into the selection and drag the songs to move them.</p>")+
 					(typeof(localStorage) === "undefined" ? "" :
-						" The playlist is remembered in the local storage of your browser "+
-						"and will be restored the next time you surf to this website."),
+						"<p>The playlist is remembered in the local storage of your browser "+
+						"and will be restored the next time you surf to this website.</p>"),
 				context: '#playlist > tbody > tr[data-desc="Homage"]',
 				placed: {left: 200},
 				arrow: 'left',
