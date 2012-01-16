@@ -2864,13 +2864,12 @@ $.extend(Magnatune, {
 			},
 			player: {
 				text: "<p>Here you can control music playback.</p>"+
-				      "<p>Per default Magnatune Player will play versions of the songs which contain "+
-				      "spoken text that prompts you to buy a membership. If you are already a "+
-				      "Magnatune stream member you can check the Member-option and enter your "+
-				      "username and password. This setting will become effective for the next "+
-				      "song you play.</p>"+
+				      "<p>Per default the songs will contain spoken text that prompts you to buy a "
+				      "Magnatune membership. If you are already a member you can check the Member-"+
+				      "option and enter your username and password. This setting will become "+
+				      "effective for the next song you play.</p>"+
 				      "<p>Your username and password will never be sent to anyone else than Magnatune "+
-				      "and won't even be cached by the Magnatune Player. However, your browser will "+
+				      "and won't even be cached by this website. However, your browser will "+
 				      "only sign-out of Magnatune when you close the last browser window.</p>",
 				context: "#player",
 				placed: "below",
