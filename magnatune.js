@@ -3071,9 +3071,11 @@ $.extend(Magnatune, {
 						'\u00d7'),
 					content,
 					tag('div',{'class':'tour-page-buttons'},
-						tag('a',{'class':opts.previous ? 'button' : 'button disabled',
-							href:'javascript:Magnatune.Tour.previous();void(0)'},
-							'\u00ab Previous'),
+						opts.previous ?
+							tag('a',{'class':'button',
+								href:'javascript:Magnatune.Tour.previous();void(0)'},
+								'\u00ab Previous') :
+							null,
 						page.next ?
 							tag('a',{'class':'button',
 								href:'javascript:Magnatune.Tour.next();void(0)'},
