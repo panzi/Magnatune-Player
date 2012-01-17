@@ -3001,7 +3001,7 @@ $.extend(Magnatune, {
 			},
 			move_selection: {
 				text: (Magnatune.TouchDevice ?
-					"<p>Swipe over the selection and drag the songs to mobe them.</p>" :
+					"<p>Swipe over the selection and drag the songs to move them.</p>" :
 					"<p>Click into the selection and drag the songs to move them.</p>")+
 					(typeof(localStorage) === "undefined" ? "" :
 						"<p>The playlist is remembered in the local storage of your browser "+
@@ -3024,6 +3024,7 @@ $.extend(Magnatune, {
 				placed: {left: 200},
 				arrow: 'left',
 				onshow: function () {
+					$(this.context).click();
 					$(this.context).dblclick();
 				},
 				onbackward: function () {
