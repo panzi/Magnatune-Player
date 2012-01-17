@@ -3004,7 +3004,9 @@ $.extend(Magnatune, {
 			},
 			move_selection: {
 				text: (Magnatune.TouchDevice ?
-					"<p>Swipe over the selection and drag the songs to move them.</p>" :
+					"<p>Swipe over the selection and drag the songs to move them. "+
+					"Note that you may do all this only with one finger, so you can "+
+					"still scroll and zoom using two fingers.</p>" :
 					"<p>Click into the selection and drag the songs to move them.</p>")+
 					(typeof(localStorage) === "undefined" ? "" :
 						"<p>The playlist is remembered in the local storage of your browser "+
