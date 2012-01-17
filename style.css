@@ -512,9 +512,15 @@ li.active {
 	white-space: nowrap;
 }
 
+.tab-content .album ul.genres {
+	list-style: none;
+	padding: 0;
+}
+
+.tab-content .album ul.genres li,
 #breadcrumbs li,
 #tabs li {
-	display: inline-block;
+	display: inline;
 }
 
 #about {
@@ -530,8 +536,13 @@ li.active {
 	margin-right: 0.5em;
 }
 
+.tab-content .album ul.genres li.first:before,
 #breadcrumbs li.first:before {
 	content: "";
+}
+
+.tab-content .album ul.genres li:before {
+	content: ", ";
 }
 
 #playlist {
@@ -956,8 +967,8 @@ a.button {
 	color: #5A6A8B;
 }
 
-.tab-content .album .launchdate {
-	margin-bottom: 15px;
+.tab-content .album .genres {
+	margin: 0 0 15px 0;
 }
 
 .tab-content button,

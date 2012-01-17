@@ -1069,11 +1069,11 @@ $.extend(Magnatune, {
 									href:'javascript:'+encodeURIComponent('Magnatune.Playlist.enqueue(['+
 										JSON.stringify(song)+']);void(0)')},'+'))));
 						}
-						var genres = $(tag('ul'));
+						var genres = $(tag('ul',{'class':'genres'}));
 						for (var i = 0; i < album.genres.length; ++ i) {
 							var genre = album.genres[i].genre;
-							genres.append(tag('li', tag('a',
-								{href:'#/genre/'+encodeURIComponent(genre)}, genre)));
+							genres.append(tag('li', i === 0 ? {'class':'first'} : null,
+								tag('a', {href:'#/genre/'+encodeURIComponent(genre)}, genre)));
 						}
 						var also = [];
 						for (var i = 0; i < data.body.also.length; ++ i) {
@@ -1091,6 +1091,7 @@ $.extend(Magnatune, {
 								target:'_blank'},
 								album.albumname)),
 							tag('div',{'class':'launchdate'}, launchdate.toLocaleDateString()),
+							genres,
 							tag('table',
 								tag('tbody',
 									tag('tr',
@@ -1159,8 +1160,6 @@ $.extend(Magnatune, {
 										tag('th','Duration'),
 										tag('th',''))),
 								songs),
-							tag('h3','Genres'),
-							genres,
 							tag('div',{'class':'also'},
 								tag('h3','Related Albums'),
 								Magnatune.Info._albumsTable(also)));
@@ -2943,6 +2942,7 @@ $.extend(Magnatune, {
 				placed: {left: 200},
 				arrow: 'left',
 				onshow: function () {
+					if (!Magnatune.Playlist.visible()) window.location = '#/playlist';
 					Magnatune.Playlist.replace([$(this.context).dataset()]);
 				},
 				onbackward: function () {
@@ -2955,6 +2955,10 @@ $.extend(Magnatune, {
 				context: "#tree a[href='#/album/Hidden%20Sky']",
 				placed: {left: 200},
 				arrow: 'left',
+				onshow: function () {
+					if (!Magnatune.Playlist.visible()) window.location = '#/playlist';
+					Magnatune.Playlist.selectNone();
+				},
 				onforward: function () {
 					Magnatune.Collection.withSongs("Hidden Sky", function (album) {
 						for (var i = 0; i < album.songs.length; ++ i) {
@@ -2977,10 +2981,9 @@ $.extend(Magnatune, {
 				placed: {left: 200},
 				arrow: 'left',
 				onshow: function () {
+					if (!Magnatune.Playlist.visible()) window.location = '#/playlist';
+					Magnatune.Playlist.selectNone();
 					Magnatune.Playlist.addSelection(3,8);
-				},
-				onbackward: function () {
-					Magnatune.Playlist.removeSelection(3,8);
 				},
 				next: 'deselect_one'
 			},
@@ -2992,10 +2995,10 @@ $.extend(Magnatune, {
 				placed: {left: 200},
 				arrow: 'left',
 				onshow: function () {
+					if (!Magnatune.Playlist.visible()) window.location = '#/playlist';
+					Magnatune.Playlist.selectNone();
+					Magnatune.Playlist.addSelection(3,8);
 					Magnatune.Playlist.removeSelection(4);
-				},
-				onbackward: function () {
-					Magnatune.Playlist.addSelection(4);
 				},
 				next: 'move_selection'
 			},
@@ -3010,6 +3013,12 @@ $.extend(Magnatune, {
 				placed: {left: 200},
 				arrow: 'left',
 				onshow: function () {
+					if (!Magnatune.Playlist.visible()) window.location = '#/playlist';
+				},
+				onforward: function () {
+					Magnatune.Playlist.selectNone();
+					Magnatune.Playlist.addSelection(3,8);
+					Magnatune.Playlist.removeSelection(4);
 					Magnatune.Playlist.moveSelected(0);
 				},
 				onbackward: function () {
@@ -3024,11 +3033,13 @@ $.extend(Magnatune, {
 				placed: {left: 200},
 				arrow: 'left',
 				onshow: function () {
-					$(this.context).click();
-					$(this.context).dblclick();
+					if (!Magnatune.Playlist.visible()) window.location = '#/playlist';
+					$(this.context).click().dblclick();
 				},
 				onbackward: function () {
 					Magnatune.Player.stop();
+					Magnatune.Playlist.selectNone();
+					Magnatune.Playlist.addSelection(1,5);
 				}
 			}
 		},
@@ -3102,6 +3113,17 @@ $.extend(Magnatune, {
 
 			var placed = page.placed || "below";
 			var context = $(page.context||"body");
+
+			var context_el = context[0];
+			if (context_el) {
+				if (context_el.scrollIntoViewIfNeeded) {
+					context_el.scrollIntoViewIfNeeded();
+				}
+				else if (context_el.scrollIntoView) {
+					context_el.scrollIntoView();
+				}
+			}
+
 			var ctx_pos = context.offset();
 			var ctx_width  = context.outerWidth();
 			var ctx_height = context.outerHeight();
