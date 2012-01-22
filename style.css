@@ -547,7 +547,11 @@ li.active {
 
 #playlist {
 	width: 100%;
+}
+
+.playlist {
 	white-space: nowrap;
+	border-spacing: 0;
 }
 
 .dragged,
@@ -786,7 +790,7 @@ code,
 
 .about-float,
 .artist img.bandphoto,
-.album  img.cover {
+.album  img.cover.big {
 	float: right;
 	margin-left: 10px;
 	margin-bottom: 10px;
@@ -873,6 +877,10 @@ table.albums .cover,
 	height: 50px;
 }
 
+table.albums {
+	border-spacing: 2px 5px;
+}
+
 table.albums tr td {
 	height: 50px;
 }
@@ -949,7 +957,7 @@ a.button {
 	position: absolute;
 	top: 0px;
 	right: -260px;
-	width: 260px;
+	width: 250px;
 	padding-bottom: 10px;
 }
 

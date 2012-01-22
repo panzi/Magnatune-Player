@@ -1112,7 +1112,7 @@ $.extend(Magnatune, {
 													height:'31',
 													title:'This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 1.0 Generic License',
 													src:'http://i.creativecommons.org/l/by-nc-sa/1.0/88x31.png'})))))),
-							tag('img', {'class':'cover',
+							tag('img', {'class':'cover big',
 								src: 'http://he3.magnatune.com/music/'+
 									encodeURIComponent(artist.artist)+'/'+
 									encodeURIComponent(album.albumname)+'/cover_300.jpg',
