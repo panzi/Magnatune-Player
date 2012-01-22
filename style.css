@@ -1001,6 +1001,11 @@ a.button {
 	background: #67758C;
 }
 
+button:active img,
+.button:active img {
+	margin: 1px -1px -1px 1px;
+}
+
 button.toggled:hover,
 input[type="submit"].toggled:hover,
 input[type="button"].toggled:hover,
