@@ -917,10 +917,10 @@ $.extend(Magnatune, {
 		update: function (hash,breadcrumbs,content,keeptab) {
 			var list = $('#breadcrumbs');
 			list.empty();
+			list.append(tag('li', {'class':'first'}, tag('a', {href:'#/about'}, 'Home')));
 			for (var i = 0; i < breadcrumbs.length; ++ i) {
 				var el = breadcrumbs[i];
-				list.append(tag('li', i === 0 ? {'class':'first'} : null,
-					tag('a', {href:el.href}, el.text)));
+				list.append(tag('li', tag('a', {href:el.href}, el.text)));
 			}
 			$('#info-button a').attr('href', hash);
 			var info = $("#info-content");
@@ -981,7 +981,6 @@ $.extend(Magnatune, {
 			},
 			about: function (opts) {
 				// TODO: don't inline this HTML
-				var breadcrumbs = [{href:'#/about',text:'About'}];
 				var page = tag('div',{'class':'about'});
 				var install = '';
 				if (window.chrome && window.chrome.app) {
@@ -1015,7 +1014,7 @@ $.extend(Magnatune, {
 					'GNU GPL version 2 or later</p>'+
 					'<p>This is free software; you are free to change and redistribute it.<br/>'+
 					'There is NO WARRANTY, to the extent permitted by law.</p>');
-				Magnatune.Info.update('#/about',breadcrumbs,page,opts.keeptab);
+				Magnatune.Info.update('#/about',[],page,opts.keeptab);
 			},
 			genre: function (opts) {
 				var hash = '#/genre/'+encodeURIComponent(opts.id);
