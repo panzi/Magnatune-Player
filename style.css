@@ -594,6 +594,7 @@ li.active {
 	width: 4em;
 }
 
+.playlist td.play,
 .playlist td.remove {
 	width: 1em;
 }
