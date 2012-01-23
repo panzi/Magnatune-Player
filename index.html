@@ -41,7 +41,7 @@
 				<input id="member" type="checkbox" autocomplete="off"/>
 				<label for="member">Member</label>
 			</div>
-			<form action="javascript:Magnatune.login();void(0)" id="credentials" class="popup-menu"
+			<form action="javascript:Magnatune.login();void(0)" id="credentials" class="popup-menu popup-form"
 					data-button="member-container" data-hide-action="Magnatune.Player.cancelCredentials();" style="display:none;">
 				<div class="text-input-container">
 					<input id="username" type="text" placeholder="Username" title="Enter your username"/>
@@ -130,11 +130,29 @@
 
 			<div id="playlist-container" style="display:none;" class="tab">
 				<div class="tab-head">
-					<a class="button" href="javascript:Magnatune.Playlist.clear();void(0)"><img src="clear.png" title="Clear Playlist" alt="Clear Playlist"/></a>
-					<a class="button" href="javascript:Magnatune.Playlist.removeSelected();void(0)"><img src="remove.png" title="Remove Selected" alt="Remove Selected"/></a>
-					<a class="button" href="javascript:Magnatune.Playlist.toggleSelectAll();void(0)"><img src="all-none.png" title="Select All/None" alt="Select All/None"/></a>
-					<a id="show-current" class="button" href="javascript:Magnatune.Playlist.showCurrent();void(0)"><img src="current.png" title="Show Active Track" alt="Show Active Track"/></a>
-					<a class="button" href="javascript:Magnatune.Playlist.randomAlbum();void(0)"><img src="random.png" title="Play Random Album" alt="Play Random Album"/></a>
+					<a class="button" href="javascript:Magnatune.Playlist.clear();void(0)" title="Clear Playlist"><img src="clear.png" alt="Clear Playlist"/></a>
+					<a class="button" href="javascript:Magnatune.Playlist.removeSelected();void(0)" title="Remove Selected"><img src="remove.png" alt="Remove Selected"/></a>
+					<a class="button" href="javascript:Magnatune.Playlist.toggleSelectAll();void(0)" title="Select All/None"><img src="all-none.png" alt="Select All/None"/></a>
+					<a id="show-current" class="button" href="javascript:Magnatune.Playlist.showCurrent();void(0)" title="Show Active Track"><img src="current.png" alt="Show Active Track"/></a>
+					<a class="button" href="javascript:Magnatune.Playlist.randomAlbum();void(0)" title="Play Random Album"><img src="random.png" alt="Play Random Album"/></a>
+
+					<span id="playlists-controls">
+						<a class="button" id="playlists-button" href="javascript:Magnatune.Playlist.togglePlaylistMenu();void(0)" title="Select Playlist">Select Playlist</a>
+						<table id="playlists-menu" class="popup-menu pulldown-menu" data-button="playlists-button" style="display:none;">
+							<tbody>
+								<tr class="first last"><td><span class="empty">(No Saved Playlists)</span></td></tr>
+							</tbody>
+						</table>
+						<a class="button" id="save-button" href="javascript:Magnatune.Playlist.toggleSaveDialog();void(0)" title="Save Playlist..."><img src="save.png" alt="Save Playlist..."/></a>
+						<form action="javascript:Magnatune.Playlist.dialogSave();void(0)" id="save-popup" class="popup-menu popup-form" data-button="save-button" style="display:none;">
+							<div class="text-input-container">
+								<input id="save-playlist-name" type="text" placeholder="Playlist Name" title="Enter name of new playlist"/>
+							</div>
+							<div class="popup-buttons">
+								<input type="submit" value="Save"/>
+							</div>
+						</form>
+					</span>
 				</div>
 				<div class="tab-content">
 					<table class="playlist" id="playlist">

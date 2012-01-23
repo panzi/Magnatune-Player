@@ -401,16 +401,16 @@ li.active {
 	cursor: pointer;
 }
 
-#credentials {
+.popup-form {
 	padding: 10px;
 }
 
-#credentials .text-input-container {
+.popup-form .text-input-container {
 	margin: 0;
 	margin-bottom: 10px;
 }
 
-#credentials .popup-buttons {
+.popup-form .popup-buttons {
 	min-height: 16px;
 }
 
@@ -472,19 +472,47 @@ li.active {
 	overflow: hidden;
 }
 
+.pulldown-menu .empty,
 .pulldown-menu a {
 	display: block;
 	padding: 5px;
 }
 
-.pulldown-menu li.first a {
+.pulldown-menu .first a {
 	border-top-left-radius: 10px;
 	border-top-right-radius: 10px;
 }
 
-.pulldown-menu li.last a {
+.pulldown-menu tr.first td.load a {
+	border-top-right-radius: 0px;
+}
+
+.pulldown-menu tr.first td.remove a {
+	border-top-left-radius: 0px;
+}
+
+.pulldown-menu .last a {
 	border-bottom-left-radius: 10px;
 	border-bottom-right-radius: 10px;
+}
+
+.pulldown-menu tr.last td.load a {
+	border-bottom-right-radius: 0px;
+}
+
+.pulldown-menu tr.last td.remove a {
+	border-bottom-left-radius: 0px;
+}
+
+table.pulldown-menu {
+	border-spacing: 0;
+	padding: 0;
+}
+
+table.pulldown-menu tr,
+table.pulldown-menu td {
+	padding: 0;
+	margin: 0;
 }
 
 #tabs {
@@ -1142,4 +1170,13 @@ td.embed-config {
 
 .tour-right-arrow {
 	background-image: url("tour-right-arrow.png");
+}
+
+#playlists-button {
+	width: 150px;
+	overflow: hidden;
+}
+
+#playlists-controls {
+	margin-left: 40px;
 }

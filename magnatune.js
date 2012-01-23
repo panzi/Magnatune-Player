@@ -752,15 +752,16 @@ $.extend(Magnatune, {
 				control.hide();
 			}
 			else {
-				var element = control[0];
-				var button = $('#volume-button')[0];
+				var element = control;
+				var button = $('#volume-button');
+				var pos = button.position();
 				control.css({
 					visibility: 'hidden',
 					display: ''
 				});
 				control.css({
-					left: Math.round(button.offsetLeft+(button.offsetWidth-element.offsetWidth)*0.5)+'px',
-					top: (button.offsetTop+button.offsetHeight)+'px',
+					left: Math.round(pos.left+(button.outerWidth()-element.outerWidth())*0.5)+'px',
+					top: (pos.top+button.outerHeight())+'px',
 					visibility: ''
 				});
 			}
@@ -965,8 +966,11 @@ $.extend(Magnatune, {
 			}
 		},
 		Pages: {
-			playlist: function () {
+			playlist: function (opts) {
 				// pseudopage
+				if (opts.id) {
+					Magnatune.Playlist.load(opts.id);
+				}
 				Magnatune.Playlist.show();
 			},
 			info: function () {
@@ -1231,6 +1235,155 @@ $.extend(Magnatune, {
 		},
 		visible: function () {
 			return $('#playlist').is(':visible');
+		},
+		showPlaylistMenu: function () {
+			var menu = $('#playlists-menu');
+			var button = $('#playlists-button');
+			var pos = button.position();
+			menu.css({
+				visibility: 'hidden',
+				display: ''
+			});
+			menu.css({
+				left: pos.left+'px',
+				top: (pos.top+button.outerHeight())+'px',
+				visibility: ''
+			});
+		},
+		hidePlaylistMenu: function () {
+			$('#playlists-menu').hide();
+		},
+		togglePlaylistMenu: function () {
+			if ($('#playlists-menu').is(':visible')) {
+				this.hidePlaylistMenu();
+			}
+			else {
+				this.showPlaylistMenu();
+			}
+		},
+		showSaveDialog: function () {
+			var popup = $('#save-popup');
+			var button = $('#save-button');
+			var pos = button.position();
+			$('#save-playlist-name').val('');
+			popup.css({
+				visibility: 'hidden',
+				display: ''
+			});
+			popup.css({
+				left: pos.left+'px',
+				top: (pos.top+button.outerHeight())+'px',
+				visibility: ''
+			});
+		},
+		hideSaveDialog: function () {
+			$('#save-popup').hide();
+		},
+		toggleSaveDialog: function () {
+			if ($('#save-popup').is(':visible')) {
+				this.hideSaveDialog();
+			}
+			else {
+				this.showSaveDialog();
+			}
+		},
+		dialogSave: function () {
+			var name = $('#save-playlist-name').val().trim();
+
+			if (!name) {
+				alert("Please enter a name.");
+				return;
+			}
+						
+			if (name in this._getSavedPlaylists() && !confirm("A playlist with the name \u00bb"+name+"\u00ab already exists. Do you want to overwrite it?")) {
+				return;
+			}
+			
+			this.hideSaveDialog();
+			this.save(name);
+			$('#save-playlist-name').val('');
+		},
+		save: function (name) {
+			if (typeof(localStorage) !== "undefined") {
+				var playlists = this._getSavedPlaylists();
+				playlists[name] = this.songs();
+				this._loadPlaylistMenu(playlists,name);
+				localStorage.setItem('playlist.saved', JSON.stringify(playlists));
+			}
+		},
+		load: function (name) {
+			var playlist = this._getSavedPlaylists()[name];
+			if (playlist) {
+				this.replace(playlist);
+			}
+		},
+		removePlaylist: function (name) {
+			if (typeof(localStorage) !== "undefined") {
+				var playlists = Magnatune.Playlist._getSavedPlaylists();
+				delete playlists[name];
+				Magnatune.Playlist._loadPlaylistMenu(playlists,name);
+				localStorage.setItem('playlist.saved', JSON.stringify(playlists));
+			}
+		},
+		_getSavedPlaylists: function () {
+			if (typeof(localStorage) !== "undefined") {
+				var playlists = localStorage.getItem('playlist.saved');
+				if (typeof(playlists) === "string") {
+					try {
+						return JSON.parse(playlists);
+					}
+					catch (e) {
+						console.error(e);
+						return {};
+					}
+				}
+			}
+			return {};
+		},
+		loadPlaylistMenu: function () {
+			this._loadPlaylistMenu(this._getSavedPlaylists());
+		},
+		_loadPlaylistMenu: function (playlists) {
+			var names = [];
+			for (var name in playlists) {
+				names.push(name);
+			}
+			names.sort();
+
+			var menu = $('#playlists-menu > tbody');
+			menu.empty();
+
+			if (names.length === 0) {
+				menu.append(tag('tr',{'class':'first last'},tag('td',tag('span',{'class':'empty'},'(No Saved Playlists)'))));
+			}
+			else {
+				for (var i = 0; i < names.length; ++ i) {
+					var name = names[i];
+					var attrs = {};
+					var classes = [];
+
+					if (i === 0) {
+						classes.push('first');
+					}
+					if (i + 1 === names.length) {
+						classes.push('last');
+					}
+					if (classes.length > 0) {
+						attrs['class'] = classes.join(' ');
+					}
+
+					menu.append(tag('tr',attrs,
+						tag('td',{'class':'load'},
+							tag('a',{
+								href:'#/playlist/'+encodeURIComponent(name),
+								onclick:'Magnatune.Playlist.hidePlaylistMenu();'}, name)),
+						tag('td',{'class':'remove'},
+							tag('a',{href:'javascript:void(0)',
+							         title:'Remove Playlist',
+							         onclick:Magnatune.Playlist.removePlaylist.bind(Magnatune.Playlist,name)},
+								'\u00d7'))));
+				}
+			}
 		},
 		toggleSelectAll: function () {
 			if ($("#playlist > tbody > tr.selected").length > 0) {
@@ -2526,15 +2679,16 @@ $.extend(Magnatune, {
 		},
 		showModeSelect: function () {
 			var mode = $('#tree-mode-select');
-			var button = $('#tree-mode-button')[0];
+			var button = $('#tree-mode-button');
+			var pos = button.position();
 			mode.css({
 				visibility: 'hidden',
 				display: ''
 			});
 			mode.css({
 				visibility: '',
-				left: (button.offsetLeft)+'px',
-				top: (button.offsetTop+button.offsetHeight)+'px'
+				left: pos.left+'px',
+				top: (pos.top+button.outerHeight())+'px'
 			});
 		},
 		hideModeSelect: function () {
@@ -2550,15 +2704,16 @@ $.extend(Magnatune, {
 		},
 		showOrderSelect: function () {
 			var order = $('#tree-order-select');
-			var button = $('#tree-order-button')[0];
+			var button = $('#tree-order-button');
+			var pos = button.position();
 			order.css({
 				visibility: 'hidden',
 				display: ''
 			});
 			order.css({
 				visibility: '',
-				left: (button.offsetLeft)+'px',
-				top: (button.offsetTop+button.offsetHeight)+'px'
+				left: pos.left+'px',
+				top: (pos.top+button.outerHeight())+'px'
 			});
 		},
 		hideOrderSelect: function () {
@@ -3421,6 +3576,8 @@ $.extend(Magnatune, {
 		else if (navigationVisible === false) {
 			Magnatune.Navigation.hide(true);
 		}
+
+		Magnatune.Playlist.loadPlaylistMenu();
 	}
 });
 
@@ -3595,6 +3752,9 @@ $(document).ready(function () {
 			return handler;
 		}
 	});
+	if (typeof(localStorage) === "undefined") {
+		$('#playlists-controls').hide();
+	}
 	Magnatune.Collection.on('ready', function () {
 		Magnatune.load();
 	});
