@@ -1292,11 +1292,11 @@ $.extend(Magnatune, {
 		},
 		exportAsMp3: function () {
 			this.hideExportMenu();
-			window.location = "data:audio/x-mpegurl;charset=utf-8;base64,"+$.base64Encode(this.export("mp3"));
+			window.open("data:audio/x-mpegurl;charset=utf-8;base64,"+$.base64Encode(this.export("mp3")),"Playlist.m3u");
 		},
 		exportAsOgg: function () {
 			this.hideExportMenu();
-			window.location = "data:audio/x-mpegurl;charset=utf-8;base64,"+$.base64Encode(this.export("ogg"));
+			window.open("data:audio/x-mpegurl;charset=utf-8;base64,"+$.base64Encode(this.export("ogg")),"Playlist.m3u");
 		},
 		showPlaylistMenu: function () {
 			var menu = $('#playlists-menu');
