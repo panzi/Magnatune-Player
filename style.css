@@ -1172,11 +1172,6 @@ td.embed-config {
 	background-image: url("tour-right-arrow.png");
 }
 
-#playlists-button {
-	width: 150px;
-	overflow: hidden;
-}
-
 #playlists-controls {
 	margin-left: 40px;
 }
