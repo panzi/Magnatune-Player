@@ -42,6 +42,15 @@ $.format = function (fmt, args) {
 	});
 };
 
+// inspired by:
+// http://farhadi.ir/posts/utf8-in-javascript-with-a-new-trick
+$.base64Encode = function (input) {
+	return btoa(unescape(encodeURIComponent(input)));
+};
+$.base64Decode = function (input) {
+	return decodeURIComponent(escape(atob(input)));
+};
+
 var tag = (function ($) {
 	var add = function (element, arg) {
 		var type = typeof(arg);
@@ -1235,6 +1244,59 @@ $.extend(Magnatune, {
 		},
 		visible: function () {
 			return $('#playlist').is(':visible');
+		},
+		showExportMenu: function () {
+			var menu = $('#export-menu');
+			var button = $('#export-button');
+			var pos = button.position();
+			menu.css({
+				visibility: 'hidden',
+				display: ''
+			});
+			menu.css({
+				left: pos.left+'px',
+				top: (pos.top+button.outerHeight())+'px',
+				visibility: ''
+			});
+		},
+		hideExportMenu: function () {
+			$('#export-menu').hide();
+		},
+		toggleExportMenu: function () {
+			if ($('#export-menu').is(':visible')) {
+				this.hideExportMenu();
+			}
+			else {
+				this.showExportMenu();
+			}
+		},
+		export: function (format) {
+			var songs = this.songs();
+			var buf = ["#EXTM3U\n"];
+			var prefix = "http://he3.magnatune.com/all/";
+			var get_file;
+			switch (String(format).toLowerCase()) {
+				case "mp3": get_file = encodeURIComponent; break;
+				case "ogg": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'.ogg')); }; break;
+				default: throw new Error("Illegal format: "+format);
+			}
+			
+			for (var i = 0; i < songs.length; ++ i) {
+				var song = songs[i];
+				var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
+				buf.push("#EXTINF:"+song.duration+","+artist.replace(/\s*[-:\n]+\s*/g,' ')+" - "+song.desc.replace(/\n/g," ")+"\n");
+				buf.push(prefix+get_file(song.mp3)+"\n");
+			}
+
+			return buf.join("");
+		},
+		exportAsMp3: function () {
+			this.hideExportMenu();
+			window.location = "data:audio/x-mpegurl;charset=utf-8;base64,"+$.base64Encode(this.export("mp3"));
+		},
+		exportAsOgg: function () {
+			this.hideExportMenu();
+			window.location = "data:audio/x-mpegurl;charset=utf-8;base64,"+$.base64Encode(this.export("ogg"));
 		},
 		showPlaylistMenu: function () {
 			var menu = $('#playlists-menu');
@@ -3754,6 +3816,9 @@ $(document).ready(function () {
 	});
 	if (typeof(localStorage) === "undefined") {
 		$('#playlists-controls').hide();
+	}
+	if (typeof(btoa) === "undefined") {
+		$("#export-button").hide();
 	}
 	Magnatune.Collection.on('ready', function () {
 		Magnatune.load();
