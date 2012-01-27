@@ -3892,11 +3892,13 @@ $(document).ready(function () {
 });
 
 // IE
-$(document).on('selectstart', function (event) {
-	if (Magnatune.DnD.handler) {
-		event.preventDefault();
-	}
-});
+if ($.browser.msie) {
+	$(document).on('selectstart dragstart', function (event) {
+		if (Magnatune.DnD.handler) {
+			event.preventDefault();
+		}
+	});
+}
 
 $(document).on('click touchend touchcancel', function (event) {
 	var menus = $('.popup-menu');
