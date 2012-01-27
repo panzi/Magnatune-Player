@@ -431,7 +431,7 @@ $.extend(Magnatune, {
 			return this._song;
 		},
 		duration: function () {
-			var duration = this.audio.duration;
+			var duration = this.audio ? this.audio.duration : NaN;
 			if ((isNaN(duration) || duration === Infinity) && this._song) {
 				duration = this._song.duration;
 			}
@@ -1270,7 +1270,7 @@ $.extend(Magnatune, {
 				this.showExportMenu();
 			}
 		},
-		export: function (format) {
+		exportM3u: function (format) {
 			var songs = this.songs();
 			var buf = ["#EXTM3U\n"];
 			var prefix = "http://he3.magnatune.com/all/";
@@ -1292,11 +1292,11 @@ $.extend(Magnatune, {
 		},
 		exportAsMp3: function () {
 			this.hideExportMenu();
-			window.open("data:audio/x-mpegurl;charset=utf-8;base64,"+$.base64Encode(this.export("mp3")),"Playlist.m3u");
+			window.open("data:audio/x-mpegurl;charset=utf-8;base64,"+$.base64Encode(this.exportM3u("mp3")),"Playlist.m3u");
 		},
 		exportAsOgg: function () {
 			this.hideExportMenu();
-			window.open("data:audio/x-mpegurl;charset=utf-8;base64,"+$.base64Encode(this.export("ogg")),"Playlist.m3u");
+			window.open("data:audio/x-mpegurl;charset=utf-8;base64,"+$.base64Encode(this.exportM3u("ogg")),"Playlist.m3u");
 		},
 		showPlaylistMenu: function () {
 			var menu = $('#playlists-menu');
@@ -1633,40 +1633,64 @@ $.extend(Magnatune, {
 			var x = event.pageX;
 			if (!Magnatune.TouchDevice && (track = $(event.target).closest('tr')) && track.parent().parent().is(playlist)) {
 				// on browsers that support "pointer-events: none"
-				var track_pos = track.offset();
-				var track_height = track.height();
-				if (y > (track_pos.top + track_height * 0.5)) {
-					before = false;
+				if (track.parent().is("thead")) {
+					var first_track = tbody.find("> tr:first");
+					if (first_track.length === 0) {
+						before = false;
+					}
+					else {
+						before = true;
+						track = first_track;
+					}
 				}
 				else {
-					var prev = track.prev();
-					if (prev.length > 0) {
+					var track_pos = track.offset();
+					var track_height = track.outerHeight();
+					if (y > (track_pos.top + track_height * 0.5)) {
 						before = false;
-						track = prev;
+					}
+					else {
+						var prev = track.prev();
+						if (prev.length > 0) {
+							before = false;
+							track = prev;
+						}
+						else {
+							before = true;
+						}
+					}
+				}
+			}
+			else if (x < pos.left || x > (pos.left + playlist.outerWidth()) || !$('#playlist-container').is(':visible')) {
+				track = $();
+			}
+			else if (y <= pos.top) {
+				var tab_content = $('#playlist-container .tab-content:first');
+				if (y < tab_content.offset().top) {
+					track = $();
+				}
+				else {
+					track = tbody.find('> tr:first');
+					if (track.length === 0) {
+						track = playlist.find('> thead > tr');
+						before = false;
 					}
 					else {
 						before = true;
 					}
 				}
 			}
-			else if (x < pos.left || x > (pos.left + tbody.width()) || !$('#playlist-container').is(':visible')) {
-				track = $();
-			}
-			else if (y <= pos.top) {
-				track = tbody.find('> tr:first');
-				if (track.length === 0) {
-					track = playlist.find('> thead > tr');
-					before = false;
+			else if (y >= (pos.top + tbody.outerHeight())) {
+				var tab_content = $('#playlist-container .tab-content:first');
+				if (y > tab_content.offset().top + tab_content.outerHeight()) {
+					track = $();
 				}
 				else {
-					before = true;
-				}
-			}
-			else if (y >= (pos.top + tbody.height())) {
-				before = false;
-				track = tbody.find('> tr:last');
-				if (track.length === 0) {
-					track = playlist.find('> thead > tr');
+					before = false;
+					track = tbody.find('> tr:last');
+					if (track.length === 0) {
+						track = playlist.find('> thead > tr');
+					}
 				}
 			}
 			else if (Magnatune.TouchDevice || $(event.target).closest('.dragged').length > 0) {
@@ -2874,6 +2898,7 @@ $.extend(Magnatune, {
 		source:  null,
 		handler: null,
 		draggable: function (element, options) {
+			$(element).attr('onselectstart','return false;'); // IE
 			$(element).on(Magnatune.TouchDevice ? 'touchstart' : 'mousedown', function (event) {
 				if (Magnatune.DnD.source) return;
 
@@ -2912,8 +2937,8 @@ $.extend(Magnatune, {
 			element = null;
 		},
 		start: function (event, options) {
-			if (options.visual) {
-				var handler = options.create.call(this,event);
+			var handler = options.create.call(this,event);
+			if (options.visual || (!('visual' in options) && handler.render)) {
 				var offset = $(this).offset();
 				if (handler.render) {
 					Magnatune.DnD.element = $(handler.render.call(this));
@@ -2972,7 +2997,7 @@ $.extend(Magnatune, {
 				};
 			}
 			else {
-				Magnatune.DnD.handler = options.create.call(this,event);
+				Magnatune.DnD.handler = handler;
 			}
 		}
 	},
@@ -3080,7 +3105,7 @@ $.extend(Magnatune, {
 				onshow: function () {
 					Magnatune.Info.load('#/about');
 					Magnatune.Navigation.setConfig("name","genre/artist/album");
-					Magnatune.Player.stop();
+					try { Magnatune.Player.stop(); } catch (e) { console.error(e); }
 				}
 			},
 			collection: {
@@ -3257,7 +3282,7 @@ $.extend(Magnatune, {
 				arrow: 'left',
 				onshow: function () {
 					if (!Magnatune.Playlist.visible()) window.location = '#/playlist';
-					$(this.context).click().dblclick();
+					try { $(this.context).click().dblclick(); } catch (e) { console.error(e); }
 				},
 				onbackward: function () {
 					Magnatune.Player.stop();
@@ -3772,6 +3797,7 @@ $(document).ready(function () {
 			var playing = Magnatune.Player.playing();
 			var handler = {
 				drag: function (event) {
+					if (!Magnatune.Player.audio) return;
 					var container = $(this);
 					var x = event.pageX - container.offset().left;
 					var duration = Magnatune.Player.duration();
@@ -3805,6 +3831,7 @@ $(document).ready(function () {
 		create: function (event) {
 			var handler = {
 				drag: function (event) {
+					if (!Magnatune.Player.audio) return;
 					var height = $(this).height();
 					var y = height - (event.pageY - $(this).offset().top);
 					Magnatune.Player.audio.volume = Math.max(0.0, Math.min(1.0, y / height));
@@ -3862,6 +3889,13 @@ $(document).ready(function () {
 	$(window).on('hashchange',function (event) {
 		Magnatune.showHash();
 	});
+});
+
+// IE
+$(document).on('selectstart', function (event) {
+	if (Magnatune.DnD.handler) {
+		event.preventDefault();
+	}
 });
 
 $(document).on('click touchend touchcancel', function (event) {
