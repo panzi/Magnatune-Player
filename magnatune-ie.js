@@ -37,6 +37,7 @@ if ($.browser.msie && parseInt($.browser.version.split(/\./g)[0],10) < 9) {
 	$.extend(Magnatune.Player, {
 		_ie_time_update_interval: null,
 		_ie_start_playing: function () {
+			this._duration_change();
 			this.hideSpinner();
 			this._playing();
 
@@ -119,7 +120,20 @@ if ($.browser.msie && parseInt($.browser.version.split(/\./g)[0],10) < 9) {
 			this.audio = audio;
 		},
 		duration: function () {
-			return this._song ? this._song.duration : NaN;
+			var duration = NaN;
+			if (this.audio.currentMedia) {
+				try {
+					duration = this.audio.controls.currentItem.duration;
+				}
+				catch (e) {
+					console.error(e);
+				}
+			}
+			if (isNaN(duration) || duration <= 0) {
+				duration = this._song ? this._song.duration : NaN;
+			}
+
+			return duration;
 		},
 		currentTime: function () {
 			return this.audio.controls.currentPosition;

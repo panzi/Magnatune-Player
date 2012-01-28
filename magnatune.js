@@ -503,6 +503,12 @@ $.extend(Magnatune, {
 			$('#volume-bar').css('height', height+'px');
 			$('#volume').text(Math.round(volume * 100)+'%');
 		},
+		_duration_change: function () {
+			var duration = this.duration();
+			var remaining = duration - this.currentTime();
+			$('#time-left').text('-'+tag.time(remaining < 0 ? NaN : remaining));
+			$('#current-duration').text(tag.time(duration));
+		},
 		Handlers: {
 			progress: function (event) {
 				var duration = Magnatune.Player.duration();
@@ -525,10 +531,7 @@ $.extend(Magnatune, {
 				Magnatune.Player._volume_change();
 			},
 			durationchange: function (event) {
-				var duration = Magnatune.Player.duration();
-				var remaining = duration - this.currentTime;
-				$('#time-left').text('-'+tag.time(remaining < 0 ? NaN : remaining));
-				$('#current-duration').text(tag.time(duration));
+				Magnatune.Player._duration_change();
 			},
 			waiting: function (event) {
 				Magnatune.Player.showSpinner();
