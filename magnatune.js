@@ -473,6 +473,38 @@ $.extend(Magnatune, {
 			$('#waiting').hide();
 		},
 		audio: null,
+		_time_update: function (currentTime) {
+			var duration = this.duration();
+			var remaining = duration - currentTime;
+			$('#time-left').text('-'+tag.time(remaining < 0 ? NaN : remaining));
+			$('#current-time').text(tag.time(currentTime));
+			$('#play-progress').css('width',Math.round(
+				$('#play-progress-container').width() * currentTime / duration)+'px');
+		},
+		_playing: function () {
+			$('#play-image').hide();
+			$('#pause-image').show();
+		},
+		_not_playing: function () {
+			$('#play-image').show();
+			$('#pause-image').hide();
+		},
+		_ended: function () {
+			this._not_playing();
+			$('#play-image').show();
+			$('#pause-image').hide();
+			Magnatune.Player.hideSpinner();
+			if (!Magnatune.DnD.seeking) {
+				Magnatune.Playlist.next(true);
+			}
+		},
+		_volume_change: function () {
+			var volume = this.volume();
+			var maxheight = $('#volume-bar-container').height();
+			var height = Math.round(maxheight * volume);
+			$('#volume-bar').css('height', height+'px');
+			$('#volume').text(Math.round(volume * 100)+'%');
+		},
 		Handlers: {
 			progress: function (event) {
 				var duration = Magnatune.Player.duration();
@@ -489,18 +521,10 @@ $.extend(Magnatune, {
 				}
 			},
 			timeupdate: function (event) {
-				var duration = Magnatune.Player.duration();
-				var remaining = duration - this.currentTime;
-				$('#time-left').text('-'+tag.time(remaining < 0 ? NaN : remaining));
-				$('#current-time').text(tag.time(this.currentTime));
-				$('#play-progress').css('width',Math.round(
-					$('#play-progress-container').width() * this.currentTime / duration)+'px');
+				Magnatune.Player._time_update(this.currentTime);
 			},
 			volumechange: function (event) {
-				var maxheight = $('#volume-bar-container').height();
-				var height = Math.round(maxheight * this.volume);
-				$('#volume-bar').css('height', height+'px');
-				$('#volume').text(Math.round(this.volume * 100)+'%');
+				Magnatune.Player._volume_change();
 			},
 			durationchange: function (event) {
 				var duration = Magnatune.Player.duration();
@@ -522,23 +546,16 @@ $.extend(Magnatune, {
 				Magnatune.Player.hideSpinner();
 			},
 			playing: function (event) {
-				$('#play-image').hide();
-				$('#pause-image').show();
+				Magnatune.Player._playing();
 			},
 			emptied: function (event) {
 				Magnatune.Player.hideSpinner();
 			},
 			pause: function (event) {
-				$('#play-image').show();
-				$('#pause-image').hide();
+				Magnatune.Player._not_playing();
 			},
 			ended: function (event) {
-				$('#play-image').show();
-				$('#pause-image').hide();
-				Magnatune.Player.hideSpinner();
-				if (!Magnatune.DnD.seeking) {
-					Magnatune.Playlist.next(true);
-				}
+				Magnatune.Player._ended();
 			}
 		},
 		initAudio: function () {
@@ -576,6 +593,14 @@ $.extend(Magnatune, {
 				this.audio.play();
 			}
 		},
+		_set_sources: function (sources) {
+			for (var i = 0; i < sources.length; ++ i) {
+				this.audio.appendChild(tag('source',sources[i]));
+			}
+		},
+		_prepare_audio: function () {
+			this.initAudio();
+		},
 		_update: function (norewind) {
 			var song = Magnatune.Playlist.current();
 			if (!song && !norewind) {
@@ -585,14 +610,16 @@ $.extend(Magnatune, {
 
 			$('#play-progress').css('width','0px');
 			var buffered = $('#buffer-progress')[0];
-			var ctx = buffered.getContext('2d');
-			ctx.clearRect(0,0,buffered.width,buffered.height);
+			if (buffered.getContext) {
+				var ctx = buffered.getContext('2d');
+				ctx.clearRect(0,0,buffered.width,buffered.height);
+			}
 
 			var currently_playing = $('#currently-playing');
 
 			// Replacing the source child elements did not work for me so I
 			// have to create a new audio element for each play command!
-			this.initAudio();
+			this._prepare_audio();
 			this._song = song;
 
 			if (!song) {
@@ -606,31 +633,29 @@ $.extend(Magnatune, {
 				$('#time-left').text('---:--');
 				$('#current-time').text('--:--');
 				$('#current-duration').text('--:--');
-				$('html > head > title').text('Magnatune Player');
+				document.title = 'Magnatune Player';
 
 				return;
 			}
 
 			var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
 			if (Magnatune.authenticated && this.member()) {
-				this.audio.appendChild(tag('source',{
-					type:'audio/ogg',
-					src:"http://stream.magnatune.com/all/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.ogg'))}));
-				this.audio.appendChild(tag('source',{
-					type:'audio/mp4',
-					src:"http://stream.magnatune.com/music/"+encodeURIComponent(artist)+"/"+
-						encodeURIComponent(song.albumname)+"/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'.m4a'))}));
-				this.audio.appendChild(tag('source',{
-					type:'audio/mpeg;codecs="mp3"',
-					src:"http://stream.magnatune.com/all/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.mp3'))}));
+				this._set_sources([
+					{type:'audio/ogg',src:"http://stream.magnatune.com/all/"+
+						encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.ogg'))},
+					{type:'audio/mp4',src:"http://stream.magnatune.com/music/"+encodeURIComponent(artist)+"/"+
+						encodeURIComponent(song.albumname)+"/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'.m4a'))},
+					{type:'audio/mpeg;codecs="mp3"',src:"http://stream.magnatune.com/all/"+
+						encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.mp3'))}
+				]);
 			}
 			else {
-				this.audio.appendChild(tag('source',{
-					type:'audio/ogg',
-					src:"http://he3.magnatune.com/all/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'.ogg'))}));
-				this.audio.appendChild(tag('source',{
-					type:'audio/mpeg;codecs="mp3"',
-					src:"http://he3.magnatune.com/all/"+encodeURIComponent(song.mp3)}));
+				this._set_sources([
+					{type:'audio/ogg',src:"http://he3.magnatune.com/all/"+
+						encodeURIComponent(song.mp3.replace(/\.mp3$/i,'.ogg'))},
+					{type:'audio/mpeg;codecs="mp3"',src:"http://he3.magnatune.com/all/"+
+						encodeURIComponent(song.mp3)}
+				]);
 			}
 
 			var album_url = '#/album/'+encodeURIComponent(song.albumname);
@@ -642,7 +667,7 @@ $.extend(Magnatune, {
 			$('#time-left').text('-'+tag.time(duration));
 			$('#current-time').text(tag.time(0));
 			$('#current-duration').text(tag.time(duration));
-			$('html > head > title').text(song.desc+' - '+artist+' - Magnatune Player');
+			document.title = song.desc+' - '+artist+' - Magnatune Player';
 		},
 		seek: function (time) {
 			try {
@@ -656,7 +681,7 @@ $.extend(Magnatune, {
 			}
 		},
 		playPause: function () {
-			if (!this.audio.paused && !this.audio.ended) {
+			if (this.playing()) {
 				this.audio.pause();
 			}
 			else if (!this._song) {
@@ -3797,14 +3822,13 @@ $(document).ready(function () {
 			var playing = Magnatune.Player.playing();
 			var handler = {
 				drag: function (event) {
-					if (!Magnatune.Player.audio) return;
 					var container = $(this);
 					var x = event.pageX - container.offset().left;
 					var duration = Magnatune.Player.duration();
 					var time = Math.max(0,
 						Math.min(duration, duration * x / container.width()));
 					if (!isNaN(time)) {
-						Magnatune.Player.audio.currentTime = time;
+						Magnatune.Player.seek(time);
 					}
 					move_seek_tooltip(x, time);
 				},
@@ -3831,10 +3855,9 @@ $(document).ready(function () {
 		create: function (event) {
 			var handler = {
 				drag: function (event) {
-					if (!Magnatune.Player.audio) return;
 					var height = $(this).height();
 					var y = height - (event.pageY - $(this).offset().top);
-					Magnatune.Player.audio.volume = Math.max(0.0, Math.min(1.0, y / height));
+					Magnatune.Player.setVolume(Math.max(0.0, Math.min(1.0, y / height)));
 				}
 			};
 			handler.drag.call(this,event);
@@ -3890,15 +3913,6 @@ $(document).ready(function () {
 		Magnatune.showHash();
 	});
 });
-
-// IE
-if ($.browser.msie) {
-	$(document).on('selectstart dragstart', function (event) {
-		if (Magnatune.DnD.handler) {
-			event.preventDefault();
-		}
-	});
-}
 
 $(document).on('click touchend touchcancel', function (event) {
 	var menus = $('.popup-menu');
