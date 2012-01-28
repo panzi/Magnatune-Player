@@ -75,7 +75,9 @@ if ($.browser.msie && parseInt($.browser.version.split(/\./g)[0],10) < 9) {
 						break;
 
 					case 8: // ended
-						Magnatune.Player._ended();
+						setTimeout(function () {
+							Magnatune.Player._ended();
+						}, 0);
 						Magnatune.Player._ie_stop_playing();
 						break;
 
@@ -106,11 +108,9 @@ if ($.browser.msie && parseInt($.browser.version.split(/\./g)[0],10) < 9) {
 			}
 		},
 		initAudio: function () {
-			var audio = tag('object',{
-				width:'0',height:'0',
-				classid:'CLSID:6BF52A52-394A-11d3-B153-00C04F79FAA6'});
-			$(document).append(audio);
+			var audio = tag('object',{classid:'CLSID:6BF52A52-394A-11d3-B153-00C04F79FAA6'});
 			audio.uiMode = 'invisible';
+			$(document).append(audio);
 			audio.settings.autoStart = false;
 			audio.settings.volume = 100;
 			for (var handler in this.Handlers) {
@@ -164,7 +164,7 @@ if ($.browser.msie && parseInt($.browser.version.split(/\./g)[0],10) < 9) {
 		},
 		playPause: function () {
 			if (this.playing()) {
-				this.audio.controls.pause();
+				this.pause();
 			}
 			else if (!this._song) {
 				this.play();

@@ -491,8 +491,6 @@ $.extend(Magnatune, {
 		},
 		_ended: function () {
 			this._not_playing();
-			$('#play-image').show();
-			$('#pause-image').hide();
 			Magnatune.Player.hideSpinner();
 			if (!Magnatune.DnD.seeking) {
 				Magnatune.Playlist.next(true);
