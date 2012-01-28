@@ -114,7 +114,6 @@ if ($.browser.msie && parseInt($.browser.version.split(/\./g)[0],10) < 9) {
 			audio.settings.autoStart = false;
 			audio.settings.volume = 100;
 			for (var handler in this.Handlers) {
-				console.log('register '+handler);
 				audio.attachEvent(handler.toLowerCase(), this.Handlers[handler]);
 			}
 			this.audio = audio;
