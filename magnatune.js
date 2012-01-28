@@ -1035,9 +1035,11 @@ $.extend(Magnatune, {
 					'<a href="http://www.sqlite.org/">SQLite</a> export from the '+
 					'<a href="http://magnatune.com/info/api">Magnatune API</a> and the '+
 					'<a href="http://dev.w3.org/html5/spec/the-audio-element.html">HTML5 Audio Element</a>. '+
-					'Because depending on the browser HTML5 Audio is still not bug free, things like the buffer '+
-					'progress display or seeking might not work 100% reliable. In Internet Explorer it doesn\'t '+
-					'work at all. Please use <a href="http://www.firefox.com/">Mozilla Firefox</a>, '+
+					'Depending on the browser HTML5 Audio is still not bug free, and therefore things like the buffer '+
+					'progress display or seeking might not work 100% reliable. In Internet Explorer previous to '+
+					'version 9 ActiveX is used to play music. However, the layout might look completely broken '+
+					'because of Internet Explorer\'s lacking standard support. If you want a good experience please '+
+					'use <a href="http://www.firefox.com/">Mozilla Firefox</a>, '+
 					'<a href="http://www.google.com/chrome/">Google Chrome</a>, '+
 					'<a href="http://www.apple.com/safari/">Apple Safari</a> or '+
 					'<a href="http://www.opera.com/">Opera</a>.</p>'+
