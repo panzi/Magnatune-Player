@@ -149,6 +149,7 @@ if ($.browser.msie && parseInt($.browser.version.split(/\./g)[0],10) < 9) {
 				var source = sources[i];
 				if (/^audio\/mpeg\b/i.test(source.type)) {
 					this.audio.URL = source.src;
+					break;
 				}
 			}
 		},
