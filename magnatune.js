@@ -507,9 +507,7 @@ $.extend(Magnatune, {
 			var duration = this.duration();
 			var remaining = duration - this.currentTime();
 			$('#time-left').text('-'+tag.time(remaining < 0 ? NaN : remaining));
-			duration = tag.time(duration);
-			$('#current-duration').text(duration);
-			$('#playlist .current .duration').text(duration);
+			$('#current-duration, #playlist .current .duration').text(tag.time(duration));
 		},
 		Handlers: {
 			progress: function (event) {
