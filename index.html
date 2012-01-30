@@ -5,14 +5,14 @@
 <title>Magnatune Player</title>
 <link rel="shortcut icon" type="image/x-icon" href="http://magnatune.com/favicon.ico"/>
 <link rel="stylesheet" type="text/css" href="style.css"/>
-<script type="text/javascript" src="json2.js"></script>
-<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
-<script type="text/javascript" src="jquery.dataset.js"></script>
-<script type="text/javascript" src="jQueryRotateCompressed.2.1.js"></script>
-<script type="text/javascript" src="shims.js"></script>
-<script type="text/javascript" src="magnatune.js"></script>
+<script type="text/javascript" src="javascripts/json2.js"></script>
+<script type="text/javascript" src="javascripts/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="javascripts/jquery.dataset.js"></script>
+<script type="text/javascript" src="javascripts/jQueryRotateCompressed.2.1.js"></script>
+<script type="text/javascript" src="javascripts/shims.js"></script>
+<script type="text/javascript" src="javascripts/magnatune.js"></script>
 <!--[if IE]>
-<script type="text/javascript" src="magnatune-ie.js"></script>
+<script type="text/javascript" src="javascripts/magnatune-ie.js"></script>
 <![endif]-->
 </head>
 <body>
@@ -24,7 +24,7 @@
 				<div id="play-progress" style="width:0px;"><div id="play-progress-knob"></div></div>
 				<div id="seek-tooltip" style="display:none;">
 					<div id="seek-position">--:--</div>
-					<img src="seek-tooltip-arrow.png" alt=""/>
+					<img src="images/seek-tooltip-arrow.png" alt=""/>
 				</div>
 			</div>
 
@@ -34,7 +34,7 @@
 				<a id="next-button" href="javascript:Magnatune.Playlist.next();void(0)" title="Next">&#x25B6;&#x25AE;</a>
 			</div>
 				
-			<a id="volume-button" class="button" href="javascript:Magnatune.Player.toggleVolume();void(0)" title="Change Volume"><img src="volume.png" alt="Volume"/></a>
+			<a id="volume-button" class="button" href="javascript:Magnatune.Player.toggleVolume();void(0)" title="Change Volume"><img src="images/volume.png" alt="Volume"/></a>
 			<div id="volume-control" class="popup-menu" data-button="volume-button" style="display:none;">
 				<div id="volume">100%</div>
 				<div id="volume-bar-container"><div id="volume-bar" style="height:100%;"></div></div>
@@ -53,12 +53,12 @@
 					<input id="password" type="password" placeholder="Password" title="Enter your password"/>
 				</div>
 				<div class="popup-buttons">
-					<img id="login-spinner" title="Login in Progress..." style="display:none;" src="spinner.png" alt=""/>
+					<img id="login-spinner" title="Login in Progress..." style="display:none;" src="images/spinner.png" alt=""/>
 					<input type="submit" value="Login"/>
 				</div>
 			</form>
 			
-			<img id="waiting" title="Buffering..." style="display:none;" src="spinner.png" alt=""/>
+			<img id="waiting" title="Buffering..." style="display:none;" src="images/spinner.png" alt=""/>
 
 			<div id="status">
 				<span id="current-time-duration" onclick="$('#time-left').toggle();$('#current-time').toggle();">
@@ -78,8 +78,8 @@
 			</div>
 			
 			<a id="play-button" href="javascript:Magnatune.Player.playPause();void(0)"><img
-				id="play-image" src="play.png" alt="Play" title="Play"/><img
-				id="pause-image" src="pause.png" alt="Pause" title="Pause" style="display:none;"/></a>
+				id="play-image" src="images/play.png" alt="Play" title="Play"/><img
+				id="pause-image" src="images/pause.png" alt="Pause" title="Pause" style="display:none;"/></a>
 		</div>
 	</div>
 
@@ -133,21 +133,21 @@
 
 			<div id="playlist-container" style="display:none;" class="tab">
 				<div class="tab-head">
-					<a class="button" href="javascript:Magnatune.Playlist.clear();void(0)" title="Clear Playlist"><img src="clear.png" alt="Clear Playlist"/></a>
-					<a class="button" href="javascript:Magnatune.Playlist.removeSelected();void(0)" title="Remove Selected"><img src="remove.png" alt="Remove Selected"/></a>
-					<a class="button" href="javascript:Magnatune.Playlist.toggleSelectAll();void(0)" title="Select All/None"><img src="all-none.png" alt="Select All/None"/></a>
-					<a id="show-current" class="button" href="javascript:Magnatune.Playlist.showCurrent();void(0)" title="Show Active Track"><img src="current.png" alt="Show Active Track"/></a>
-					<a class="button" href="javascript:Magnatune.Playlist.randomAlbum();void(0)" title="Play Random Album"><img src="random.png" alt="Play Random Album"/></a>
+					<a class="button" href="javascript:Magnatune.Playlist.clear();void(0)" title="Clear Playlist"><img src="images/clear.png" alt="Clear Playlist"/></a>
+					<a class="button" href="javascript:Magnatune.Playlist.removeSelected();void(0)" title="Remove Selected"><img src="images/remove.png" alt="Remove Selected"/></a>
+					<a class="button" href="javascript:Magnatune.Playlist.toggleSelectAll();void(0)" title="Select All/None"><img src="images/all-none.png" alt="Select All/None"/></a>
+					<a id="show-current" class="button" href="javascript:Magnatune.Playlist.showCurrent();void(0)" title="Show Active Track"><img src="images/current.png" alt="Show Active Track"/></a>
+					<a class="button" href="javascript:Magnatune.Playlist.randomAlbum();void(0)" title="Play Random Album"><img src="images/random.png" alt="Play Random Album"/></a>
 
 					<span id="playlists-controls">
 						<a class="button" id="playlists-button" href="javascript:Magnatune.Playlist.togglePlaylistMenu();void(0)"
-								title="Load Playlist..."><img src="playlists.png" alt="Load Playlists..."/></a>
+								title="Load Playlist..."><img src="images/playlists.png" alt="Load Playlists..."/></a>
 						<table id="playlists-menu" class="popup-menu pulldown-menu" data-button="playlists-button" style="display:none;">
 							<tbody>
 								<tr class="first last"><td><span class="empty">(No Saved Playlists)</span></td></tr>
 							</tbody>
 						</table>
-						<a class="button" id="save-button" href="javascript:Magnatune.Playlist.toggleSaveDialog();void(0)" title="Save Playlist..."><img src="save.png" alt="Save Playlist..."/></a>
+						<a class="button" id="save-button" href="javascript:Magnatune.Playlist.toggleSaveDialog();void(0)" title="Save Playlist..."><img src="images/save.png" alt="Save Playlist..."/></a>
 						<form action="javascript:Magnatune.Playlist.dialogSave();void(0)" id="save-popup" class="popup-menu popup-form" data-button="save-button" style="display:none;">
 							<div class="text-input-container">
 								<input id="save-playlist-name" type="text" placeholder="Playlist Name" title="Enter name of new playlist"/>

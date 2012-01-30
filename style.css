@@ -44,22 +44,22 @@
 }
 
 ::-webkit-scrollbar-button:vertical:increment {
-	background-image: url("scroll-down.png");
+	background-image: url("images/scroll-down.png");
 	background-position: 0px 0px;
 }
 
 ::-webkit-scrollbar-button:vertical:decrement {
-	background-image: url("scroll-up.png");
+	background-image: url("images/scroll-up.png");
 	background-position: 0px 2px;
 }
 
 ::-webkit-scrollbar-button:horizontal:increment {
-	background-image: url("scroll-right.png");
+	background-image: url("images/scroll-right.png");
 	background-position: 0px 0px;
 }
 
 ::-webkit-scrollbar-button:horizontal:decrement {
-	background-image: url("scroll-left.png");
+	background-image: url("images/scroll-left.png");
 	background-position: 2px 0px;
 }
 
@@ -1165,19 +1165,19 @@ td.embed-config {
 }
 
 .tour-up-arrow {
-	background-image: url("tour-up-arrow.png");
+	background-image: url("images/tour-up-arrow.png");
 }
 
 .tour-down-arrow {
-	background-image: url("tour-down-arrow.png");
+	background-image: url("images/tour-down-arrow.png");
 }
 
 .tour-left-arrow {
-	background-image: url("tour-left-arrow.png");
+	background-image: url("images/tour-left-arrow.png");
 }
 
 .tour-right-arrow {
-	background-image: url("tour-right-arrow.png");
+	background-image: url("images/tour-right-arrow.png");
 }
 
 #playlists-controls {
