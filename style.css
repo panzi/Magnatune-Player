@@ -819,13 +819,19 @@ code,
 
 .about-float,
 .artist img.bandphoto,
-.album  img.cover.big {
+.album  img.cover.big,
+.album  img.cover.huge {
 	float: right;
 	margin-left: 10px;
 	margin-bottom: 10px;
 }
 
-.album img.cover {
+.album img.cover.big {
+	width:  200px;
+	height: 200px;
+}
+
+.album img.cover.huge {
 	width:  300px;
 	height: 300px;
 }

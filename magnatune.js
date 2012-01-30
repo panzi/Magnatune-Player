@@ -1125,6 +1125,15 @@ $.extend(Magnatune, {
 						var embed_update = 'Magnatune.Info.updateEmbed('+embed_args+');'
 						var embed_width  = tag.number({id: 'embed_width',  value: 400, min: 0, max: 1920, decimals: 0, step: 10, onchange: embed_update});
 						var embed_height = tag.number({id: 'embed_height', value: 300, min: 0, max: 1080, decimals: 0, step: 10, onchange: embed_update});
+						var cover_file, cover_class;
+						if (window.innerWidth < 1280) {
+							cover_file = '/cover_200.jpg';
+							cover_class = 'cover big';
+						}
+						else {
+							cover_file = '/cover_300.jpg';
+							cover_class = 'cover huge';
+						}
 						var page = tag('div',{'class':'album'},
 							tag('h2', tag('a', {'class':'albumname',
 								href:'http://magnatune.com/artists/albums/'+data.body.sku+'/',
@@ -1152,10 +1161,10 @@ $.extend(Magnatune, {
 													height:'31',
 													title:'This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 1.0 Generic License',
 													src:'http://i.creativecommons.org/l/by-nc-sa/1.0/88x31.png'})))))),
-							tag('img', {'class':'cover big',
+							tag('img', {'class':cover_class,
 								src: 'http://he3.magnatune.com/music/'+
 									encodeURIComponent(artist.artist)+'/'+
-									encodeURIComponent(album.albumname)+'/cover_300.jpg',
+									encodeURIComponent(album.albumname)+cover_file,
 								alt: 'Cover'}),
 							tag.textify(data.body.description),
 							tag('div',{dataset:{songs:JSON.stringify(data.body.songs)}},
