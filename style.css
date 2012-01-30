@@ -418,6 +418,12 @@ li.active {
 	text-align: right;
 }
 
+#credentials .popup-buttons {
+	position: absolute;
+	right: 10px;
+	bottom: 10px;
+}
+
 #play-control-buttons a {
 	display: inline-block;
 	margin: 0px -3px;

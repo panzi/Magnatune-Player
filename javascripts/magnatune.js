@@ -51,7 +51,7 @@ $.base64Decode = function (input) {
 	return decodeURIComponent(escape(atob(input)));
 };
 
-var tag = (function ($) {
+var tag = (function ($,undefined) {
 	var add = function (element, arg) {
 		var type = typeof(arg);
 		if (type === "function") arg = arg(element);
@@ -392,6 +392,25 @@ var Magnatune = {
 		AnimationDuration: 500
 	}
 };
+
+(function (undefined) {
+
+function getBoolean (name) {
+	var value = localStorage.getItem(name);
+	if (value !== null) {
+		try {
+			value = JSON.parse(value);
+		}
+		catch (e) {
+			console.error(e);
+			return null;
+		}
+		if (typeof(value) !== "boolean") {
+			value = null;
+		}
+	}
+	return value;
+}
 
 $.extend(Magnatune, {
 	Events: {
@@ -802,6 +821,13 @@ $.extend(Magnatune, {
 			}
 		},
 		showCredentials: function () {
+			if (typeof(localStorage) !== "undefined" && getBoolean('login.remember')) {
+				$('#username').val(localStorage.getItem('login.username') || '');
+				$('#password').val(localStorage.getItem('login.password') || '');
+			}
+			this._showCredentials();
+		},
+		_showCredentials: function () {
 			var cred = $('#credentials');
 			var member = $('#member-container');
 			var pos = member.position();
@@ -814,6 +840,15 @@ $.extend(Magnatune, {
 			$('#credentials, #login-spinner').hide();
 			// clear form so no one can spy the credentials when pants status down:
 			$('#username, #password').val('');
+	
+			if (typeof(localStorage) !== "undefined") {
+				var remember = $('#remember-login').is(':checked');
+				localStorage.setItem('login.remember',String(remember));
+				if (!remember) {
+					localStorage.removeItem('login.username');
+					localStorage.removeItem('login.password');
+				}
+			}
 		},
 		cancelCredentials: function () {
 			this.hideCredentials();
@@ -3069,6 +3104,14 @@ $.extend(Magnatune, {
 			// be transferred with the HTTP status 401. And even if they could be
 			// transferred that way the returned document contains HTML which would
 			// raise a JavaScript SyntaxError and will fire the onerror event on window.
+			var username = $('#username').val();
+			var password = $('#password').val();
+
+			if (!username || !password) {
+				alert("Please enter your username and password.");
+				return;
+			}
+
 			var spinner = $('#login-spinner');
 			var spin = function () {
 				spinner.show().rotate({
@@ -3086,13 +3129,13 @@ $.extend(Magnatune, {
 			}
 			spin();
 
-			var username = $('#username').val();
-			var password = $('#password').val();
-			src = "http://"+username+":"+password+"@stream.magnatune.com"+path;
+			src = "http://"+encodeURIComponent(username)+":"+
+				encodeURIComponent(password)+"@stream.magnatune.com"+path;
 			onerror = function (event) {
 				if (event.originalEvent.target === script) {
 					Magnatune.authenticated = false;
 					spinner.hide();
+					Magnatune.Player._showCredentials();
 					$(window).off('error',onerror);
 					$(this).off('readystatechange', onreadystatechange).remove();
 					alert("Wrong username or password or connection problem.");
@@ -3104,6 +3147,11 @@ $.extend(Magnatune, {
 				Magnatune.Player.hideCredentials();
 				$(window).off('error',onerror);
 				$(this).off('readystatechange', onreadystatechange).remove();
+				if (typeof(localStorage) !== "undefined" && getBoolean('login.remember')) {
+					// login.remember is set by hideCredentials
+					localStorage.setItem('login.username',username);
+					localStorage.setItem('login.password',password);
+				}
 			};
 		}
 
@@ -3566,6 +3614,12 @@ $.extend(Magnatune, {
 	},
 	save: function () {
 		if (typeof(localStorage) !== "undefined") {
+			var remember = $('#remember-login').is(':checked');
+			localStorage.setItem('login.remember',String(remember));
+			if (!remember) {
+				localStorage.removeItem('login.username');
+				localStorage.removeItem('login.password');
+			}
 			localStorage.setItem('collection.changed',Magnatune.Collection.Changed);
 			localStorage.setItem('info.hash',Magnatune.Info.hash()||'#/about');
 			localStorage.setItem('playlist.songs',JSON.stringify(Magnatune.Playlist.songs()));
@@ -3585,24 +3639,14 @@ $.extend(Magnatune, {
 		}
 	},
 	load: function () {
-		var hash, songs, current, member, volume, playerVisible, navigationVisible, playlistVisible, order, mode;
-		function getBoolean (name) {
-			var value = localStorage.getItem(name);
-			if (value !== null) {
-				try {
-					value = JSON.parse(value);
-				}
-				catch (e) {
-					console.error(e);
-					return null;
-				}
-				if (typeof(value) !== "boolean") {
-					value = null;
-				}
-			}
-			return value;
-		}
+		var remember, username = '', password = '', hash, songs, current, member,
+		    volume, playerVisible, navigationVisible, playlistVisible, order, mode;
 		if (typeof(localStorage) !== "undefined") {
+			remember = getBoolean('login.remember');
+			if (remember) {
+				username = localStorage.getItem('login.username') || '';
+				password = localStorage.getItem('login.password') || '';
+			}
 			hash = localStorage.getItem('info.hash') || '#/about';
 			songs = localStorage.getItem('playlist.songs');
 			if (songs !== null) {
@@ -3616,8 +3660,7 @@ $.extend(Magnatune, {
 			}
 			current = parseInt(localStorage.getItem('playlist.current'),10);
 			playlistVisible = getBoolean('playlist.visible');
-			// We cannot save username and password for security reasons which makes the member flag useless:
-			member = null; // getBoolean('player.member');
+			member = getBoolean('player.member');
 			volume = parseFloat(localStorage.getItem('player.volume'));
 			playerVisible = getBoolean('player.visible');
 			navigationVisible = getBoolean('navigation.visible');
@@ -3636,7 +3679,7 @@ $.extend(Magnatune, {
 			order = 'name';
 			mode = 'genre/artist/album';
 		}
-		
+
 		try {
 			Magnatune.Navigation.setConfig(order, mode);
 		}
@@ -3676,11 +3719,22 @@ $.extend(Magnatune, {
 			Magnatune.Playlist.setCurrentIndex(current);
 		}
 
-		if (member === true) {
-			Magnatune.Player.setMember(true);
+		if (remember !== null) {
+			$('#remember-login').attr('checked',remember);
 		}
-		else if (member === false) {
+
+		if (member === false) {
 			Magnatune.Player.setMember(false);
+		}
+
+		if (member && (Magnatune.BrowserAuthenticates || (remember && username && password))) {
+			Magnatune.Player.setMember(true);
+			// auto login
+			if (!Magnatune.BrowserAuthenticates) {
+				$('#username').val(username);
+				$('#password').val(password);
+			}
+			Magnatune.login();
 		}
 
 		if (!isNaN(volume)) {
@@ -3950,3 +4004,5 @@ $(document).on('click touchend touchcancel', function (event) {
 		}
 	}
 });
+
+})();
