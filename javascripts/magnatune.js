@@ -1130,19 +1130,35 @@ $.extend(Magnatune, {
 						var breadcrumbs = [
 							{href: '#/artist/'+encodeURIComponent(artist.artist), text: artist.artist},
 							{href: hash, text: album.albumname}];
+						var authenticated = Magnatune.authenticated && Magnatune.Player.member();
 						var songs = $(tag('tbody'));
+						var url_prefix = 'http://download.magnatune.com/music/'+
+							encodeURIComponent(artist.artist)+'/'+
+							encodeURIComponent(album.albumname)+'/';
+						var album_prefix = "http://download.magnatune.com/membership/download?";
 						for (var i = 0; i < data.body.songs.length; ++ i) {
 							var song = data.body.songs[i];
 						
 							song.albumname = album.albumname;
-							songs.append(tag('tr',
+							var row = $(tag('tr',
 								tag('td', {'class':'number'}, song.number),
 								tag('td', song.desc),
-								tag('td', {'class':'duration'}, tag.time(song.duration)),
-								tag('td', tag('a',{
-									title: 'Enqueue Track',
-									href:'javascript:'+encodeURIComponent('Magnatune.Playlist.enqueue(['+
-										JSON.stringify(song)+']);void(0)')},'+'))));
+								tag('td', {'class':'duration'}, tag.time(song.duration))));
+							if (authenticated) {
+								var url = url_prefix+encodeURIComponent(song.mp3);
+								row.append(tag('td',
+									tag('a',{href:url},'mp3'),' ',
+									tag('a',{href:url.replace(/\.mp3$/i,'.wav')},'wav'),' ',
+									tag('a',{href:url.replace(/\.mp3$/i,'.m4a')},'m4a'),' ',
+									tag('a',{href:url.replace(/\.mp3$/i,'.ogg')},'ogg')
+								));
+							}
+							row.append(tag('td', tag('a',{
+								title: 'Enqueue Track',
+								href:'javascript:'+encodeURIComponent('Magnatune.Playlist.enqueue(['+
+									JSON.stringify(song)+']);void(0)')},'+')));
+
+							songs.append(row);
 						}
 						var genres = $(tag('ul',{'class':'genres'}));
 						for (var i = 0; i < album.genres.length; ++ i) {
@@ -1156,7 +1172,8 @@ $.extend(Magnatune, {
 						}
 						var launchdate = new Date();
 						launchdate.setTime(data.body.launchdate * 1000);
-						var embed_args   = JSON.stringify(album.albumname)+','+JSON.stringify(data.body.sku);
+						var sku = data.body.sku;
+						var embed_args   = JSON.stringify(album.albumname)+','+JSON.stringify(sku);
 						var embed_update = 'Magnatune.Info.updateEmbed('+embed_args+');'
 						var embed_width  = tag.number({id: 'embed_width',  value: 400, min: 0, max: 1920, decimals: 0, step: 10, onchange: embed_update});
 						var embed_height = tag.number({id: 'embed_height', value: 300, min: 0, max: 1080, decimals: 0, step: 10, onchange: embed_update});
@@ -1171,7 +1188,7 @@ $.extend(Magnatune, {
 						}
 						var page = tag('div',{'class':'album'},
 							tag('h2', tag('a', {'class':'albumname',
-								href:'http://magnatune.com/artists/albums/'+data.body.sku+'/',
+								href:'http://magnatune.com/artists/albums/'+sku+'/',
 								target:'_blank'},
 								album.albumname)),
 							tag('div',{'class':'launchdate'}, launchdate.toLocaleDateString()),
@@ -1179,12 +1196,13 @@ $.extend(Magnatune, {
 							tag('table',
 								tag('tbody',
 									tag('tr',
-										tag('td',
-											tag('a',{
-												'class':'buy button',
-												title:'Buy Music from Magnatune',
-												href:'https://magnatune.com/buy/choose?sku='+data.body.sku,
-												target:'_blank'},'Buy')),
+										authenticated ? null :
+											tag('td',
+												tag('a',{
+													'class':'buy button',
+													title:'Buy Music from Magnatune',
+													href:'https://magnatune.com/buy/choose?sku='+sku,
+													target:'_blank'},'Buy')),
 										tag('td',
 											tag('a',{
 												rel: 'license',
@@ -1202,6 +1220,44 @@ $.extend(Magnatune, {
 									encodeURIComponent(album.albumname)+cover_file,
 								alt: 'Cover'}),
 							tag.textify(data.body.description),
+							authenticated ? tag('p',
+								tag('div',{'class':'download-headline'},'Download the complete album:'),
+								' ',
+								tag('a',{target:'_blank',href:album_prefix+$.param({
+									sku: sku,
+									foramt: 'vbr',
+									filename: sku+'-vbr.zip',
+									path: url_prefix+sku+'-vbr.zip'})},'MP3 VBR'),
+								', ',
+								tag('a',{target:'_blank',href:album_prefix+$.param({
+									sku: sku,
+									foramt: 'wav',
+									filename: 'wav.zip',
+									path: url_prefix+'wav.zip'})},'WAV'),
+								', ',
+								tag('a',{target:'_blank',href:album_prefix+$.param({
+									sku: sku,
+									foramt: 'flac',
+									filename: sku+'-flac.zip',
+									path: url_prefix+sku+'-flac.zip'})},'FLAC'),
+								', ',
+								tag('a',{target:'_blank',href:album_prefix+$.param({
+									sku: sku,
+									foramt: 'ogg',
+									filename: sku+'-ogg.zip',
+									path: url_prefix+sku+'-ogg.zip'})},'OGG'),
+								', ',
+								tag('a',{target:'_blank',href:album_prefix+$.param({
+									sku: sku,
+									foramt: 'mp3',
+									filename: 'mp3.zip',
+									path: url_prefix+'mp3.zip'})},'128kb MP3'),
+								', ',
+								tag('a',{target:'_blank',href:album_prefix+$.param({
+									sku: sku,
+									foramt: 'acc',
+									filename: sku+'-acc.zip',
+									path: url_prefix+sku+'-aac.zip'})},'iTunes AAC')) : null,
 							tag('div',{dataset:{songs:JSON.stringify(data.body.songs)}},
 								tag('a', {'class':'button',href:'javascript:void(0)',
 									onclick:'Magnatune.Playlist.replace(JSON.parse($(this).parent().dataset("songs")),true);'},
@@ -1242,6 +1298,9 @@ $.extend(Magnatune, {
 										tag('th','Nr.'),
 										tag('th','Title'),
 										tag('th','Duration'),
+										authenticated ? 
+											tag('th','Download') :
+											null,
 										tag('th',''))),
 								songs),
 							tag('div',{'class':'also'},
@@ -3680,6 +3739,24 @@ $.extend(Magnatune, {
 			mode = 'genre/artist/album';
 		}
 
+		if (remember !== null) {
+			$('#remember-login').attr('checked',remember);
+		}
+
+		if (member === false) {
+			Magnatune.Player.setMember(false);
+		}
+
+		if (member && (Magnatune.BrowserAuthenticates || (remember && username && password))) {
+			Magnatune.Player.setMember(true);
+			// auto login
+			if (!Magnatune.BrowserAuthenticates) {
+				$('#username').val(username);
+				$('#password').val(password);
+			}
+			Magnatune.login();
+		}
+
 		try {
 			Magnatune.Navigation.setConfig(order, mode);
 		}
@@ -3717,24 +3794,6 @@ $.extend(Magnatune, {
 		
 		if (!isNaN(current)) {
 			Magnatune.Playlist.setCurrentIndex(current);
-		}
-
-		if (remember !== null) {
-			$('#remember-login').attr('checked',remember);
-		}
-
-		if (member === false) {
-			Magnatune.Player.setMember(false);
-		}
-
-		if (member && (Magnatune.BrowserAuthenticates || (remember && username && password))) {
-			Magnatune.Player.setMember(true);
-			// auto login
-			if (!Magnatune.BrowserAuthenticates) {
-				$('#username').val(username);
-				$('#password').val(password);
-			}
-			Magnatune.login();
 		}
 
 		if (!isNaN(volume)) {

@@ -1189,3 +1189,7 @@ td.embed-config {
 #playlists-controls {
 	margin-left: 40px;
 }
+
+.download-headline {
+	font-weight: bold;
+}
