@@ -412,6 +412,39 @@ function getBoolean (name) {
 	return value;
 }
 
+function showPopup (button, popup) {
+	var pos = button.position();
+	var off = button.offset();
+	var left = pos.left;
+	var button_height = button.outerHeight();
+	var top = pos.top + button_height;
+	off.top += button_height;
+	popup.css({
+		visibility: 'hidden',
+		display: ''
+	});
+	var width = popup.outerWidth();
+	var height = popup.outerHeight();
+	if (off.left < 10) {
+		left = 10 - off.left + left;
+	}
+	else if (off.left + width > $(window).innerWidth() - 10) {
+		left = $(window).innerWidth() - width - 10 - off.left + left;
+	}
+
+	if (off.top < 10) {
+		top = 10 - off.top + top;
+	}
+	else if (off.top + height > $(window).innerHeight() - 10) {
+		top = $(window).innerHeight() - height - 10 - off.top + top;
+	}
+	popup.css({
+		visibility: '',
+		left: left+'px',
+		top: top+'px'
+	});
+}
+
 $.extend(Magnatune, {
 	Events: {
 		extend: function (obj) {
@@ -828,13 +861,7 @@ $.extend(Magnatune, {
 			this._showCredentials();
 		},
 		_showCredentials: function () {
-			var cred = $('#credentials');
-			var member = $('#member-container');
-			var pos = member.position();
-			cred.css({
-				left: pos.left+'px',
-				top: (pos.top+member.height())+'px'
-			}).show();
+			showPopup($('#member-container'),$('#credentials'));
 		},
 		hideCredentials: function () {
 			$('#credentials, #login-spinner').hide();
@@ -1455,19 +1482,8 @@ $.extend(Magnatune, {
 			}
 		},
 		showSaveDialog: function () {
-			var popup = $('#save-popup');
-			var button = $('#save-button');
-			var pos = button.position();
 			$('#save-playlist-name').val('');
-			popup.css({
-				visibility: 'hidden',
-				display: ''
-			});
-			popup.css({
-				left: pos.left+'px',
-				top: (pos.top+button.outerHeight())+'px',
-				visibility: ''
-			});
+			showPopup($('#save-button'),$('#save-popup'));
 		},
 		hideSaveDialog: function () {
 			$('#save-popup').hide();
@@ -2895,18 +2911,7 @@ $.extend(Magnatune, {
 			return $('#tree-order-select li.active').attr('id').replace(/^order-by-/,'');
 		},
 		showModeSelect: function () {
-			var mode = $('#tree-mode-select');
-			var button = $('#tree-mode-button');
-			var pos = button.position();
-			mode.css({
-				visibility: 'hidden',
-				display: ''
-			});
-			mode.css({
-				visibility: '',
-				left: pos.left+'px',
-				top: (pos.top+button.outerHeight())+'px'
-			});
+			showPopup($('#tree-mode-button'),$('#tree-mode-select'));
 		},
 		hideModeSelect: function () {
 			$('#tree-mode-select').hide();
@@ -2920,18 +2925,7 @@ $.extend(Magnatune, {
 			}
 		},
 		showOrderSelect: function () {
-			var order = $('#tree-order-select');
-			var button = $('#tree-order-button');
-			var pos = button.position();
-			order.css({
-				visibility: 'hidden',
-				display: ''
-			});
-			order.css({
-				visibility: '',
-				left: pos.left+'px',
-				top: (pos.top+button.outerHeight())+'px'
-			});
+			showPopup($('#tree-order-button'),$('#tree-order-select'));
 		},
 		hideOrderSelect: function () {
 			$('#tree-order-select').hide();
