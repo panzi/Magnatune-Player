@@ -623,12 +623,10 @@ try:
 	mimetype, body = query(params)
 except HTTPError, e:
 	# seems like I can't set the http status using cgi :(
-	import httplib
-	msg = httplib.responses[e.status]
 	sys.stdout.write(
-		'Status: %d %s\r\n'
+		'Status: %d\r\n'
 		'Content-Type: text/html\r\n'
 		'\r\n'
-		'<html><head><title>%s</title></head><body><h1>%s</h1></body></html>' % (e.status, msg, msg, msg))
+		'<html><head><title>Error %d</title></head><body><h1>Error %d</h1></body></html>' % (e.status, e.status, e.status))
 else:
 	sys.stdout.write("Content-Type: %s\r\n\r\n%s" % (mimetype, body))
