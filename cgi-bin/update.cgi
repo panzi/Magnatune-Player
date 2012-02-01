@@ -4,6 +4,20 @@ import cgitb
 cgitb.enable()
 
 import sys, os, urllib
+from datetime import datetime
+from time import mktime
+
+try:
+	from email.Utils import formatdate
+except ImportError:
+	from email.utils import formatdate
+
+def fmtdate(dt):
+	stamp = mktime(dt.timetuple())
+	return formatdate(
+		timeval   = stamp,
+		localtime = False,
+		usegmt    = True)
 
 def write(s):
 	sys.stdout.write(s)
@@ -19,7 +33,7 @@ changed = urllib.urlopen('http://he3.magnatune.com/info/changed.txt').read().str
 if os.path.exists('changed.txt'):
 	fp = open('changed.txt','r')
 	try:
-		current = fp.read().strip()
+		current = fp.read().strip().split(None,1)[0]
 	finally:
 		fp.close()
 else:
@@ -97,7 +111,7 @@ else:
 
 	fp = open('changed.txt','w')
 	try:
-		fp.write(changed+'\n')
+		fp.write('%s %s\n' % (changed, fmtdate(datetime.now())))
 	finally:
 		fp.close()
 

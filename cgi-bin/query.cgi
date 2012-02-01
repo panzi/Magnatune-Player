@@ -7,11 +7,18 @@ import re
 import sys
 import cgi
 from itertools import repeat
+from datetime import datetime, timedelta
+from time import mktime
 
 try:
 	import sqlite3
-except:
+except ImportError:
 	from pysqlite2 import dbapi2 as sqlite3
+
+try:
+	from email.Utils import parsedate, formatdate
+except ImportError:
+	from email.utils import parsedate, formatdate
 
 try:
 	import json
@@ -571,6 +578,13 @@ def with_conn(f,params):
 	finally:
 		conn.close()
 
+def fmtdate(dt):
+	stamp = mktime(dt.timetuple())
+	return formatdate(
+		timeval   = stamp,
+		localtime = False,
+		usegmt    = True)
+
 def query(params):
 	if 'format' in params:
 		fmt = getp(params,'format').strip().lower()
@@ -583,6 +597,7 @@ def query(params):
 	if 'callback' in params:
 		fmt = 'jsonp'
 	
+	headers = {}
 	action_name = getp(params,'action')
 	if action_name is None and 'url' in params or action_name == 'embed':
 		mimetype = 'application/json+oembed;charset=utf-8'
@@ -594,10 +609,13 @@ def query(params):
 
 		fp = open('changed.txt','r')
 		try:
-			changed = fp.read().strip()
+			changed = fp.read().strip().split(None,1)
 		finally:
 			fp.close()
 		mimetype = 'application/json;charset=utf-8'
+		if len(changed) > 1:
+			headers['Last-Modified'] = changed[1]
+		changed = changed[0]
 		head = {
 			'version': '1.0',
 			'changed': changed
@@ -616,17 +634,23 @@ def query(params):
 		mimetype = 'text/javascript;charset=utf-8'
 		body = '%s(%s)' % (getp(params,'callback','callback'), body)
 	
-	return mimetype, body
+	headers['Content-Type'] = mimetype
+	headers['Expires'] = fmtdate(datetime.now()+timedelta(days=1))
+
+	return headers, body
 
 params = cgi.FieldStorage()
 try:
-	mimetype, body = query(params)
+	headers, body = query(params)
 except HTTPError, e:
 	# seems like I can't set the http status using cgi :(
-	sys.stdout.write(
-		'Status: %d\r\n'
-		'Content-Type: text/html\r\n'
-		'\r\n'
-		'<html><head><title>Error %d</title></head><body><h1>Error %d</h1></body></html>' % (e.status, e.status, e.status))
-else:
-	sys.stdout.write("Content-Type: %s\r\n\r\n%s" % (mimetype, body))
+	headers = {
+		'Content-Type':'text/html',
+		'Status':str(e.status)
+	}
+	body = '<html><head><title>Error %d</title></head><body><h1>Error %d</h1></body></html>' % (
+		e.status, e.status)
+
+sys.stdout.write("%s\r\n%s" % (
+	''.join(["%s: %s\r\n" % (header_name, headers[header_name]) for header_name in headers]),
+	body))
