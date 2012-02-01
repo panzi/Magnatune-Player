@@ -424,6 +424,14 @@ li.active {
 	bottom: 10px;
 }
 
+#credentials input[type="text"] {
+	width: 200px;
+}
+
+#save-popup input[type="text"] {
+	width: 250px;
+}
+
 #play-control-buttons a {
 	display: inline-block;
 	margin: 0px -3px;
