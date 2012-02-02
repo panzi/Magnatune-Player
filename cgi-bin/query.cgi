@@ -5,6 +5,7 @@ cgitb.enable()
 
 import re
 import sys
+import os
 import cgi
 from itertools import repeat
 from datetime import datetime, timedelta
@@ -16,9 +17,9 @@ except ImportError:
 	from pysqlite2 import dbapi2 as sqlite3
 
 try:
-	from email.Utils import parsedate, formatdate
+	from email.Utils import parsedate_tz, formatdate, mktime_tz
 except ImportError:
-	from email.utils import parsedate, formatdate
+	from email.utils import parsedate_tz, formatdate, mktime_tz
 
 try:
 	import json
@@ -597,7 +598,31 @@ def query(params):
 	if 'callback' in params:
 		fmt = 'jsonp'
 	
-	headers = {}
+	headers = {
+		'Expires': fmtdate(datetime.now()+timedelta(days=1))
+	}
+
+	fp = open('changed.txt','r')
+	try:
+		changed = fp.read().strip().split(None,1)
+	finally:
+		fp.close()
+
+	if len(changed) > 1:
+		headers['Last-Modified'] = last_modified = changed[1]
+		last_modified = mktime_tz(parsedate_tz(last_modified))
+	else:
+		last_modified = None
+		
+	changed = changed[0]
+
+	last_visit = os.getenv('HTTP_IF_MODIFIED_SINCE')
+	if last_visit is not None and last_modified is not None:
+		last_visit = mktime_tz(parsedate_tz(last_visit))
+		if last_visit >= last_modified:
+			headers['Status'] = '304'
+			return headers, ''
+
 	action_name = getp(params,'action')
 	if action_name is None and 'url' in params or action_name == 'embed':
 		mimetype = 'application/json+oembed;charset=utf-8'
@@ -605,17 +630,9 @@ def query(params):
 	elif action_name not in actions:
 		raise ValueError('Unknown action: %r' % action_name)
 	else:
+		mimetype = 'application/json;charset=utf-8'
 		body = with_conn(actions[action_name],params)
 
-		fp = open('changed.txt','r')
-		try:
-			changed = fp.read().strip().split(None,1)
-		finally:
-			fp.close()
-		mimetype = 'application/json;charset=utf-8'
-		if len(changed) > 1:
-			headers['Last-Modified'] = changed[1]
-		changed = changed[0]
 		head = {
 			'version': '1.0',
 			'changed': changed
@@ -635,7 +652,6 @@ def query(params):
 		body = '%s(%s)' % (getp(params,'callback','callback'), body)
 	
 	headers['Content-Type'] = mimetype
-	headers['Expires'] = fmtdate(datetime.now()+timedelta(days=1))
 
 	return headers, body
 
