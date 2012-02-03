@@ -693,21 +693,21 @@ $.extend(Magnatune, {
 
 			var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
 			if (Magnatune.authenticated && this.member()) {
+				var url = "http://stream.magnatune.com/music/"+encodeURIComponent(artist)+"/"+
+					encodeURIComponent(song.albumname)+"/"+encodeURIComponent(song.mp3);
+
 				this._set_sources([
-					{type:'audio/ogg',src:"http://stream.magnatune.com/all/"+
-						encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.ogg'))},
-					{type:'audio/mp4',src:"http://stream.magnatune.com/music/"+encodeURIComponent(artist)+"/"+
-						encodeURIComponent(song.albumname)+"/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'.m4a'))},
-					{type:'audio/mpeg;codecs="mp3"',src:"http://stream.magnatune.com/all/"+
-						encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_nospeech.mp3'))}
+					{type:'audio/ogg',src:url.replace(/\.mp3$/i,'.ogg')},
+					{type:'audio/mp4',src:url.replace(/\.mp3$/i,'.m4a')},
+					{type:'audio/mpeg;codecs="mp3"',src:url}
 				]);
 			}
 			else {
+				var url = "http://he3.magnatune.com/all/"+encodeURIComponent(song.mp3);
+
 				this._set_sources([
-					{type:'audio/ogg',src:"http://he3.magnatune.com/all/"+
-						encodeURIComponent(song.mp3.replace(/\.mp3$/i,'.ogg'))},
-					{type:'audio/mpeg;codecs="mp3"',src:"http://he3.magnatune.com/all/"+
-						encodeURIComponent(song.mp3)}
+					{type:'audio/ogg',src:url.replace(/\.mp3$/i,'.ogg')},
+					{type:'audio/mpeg;codecs="mp3"',src:url}
 				]);
 			}
 
