@@ -4156,6 +4156,10 @@ $(document).ready(function () {
 	$(window).on('hashchange',function (event) {
 		Magnatune.showHash();
 	});
+
+	if (typeof(FileReader) === "undefined") {
+		$('#import-button').hide();
+	}
 });
 
 $(document).on('click touchend touchcancel', function (event) {
