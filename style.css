@@ -459,12 +459,13 @@ li.active {
 	right: 20px;
 }
 
-#waiting {
+#waiting-wrapper {
 	position: absolute;
 	bottom: 10px;
 	left: 360px;
 }
 
+#waiting-wrapper,
 #login-spinner,
 #waiting {
 	width: 16px;
