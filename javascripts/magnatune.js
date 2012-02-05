@@ -1465,6 +1465,7 @@ $.extend(Magnatune, {
 			window.open("data:audio/x-mpegurl;charset=utf-8;base64,"+$.base64Encode(this.exportM3u("ogg")),"Playlist.m3u");
 		},
 		showPlaylistMenu: function () {
+			this.loadPlaylistMenu();
 			var menu = $('#playlists-menu');
 			var button = $('#playlists-button');
 			var pos = button.position();
@@ -1524,7 +1525,6 @@ $.extend(Magnatune, {
 			if (typeof(localStorage) !== "undefined") {
 				var playlists = this._getSavedPlaylists();
 				playlists[name] = this.songs();
-				this._loadPlaylistMenu(playlists,name);
 				localStorage.setItem('playlist.saved', JSON.stringify(playlists));
 			}
 		},
@@ -1538,7 +1538,9 @@ $.extend(Magnatune, {
 			if (typeof(localStorage) !== "undefined") {
 				var playlists = Magnatune.Playlist._getSavedPlaylists();
 				delete playlists[name];
-				Magnatune.Playlist._loadPlaylistMenu(playlists,name);
+				if ($('#playlists-menu').is(':visible')) {
+					Magnatune.Playlist._loadPlaylistMenu(playlists);
+				}
 				localStorage.setItem('playlist.saved', JSON.stringify(playlists));
 			}
 		},
@@ -3815,8 +3817,6 @@ $.extend(Magnatune, {
 		else if (navigationVisible === false) {
 			Magnatune.Navigation.hide(true);
 		}
-
-		Magnatune.Playlist.loadPlaylistMenu();
 	}
 });
 
