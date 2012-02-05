@@ -20,8 +20,9 @@
 
 $.fx.interval = 40;
 $.format = function (fmt, args) {
+	if (!args) args = {};
 	var index = 0;
-	return fmt.replace(/{[^{}]*}|{{|}}|{|}/g, function (found) {
+	return fmt.replace(/\{[^\{\}]*\}|\{\{|\}\}|\{|\}/g, function (found) {
 		switch (found) {
 			case '{{': return '{';
 			case '}}': return '}';
@@ -332,9 +333,9 @@ var tag = (function ($,undefined) {
 
 			if (body.length === 0) {
 				expander.text('\u25BC');
-				var body = tag('div',{'class':'body'},opts.body_attrs);
-				opts.render(body);
-				self.append(body)
+				var newbody = tag('div',{'class':'body'},opts.body_attrs);
+				opts.render(newbody);
+				self.append(newbody);
 			}
 			else {
 				expander.text('\u25B6');
@@ -1089,7 +1090,7 @@ $.extend(Magnatune, {
 				var page = tag('div',{'class':'about'});
 				var install = '';
 				if (window.chrome && window.chrome.app) {
-					install = '<a class="button app" href="app/magnatune-player.crx">Install App</a>'
+					install = '<a class="button app" href="app/magnatune-player.crx">Install App</a>';
 				}
 				$(page).html(
 					'<h2>Magnatune Player</h2>'+
@@ -1181,8 +1182,7 @@ $.extend(Magnatune, {
 									tag('a',{href:url},'mp3'),' ',
 									tag('a',{href:url.replace(/\.mp3$/i,'.wav')},'wav'),' ',
 									tag('a',{href:url.replace(/\.mp3$/i,'.m4a')},'m4a'),' ',
-									tag('a',{href:url.replace(/\.mp3$/i,'.ogg')},'ogg')
-								));
+									tag('a',{href:url.replace(/\.mp3$/i,'.ogg')},'ogg')));
 							}
 							row.append(tag('td', tag('a',{
 								title: 'Enqueue Track',
@@ -1205,7 +1205,7 @@ $.extend(Magnatune, {
 						launchdate.setTime(data.body.launchdate * 1000);
 						var sku = data.body.sku;
 						var embed_args   = JSON.stringify(album.albumname)+','+JSON.stringify(sku);
-						var embed_update = 'Magnatune.Info.updateEmbed('+embed_args+');'
+						var embed_update = 'Magnatune.Info.updateEmbed('+embed_args+');';
 						var embed_width  = tag.number({id: 'embed_width',  value: 400, min: 0, max: 1920, decimals: 0, step: 10, onchange: embed_update});
 						var embed_height = tag.number({id: 'embed_height', value: 300, min: 0, max: 1080, decimals: 0, step: 10, onchange: embed_update});
 						var cover_file, cover_class;
@@ -1514,21 +1514,27 @@ $.extend(Magnatune, {
 							switch (this.error.code) {
 								case FileError.ABORT_ERR:
 									msg = 'Aborted';
+									break;
 
 								case FileError.ENCODING_ERR:
 									msg = 'Encoding Error';
+									break;
 
 								case FileError.NOT_FOUND_ERR:
 									msg = 'File not found';
+									break;
 
 								case FileError.NOT_READABLE_ERR:
 									msg = 'File is not readable';
+									break;
 
 								case FileError.NO_MODIFICATION_ALLOWED_ERR:
 									msg = 'File is not writeable';
+									break;
 
 								case FileError.SECURITY_ERR:
 									msg = 'Security Error';
+									break;
 
 								default:
 									msg = 'Error code ' + this.error.code;
@@ -1835,9 +1841,9 @@ $.extend(Magnatune, {
 				}
 			}
 			else {
-				($("#playlist").find('> tbody > tr.selected')
-					.removeClass('selected')
-					.removeClass('selection-start'));
+				($("#playlist").find('> tbody > tr.selected').
+					removeClass('selected').
+					removeClass('selection-start'));
 				$(this).addClass('selected selection-start');
 			}
 		},
@@ -1891,10 +1897,10 @@ $.extend(Magnatune, {
 			}
 		},
 		_dragcancel: function (event) {
-			($('#playlist .drop')
-				.removeClass('drop')
-				.removeClass('before')
-				.removeClass('after'));
+			($('#playlist .drop').
+				removeClass('drop').
+				removeClass('before').
+				removeClass('after'));
 		},
 		_dragover: function (event) {
 			var playlist = $('#playlist');
@@ -2000,10 +2006,10 @@ $.extend(Magnatune, {
 				}
 				if (start === end) track = $();
 			}
-			(playlist.find('> * > tr.drop')
-				.removeClass('drop')
-				.removeClass('before')
-				.removeClass('after'));
+			(playlist.find('> * > tr.drop').
+				removeClass('drop').
+				removeClass('before').
+				removeClass('after'));
 			track.addClass(before ? 'drop before' : 'drop after');
 		},
 		DraggableOptions: {
@@ -2031,12 +2037,12 @@ $.extend(Magnatune, {
 					drag: Magnatune.Playlist._dragover,
 					drop: function (event) {
 						var target = $('#playlist .drop');
-						Magnatune.Playlist._moveSelected(target, target.hasClass('before'));
+						Magnatune.Playlist._moveSelected(target);
 
-						(target
-							.removeClass('drop')
-							.removeClass('before')
-							.removeClass('after'));
+						(target.
+							removeClass('drop').
+							removeClass('before').
+							removeClass('after'));
 					},
 					cancel: Magnatune.Playlist._dragcancel
 				};
@@ -2083,7 +2089,9 @@ $.extend(Magnatune, {
 				}
 				else {
 					var realTarget = target;
-					var before = target.hasClass('before');
+					if (before === undefined) {
+						before = target.hasClass('before');
+					}
 					if (realTarget.is('.selected')) {
 						realTarget = realTarget.prevAll(':not(.selected):first');
 						if (realTarget.length === 0) {
@@ -2905,10 +2913,10 @@ $.extend(Magnatune, {
 											}
 										});
 									}
-									(target
-										.removeClass('drop')
-										.removeClass('before')
-										.removeClass('after'));
+									(target.
+										removeClass('drop').
+										removeClass('before').
+										removeClass('after'));
 									if (!was_visible) Magnatune.Info.show();
 								},
 								cancel: function (event) {
@@ -2969,10 +2977,10 @@ $.extend(Magnatune, {
 										}
 									}
 								}
-								(target
-									.removeClass('drop')
-									.removeClass('before')
-									.removeClass('after'));
+								(target.
+									removeClass('drop').
+									removeClass('before').
+									removeClass('after'));
 								if (!was_visible) Magnatune.Info.show();
 							},
 							cancel: function (event) {
@@ -3304,7 +3312,7 @@ $.extend(Magnatune, {
 						}
 					}
 				});
-			}
+			};
 			spin();
 
 			src = "http://"+encodeURIComponent(username)+":"+
@@ -3343,7 +3351,7 @@ $.extend(Magnatune, {
 			}
 		};
 
-		var script = tag('script',{
+		script = tag('script',{
 			type:'text/javascript',
 			src: src,
 			onload: onload,
@@ -3776,7 +3784,7 @@ $.extend(Magnatune, {
 				this.element = null;
 			}
 		},
-		goto: function (pagename) {
+		show: function (pagename) {
 			if (this.history.length > 0) {
 				var page = this.Pages[this.history[this.history.length - 1]];
 				this._trigger(page,'hide');
