@@ -1500,8 +1500,6 @@ $.extend(Magnatune, {
 		},
 		importFile: function (file) {
 			if (!file) return;
-			// TODO
-			console.log("TODO: import",file);
 			switch (file.type || "application/octet-stream") {
 				case "application/octet-stream":
 				case "text/plain":
