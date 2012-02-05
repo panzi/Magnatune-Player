@@ -161,11 +161,17 @@
 							</div>
 						</form>
 					</span>
-					<a id="export-button" class="button" href="javascript:Magnatune.Playlist.toggleExportMenu();void(0)">Export M3U...</a>
+					<a id="export-button" class="button" href="javascript:Magnatune.Playlist.toggleExportMenu();void(0)">Export...</a>
 					<ul id="export-menu" class="popup-menu pulldown-menu" data-button="export-button" style="display:none;">
-						<li class="first"><a href="javascript:Magnatune.Playlist.exportAsMp3();void(0)">As MP3</a></li>
-						<li class="last"><a href="javascript:Magnatune.Playlist.exportAsOgg();void(0)">As Ogg Vorbis</a></li>
+						<li class="first"><a href="javascript:Magnatune.Playlist.exportAsMp3();void(0)">Current As M3U+MP3</a></li>
+						<li><a href="javascript:Magnatune.Playlist.exportAsOgg();void(0)">Current As M3U+Ogg Vorbis</a></li>
+						<li><a href="javascript:Magnatune.Playlist.exportAsJSON();void(0)">Current As JSON</a></li>
+						<li class="last"><a href="javascript:Magnatune.Playlist.exportSavedAsJSON();void(0)">All Saved Playlists As JSON</a></li>
 					</ul>
+					<span id="import-button" class="button">
+						<span>Import...</span>
+						<div id="import-wrapper"><input type="file" id="import" onchange="Magnatune.Playlist.importFiles(this.files);"/></div>
+					</span>
 				</div>
 				<div class="tab-content">
 					<table class="playlist" id="playlist">

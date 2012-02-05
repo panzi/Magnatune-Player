@@ -91,7 +91,6 @@ input[type="submit"],
 input[type="button"] {
 	border-style: none;
 	background: transparent;
-	cursor: pointer;
 }
 
 #tabs a,
@@ -109,6 +108,7 @@ input[type="button"],
 	font-weight: bold;
 	color: #8492B4;
 	text-shadow: 1px 1px 2px #E8EFFC;
+	cursor: pointer;
 }
 
 #tree a,
@@ -1200,4 +1200,33 @@ td.embed-config {
 
 .download-headline {
 	font-weight: bold;
+}
+
+#import-button {
+	position: relative;
+}
+
+#import-wrapper {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
+#import {
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	cursor: pointer !important;
+
+	margin: 0;
+	padding: 0;
+	filter: alpha(opacity = 0);
+	opacity: 0;
+}
+
+.tab-head {
+	position: relative;
 }

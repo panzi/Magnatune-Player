@@ -445,6 +445,10 @@ function showPopup (button, popup) {
 	});
 }
 
+function showSave (data, name, mimetype) {
+	window.open("data:"+(mimetype||"application/octet-stream")+";charset=utf-8;base64,"+$.base64Encode(data),name||"Download");
+}
+
 $.extend(Magnatune, {
 	Events: {
 		extend: function (obj) {
@@ -1458,11 +1462,124 @@ $.extend(Magnatune, {
 		},
 		exportAsMp3: function () {
 			this.hideExportMenu();
-			window.open("data:audio/x-mpegurl;charset=utf-8;base64,"+$.base64Encode(this.exportM3u("mp3")),"Playlist.m3u");
+			showSave(this.exportM3u("mp3"),"Playlist.m3u","audio/x-mpegurl");
 		},
 		exportAsOgg: function () {
 			this.hideExportMenu();
-			window.open("data:audio/x-mpegurl;charset=utf-8;base64,"+$.base64Encode(this.exportM3u("ogg")),"Playlist.m3u");
+			showSave(this.exportM3u("ogg"),"Playlist.m3u","audio/x-mpegurl");
+		},
+		exportAsJSON: function () {
+			this.hideExportMenu();
+			var playlist = JSON.stringify({
+				head: {
+					version: "1.0",
+					type: "magnatune-player",
+					subtype: "playlist"
+				},
+				body: this.songs()
+			});
+			showSave(playlist,"Playlist.json");
+		},
+		exportSavedAsJSON: function () {
+			this.hideExportMenu();
+			var playlists = JSON.stringify({
+				head: {
+					version: "1.0",
+					type: "magnatune-player",
+					subtype: "playlists"
+				},
+				body: this._getSavedPlaylists()
+			});
+			showSave(playlists,"Playlists.json");
+		},
+		importFiles: function (files) {
+			if (!files) return;
+			for (var i = 0; i < files.length; ++ i) {
+				this.importFile(files[0]);
+			}
+		},
+		importFile: function (file) {
+			if (!file) return;
+			// TODO
+			console.log("TODO: import",file);
+			switch (file.type || "application/octet-stream") {
+				case "application/octet-stream":
+				case "text/plain":
+				case "application/json":
+				case "text/x-json":
+				case "text/json":
+					var reader = new FileReader();
+					reader.onerror = function (event) {
+						var msg = this.error.toString();
+
+						if (msg === '[object FileError]') {
+							switch (this.error.code) {
+								case FileError.ABORT_ERR:
+									msg = 'Aborted';
+
+								case FileError.ENCODING_ERR:
+									msg = 'Encoding Error';
+
+								case FileError.NOT_FOUND_ERR:
+									msg = 'File not found';
+
+								case FileError.NOT_READABLE_ERR:
+									msg = 'File is not readable';
+
+								case FileError.NO_MODIFICATION_ALLOWED_ERR:
+									msg = 'File is not writeable';
+
+								case FileError.SECURITY_ERR:
+									msg = 'Security Error';
+
+								default:
+									msg = 'Error code ' + this.error.code;
+							}
+						}
+
+						alert("Error reading file: "+msg);
+					};
+					reader.onload = function (event) {
+						var data;
+						try {
+							data = JSON.parse(this.result);
+						}
+						catch (e) {
+							alert("Error parsing file: "+e.toString());
+							return;
+						}
+						Magnatune.Playlist.importJSON(data);
+					};
+					reader.readAsText(file, "UTF-8");
+					break;
+				default:
+					alert("Unrecognized file type: "+file.type);
+			}
+		},
+		importJSON: function (data) {
+			if (!data || !data.head || data.head.type !== "magnatune-player" || !data.body) {
+				alert("Unrecognized file format.");
+				return;
+			}
+
+			switch (data.head.subtype) {
+				case "playlist":
+					this.enqueue(data.body);
+					break;
+
+				case "playlists":
+					if (typeof(localStorage) !== "undefined") {
+						var playlists = this._getSavedPlaylists();
+						$.extend(playlists, data.body);
+						if ($('#playlists-menu').is(':visible')) {
+							Magnatune.Playlist._loadPlaylistMenu(playlists);
+						}
+						localStorage.setItem('playlist.saved', JSON.stringify(playlists));
+					}
+					break;
+
+				default: alert("Unsupported Format.");
+			}
 		},
 		showPlaylistMenu: function () {
 			this.loadPlaylistMenu();
