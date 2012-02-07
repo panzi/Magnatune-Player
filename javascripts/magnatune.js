@@ -1095,7 +1095,7 @@ $.extend(Magnatune, {
 				$(page).html(
 					'<h2>Magnatune Player</h2>'+
 					'<div class="about-float">'+
-					'<a class="logo" title="Magnatune" href="http://magnatune.com/"><img alt="" src="logo.png"/></a>'+
+					'<a class="logo" title="Magnatune" href="http://magnatune.com/"><img alt="" src="images/logo.png"/></a>'+
 					install+
 					'</div>'+
 					'<p>This is a proof of concept interface to <a href="http://magnatune.com/">magnatune.com</a> '+
