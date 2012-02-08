@@ -3196,7 +3196,10 @@ $.extend(Magnatune, {
 		},
 		start: function (event, options) {
 			var handler = options.create.call(this,event);
-			if (options.visual || (!('visual' in options) && handler.render)) {
+			if (!handler) {
+				Magnatune.DnD.source = null;
+			}
+			else if (options.visual || (!('visual' in options) && handler.render)) {
 				var offset = $(this).offset();
 				if (handler.render) {
 					Magnatune.DnD.element = $(handler.render.call(this));
