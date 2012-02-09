@@ -125,8 +125,8 @@ $(function () {
 	Magnatune.DnD.draggable(top_resizer, {
 		create: function (event) {
 			var startY = event.screenY,
-			    width = window.innerWidth,
-			    height = window.innerHeight,
+			    width = window.outerWidth,
+			    height = window.outerHeight,
 			    winY = window.screenTop||window.screenY,
 			    winX = window.screenLeft||window.screenX;
 			return {drag: function (event) {
@@ -140,8 +140,8 @@ $(function () {
 	Magnatune.DnD.draggable(bottom_resizer, {
 		create: function (event) {
 			var startY = event.screenY,
-			    width = window.innerWidth,
-			    height = window.innerHeight;
+			    width = window.outerWidth,
+			    height = window.outerHeight;
 			return {drag: function (event) {
 			    var dy = event.screenY - startY;
 			    window.resizeTo(width,height+dy);
@@ -152,8 +152,8 @@ $(function () {
 	Magnatune.DnD.draggable(left_resizer, {
 		create: function (event) {
 			var startX = event.screenX,
-			    width = window.innerWidth,
-			    height = window.innerHeight,
+			    width = window.outerWidth,
+			    height = window.outerHeight,
 			    winY = window.screenTop||window.screenY,
 			    winX = window.screenLeft||window.screenX;
 			return {drag: function (event) {
@@ -167,8 +167,8 @@ $(function () {
 	Magnatune.DnD.draggable(right_resizer, {
 		create: function (event) {
 			var startX = event.screenX,
-			    width = window.innerWidth,
-			    height = window.innerHeight;
+			    width = window.outerWidth,
+			    height = window.outerHeight;
 			return {drag: function (event) {
 			    var dx = event.screenX - startX;
 			    window.resizeTo(width+dx,height);
@@ -180,8 +180,8 @@ $(function () {
 		create: function (event) {
 			var startX = event.screenX,
 			    startY = event.screenY,
-			    width = window.innerWidth,
-			    height = window.innerHeight,
+			    width = window.outerWidth,
+			    height = window.outerHeight,
 			    winY = window.screenTop||window.screenY,
 			    winX = window.screenLeft||window.screenX;
 			return {drag: function (event) {
@@ -197,8 +197,8 @@ $(function () {
 		create: function (event) {
 			var startX = event.screenX,
 			    startY = event.screenY,
-			    width = window.innerWidth,
-			    height = window.innerHeight,
+			    width = window.outerWidth,
+			    height = window.outerHeight,
 			    winY = window.screenTop||window.screenY,
 			    winX = window.screenLeft||window.screenX;
 			return {drag: function (event) {
@@ -214,8 +214,8 @@ $(function () {
 		create: function (event) {
 			var startX = event.screenX,
 			    startY = event.screenY,
-			    width = window.innerWidth,
-			    height = window.innerHeight,
+			    width = window.outerWidth,
+			    height = window.outerHeight,
 			    winY = window.screenTop||window.screenY,
 			    winX = window.screenLeft||window.screenX;
 			return {drag: function (event) {
@@ -231,8 +231,8 @@ $(function () {
 		create: function (event) {
 			var startX = event.screenX,
 			    startY = event.screenY,
-			    width = window.innerWidth,
-			    height = window.innerHeight;
+			    width = window.outerWidth,
+			    height = window.outerHeight;
 			return {drag: function (event) {
 			    var dx = event.screenX - startX,
 			        dy = event.screenY - startY;

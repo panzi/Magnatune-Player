@@ -94,7 +94,6 @@ input[type="button"] {
 }
 
 #tabs a,
-#breadcrumbs,
 #breadcrumbs a,
 .button,
 button,
@@ -109,6 +108,12 @@ input[type="button"],
 	color: #8492B4;
 	text-shadow: 1px 1px 2px #E8EFFC;
 	cursor: pointer;
+}
+
+#breadcrumbs {
+	font-weight: bold;
+	color: #8492B4;
+	text-shadow: 1px 1px 2px #E8EFFC;
 }
 
 #tree a,
