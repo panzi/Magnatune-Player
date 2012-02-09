@@ -40,6 +40,19 @@
 	var min_width  = $('#player').outerWidth();
 	var min_height = $('#player').outerHeight();
 
+	var minWidth = function () {
+		return min_width+(window.outerWidth-window.innerWidth);
+	};
+
+	var minHeight = function () {
+		if (Magnatune.Player.visible()) {
+			return min_height+(window.outerHeight-window.innerHeight);
+		}
+		else {
+			return 35+(window.outerHeight-window.innerHeight);
+		}
+	};
+
 	var top_resizer = tag('div',{
 		'class': 'resizer horizontal',
 		style: {
@@ -132,7 +145,7 @@
 			    winX = window.screenLeft||window.screenX;
 			return {drag: function (event) {
 			    var dy = event.screenY - startY;
-			    window.resizeTo(width,Math.max(height-dy,min_height));
+			    window.resizeTo(width,Math.max(height-dy,min_height+(window.outerHeight-window.innerHeight)));
 			    window.moveTo(winX,winY+(height-window.outerHeight));
 			}};
 		}
@@ -145,7 +158,7 @@
 			    height = window.outerHeight;
 			return {drag: function (event) {
 			    var dy = event.screenY - startY;
-			    window.resizeTo(width,Math.max(height+dy,min_height));
+			    window.resizeTo(width,Math.max(height+dy,min_height+(window.outerHeight-window.innerHeight)));
 			}};
 		}
 	});
@@ -159,7 +172,7 @@
 			    winX = window.screenLeft||window.screenX;
 			return {drag: function (event) {
 			    var dx = event.screenX - startX;
-			    window.resizeTo(Math.max(width-dx,min_width),height);
+			    window.resizeTo(Math.max(width-dx,minWidth()),height);
 			    window.moveTo(winX+(width-window.outerWidth),winY);
 			}};
 		}
@@ -172,7 +185,7 @@
 			    height = window.outerHeight;
 			return {drag: function (event) {
 			    var dx = event.screenX - startX;
-			    window.resizeTo(Math.max(width+dx,min_width),height);
+			    window.resizeTo(Math.max(width+dx,minWidth()),height);
 			}};
 		}
 	});
@@ -188,7 +201,9 @@
 			return {drag: function (event) {
 			    var dx = event.screenX - startX,
 			        dy = event.screenY - startY;
-			    window.resizeTo(Math.max(width-dx,min_width),Math.max(height-dy,min_height));
+			    window.resizeTo(
+					Math.max(width-dx,minWidth()),
+					Math.max(height-dy,min_height+(window.outerHeight-window.innerHeight)));
 			    window.moveTo(winX+(width-window.outerWidth),winY+(height-window.outerHeight));
 			}};
 		}
@@ -205,7 +220,9 @@
 			return {drag: function (event) {
 			    var dx = event.screenX - startX,
 			        dy = event.screenY - startY;
-			    window.resizeTo(Math.max(width-dx,min_width),Math.max(height+dy,min_height));
+			    window.resizeTo(
+					Math.max(width-dx,minWidth()),
+					Math.max(height+dy,min_height+(window.outerHeight-window.innerHeight)));
 			    window.moveTo(winX+(width-window.outerWidth),winY);
 			}};
 		}
@@ -220,7 +237,9 @@
 			return {drag: function (event) {
 			    var dx = event.screenX - startX,
 			        dy = event.screenY - startY;
-			    window.resizeTo(Math.max(width+dx,min_width),Math.max(height+dy,min_height));
+			    window.resizeTo(
+					Math.max(width+dx,minWidth()),
+					Math.max(height+dy,min_height+(window.outerHeight-window.innerHeight)));
 			}};
 		}
 	});
