@@ -1086,11 +1086,16 @@ $.extend(Magnatune, {
 				}
 			},
 			about: function (opts) {
-				// TODO: don't inline this HTML
+				// TODO: don't inline this HTML here
 				var page = tag('div',{'class':'about'});
 				var install = '';
 				if (window.chrome && window.chrome.app) {
-					install = '<a class="button app" href="app/magnatune-player.crx">Install App</a>';
+					if (window.chrome.app.getDetails()) {
+						install = '<span class="app installed">App is installed</span>';
+					}
+					else {
+						install = '<a class="button app" href="app/magnatune-player.crx">Install App</a>';
+					}
 				}
 				$(page).html(
 					'<h2>Magnatune Player</h2>'+
@@ -4175,7 +4180,8 @@ $(function () {
 // and it makes sense to implement custom move/resize so the player can
 // be used without window decoration
 if ((!window.matchMedia || window.matchMedia("not handheld").matches) &&
-	window.chrome && window.chrome.app && window.chrome.app.getDetails()) {
+	window.chrome && window.chrome.app && window.chrome.app.getDetails() &&
+	window.outerHeight - window.innerHeight < 62) {
 	$.getScript('javascript/move_and_resize.js');
 }
 
