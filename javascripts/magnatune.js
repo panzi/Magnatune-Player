@@ -4182,7 +4182,7 @@ $(function () {
 if ((!window.matchMedia || window.matchMedia("not handheld").matches) &&
 	window.chrome && window.chrome.app && window.chrome.app.getDetails() &&
 	window.outerHeight - window.innerHeight < 62) {
-	$.getScript('javascript/move_and_resize.js');
+	$.ajax('javascripts/move_and_resize.js',{dataType:'script',cache:true});
 }
 
 $(document).on('click touchend touchcancel', function (event) {
