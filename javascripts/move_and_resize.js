@@ -123,7 +123,12 @@
 	var close_button = tag('a',{
 		'class':'close-window',
 		title: 'Close Magnatune Player',
-		href:'javascript:window.close();void(0)'},
+		href:'javascript:void(0)',
+		onclick: function () {
+			// otherwise chrome prevents the close:
+			window.open('', '_self', '');
+			window.close();
+		}},
 		'\u00d7');
 	
 	($('#main').
