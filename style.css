@@ -1231,3 +1231,21 @@ td.embed-config {
 .tab-head {
 	position: relative;
 }
+
+.resizer {
+	position: absolute;
+	z-index: 1001;
+}
+
+.resizer.corner {
+	width: 16px;
+	height: 16px;
+}
+
+.resizer.horizontal {
+	height: 3px;
+}
+
+.resizer.vertical {
+	width: 3px;
+}

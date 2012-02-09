@@ -4013,7 +4013,7 @@ else {
 	});
 }
 
-$(document).ready(function () {
+$(function () {
 	if (!document.body.scrollIntoView && !document.body.scrollIntoViewIfNeeded) {
 		$('#show-current').hide();
 	}
@@ -4170,6 +4170,14 @@ $(document).ready(function () {
 		$('#import-button').hide();
 	}
 });
+
+// if installed as app window.moveTo and window.resizeTo are not blocked
+// and it makes sense to implement custom move/resize so the player can
+// be used without window decoration
+if ((!window.matchMedia || window.matchMedia("not handheld").matches) &&
+	window.chrome && window.chrome.app && window.chrome.app.getDetails()) {
+	$.getScript('javascript/move_and_resize.js');
+}
 
 $(document).on('click touchend touchcancel', function (event) {
 	var menus = $('.popup-menu');
