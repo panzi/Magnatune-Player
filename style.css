@@ -1237,6 +1237,7 @@ td.embed-config {
 	position: relative;
 }
 
+.close-window,
 .resizer {
 	position: absolute;
 	z-index: 1001;
@@ -1253,4 +1254,18 @@ td.embed-config {
 
 .resizer.vertical {
 	width: 3px;
+}
+
+.close-window {
+	top: 0px;
+	right: 0px;
+	font-weight: bold;
+	display: block;
+	padding: 2px;
+	padding-right: 5px;
+	color: #485063;
+	font-size: 20px;
+	line-height: 20px;
+	width: 20px;
+	text-align: center;
 }

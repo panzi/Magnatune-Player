@@ -18,7 +18,8 @@
 
 "use strict";	
 
-$(function () {
+(function () {
+	var move_and_resize = function () {
 	// move:
 	Magnatune.DnD.draggable($('#main'), {
 		create: function (event) {
@@ -36,6 +37,9 @@ $(function () {
 	});
 	
 	// resize:
+	var min_width  = $('#player').outerWidth();
+	var min_height = $('#player').outerHeight();
+
 	var top_resizer = tag('div',{
 		'class': 'resizer horizontal',
 		style: {
@@ -85,15 +89,6 @@ $(function () {
 		}
 	});
 	
-	var top_right_resizer = tag('div',{
-		'class': 'resizer corner',
-		style: {
-			top: '0px',
-			right: '0px',
-			cursor: 'NE-resize'
-		}
-	});
-	
 	var bottom_left_resizer = tag('div',{
 		'class': 'resizer corner',
 		style: {
@@ -111,6 +106,12 @@ $(function () {
 			cursor: 'SE-resize'
 		}
 	});
+
+	var close_button = tag('a',{
+		'class':'close-window',
+		title: 'Close Magnatune Player',
+		href:'javascript:window.close();void(0)'},
+		'\u00d7');
 	
 	($('#main').
 		append(top_resizer).
@@ -118,9 +119,9 @@ $(function () {
 		append(left_resizer).
 		append(right_resizer).
 		append(top_left_resizer).
-		append(top_right_resizer).
 		append(bottom_left_resizer).
-		append(bottom_right_resizer));
+		append(bottom_right_resizer).
+		append(close_button));
 	
 	Magnatune.DnD.draggable(top_resizer, {
 		create: function (event) {
@@ -131,8 +132,8 @@ $(function () {
 			    winX = window.screenLeft||window.screenX;
 			return {drag: function (event) {
 			    var dy = event.screenY - startY;
-			    window.moveTo(winX,winY+dy);
-			    window.resizeTo(width,height-dy);
+			    window.resizeTo(width,Math.max(height-dy,min_height));
+			    window.moveTo(winX,winY+(height-window.outerHeight));
 			}};
 		}
 	});
@@ -144,7 +145,7 @@ $(function () {
 			    height = window.outerHeight;
 			return {drag: function (event) {
 			    var dy = event.screenY - startY;
-			    window.resizeTo(width,height+dy);
+			    window.resizeTo(width,Math.max(height+dy,min_height));
 			}};
 		}
 	});
@@ -158,8 +159,8 @@ $(function () {
 			    winX = window.screenLeft||window.screenX;
 			return {drag: function (event) {
 			    var dx = event.screenX - startX;
-			    window.moveTo(winX+dx,winY);
-			    window.resizeTo(width-dx,height);
+			    window.resizeTo(Math.max(width-dx,min_width),height);
+			    window.moveTo(winX+(width-window.outerWidth),winY);
 			}};
 		}
 	});
@@ -171,7 +172,7 @@ $(function () {
 			    height = window.outerHeight;
 			return {drag: function (event) {
 			    var dx = event.screenX - startX;
-			    window.resizeTo(width+dx,height);
+			    window.resizeTo(Math.max(width+dx,min_width),height);
 			}};
 		}
 	});
@@ -187,25 +188,8 @@ $(function () {
 			return {drag: function (event) {
 			    var dx = event.screenX - startX,
 			        dy = event.screenY - startY;
-			    window.moveTo(winX+dx,winY+dy);
-			    window.resizeTo(width-dx,height-dy);
-			}};
-		}
-	});
-	
-	Magnatune.DnD.draggable(top_right_resizer, {
-		create: function (event) {
-			var startX = event.screenX,
-			    startY = event.screenY,
-			    width = window.outerWidth,
-			    height = window.outerHeight,
-			    winY = window.screenTop||window.screenY,
-			    winX = window.screenLeft||window.screenX;
-			return {drag: function (event) {
-			    var dx = event.screenX - startX,
-			        dy = event.screenY - startY;
-			    window.moveTo(winX,winY+dy);
-			    window.resizeTo(width+dx,height-dy);
+			    window.resizeTo(Math.max(width-dx,min_width),Math.max(height-dy,min_height));
+			    window.moveTo(winX+(width-window.outerWidth),winY+(height-window.outerHeight));
 			}};
 		}
 	});
@@ -221,8 +205,8 @@ $(function () {
 			return {drag: function (event) {
 			    var dx = event.screenX - startX,
 			        dy = event.screenY - startY;
-			    window.moveTo(winX+dx,winY);
-			    window.resizeTo(width-dx,height+dy);
+			    window.resizeTo(Math.max(width-dx,min_width),Math.max(height+dy,min_height));
+			    window.moveTo(winX+(width-window.outerWidth),winY);
 			}};
 		}
 	});
@@ -236,8 +220,16 @@ $(function () {
 			return {drag: function (event) {
 			    var dx = event.screenX - startX,
 			        dy = event.screenY - startY;
-			    window.resizeTo(width+dx,height+dy);
+			    window.resizeTo(Math.max(width+dx,min_width),Math.max(height+dy,min_height));
 			}};
 		}
 	});
-});
+
+	// help gc:
+	top_resizer = bottom_resizer = left_resizer = right_resizer = top_left_resizer = bottom_left_resizer = bottom_right_resizer = close_button = null;
+	};
+
+	// strange jQuery bug when run as chrome app?
+	if (document.body) move_and_resize();
+	else $(move_and_resize);
+})();
