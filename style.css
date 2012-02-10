@@ -837,6 +837,10 @@ code,
 	margin: 0;
 }
 
+.about-float {
+	text-align: center;
+}
+
 .about-float,
 .artist img.bandphoto,
 .album  img.cover.big,
