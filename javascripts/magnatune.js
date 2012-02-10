@@ -541,6 +541,36 @@ $.extend(Magnatune, {
 		_playing: function () {
 			$('#play-image').hide();
 			$('#pause-image').show();
+
+			if (this._song &&
+				typeof(localStorage) !== "undefined" &&
+				getBoolean('notifications.enabled') &&
+				window.webkitNotifications &&
+				window.webkitNotifications.checkPermission() === 0) {
+				var notification = window.webkitNotifications.createNotification(
+					"http://magnatune.com/favicon.ico", this._song.desc,
+					"by "+this._song.artist+" of the album "+this._song.albumname);
+				notification.onshow = this._timed_hide_notification;
+				notification.show();
+			}
+		},
+		_timed_hide_notification: function () {
+			var timeout;
+			if (typeof(localStorage) !== "undefined") {
+				timeout = parseInt(localStorage.getItem('notifications.timeout'),10);
+				if (isNaN(timeout)) {
+					timeout = 6000;
+				}
+			}
+			else {
+				timeout = 6000;
+			}
+			
+			if (timeout <= 0) {
+				setTimeout(function () {
+					this.close();
+				}.bind(this), timeout);
+			}
 		},
 		_not_playing: function () {
 			$('#play-image').show();
