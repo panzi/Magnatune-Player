@@ -1090,7 +1090,7 @@ $.extend(Magnatune, {
 				var page = tag('div',{'class':'about'});
 				var install = '';
 				if (window.chrome && window.chrome.app) {
-					if (window.chrome.app.getDetails()) {
+					if (window.chrome.app.isInstalled) {
 						install = '<span class="app installed">App is installed</span>';
 					}
 					else {
@@ -4180,7 +4180,7 @@ $(function () {
 // and it makes sense to implement custom move/resize so the player can
 // be used without window decoration
 if ((!window.matchMedia || window.matchMedia("not handheld").matches) &&
-	window.chrome && window.chrome.app && window.chrome.app.getDetails() &&
+	window.chrome && window.chrome.app && window.chrome.app.isInstalled &&
 	window.outerHeight - window.innerHeight < 62) {
 	$.ajax('javascripts/move_and_resize.js',{dataType:'script',cache:true});
 }
