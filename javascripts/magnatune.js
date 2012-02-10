@@ -551,7 +551,7 @@ $.extend(Magnatune, {
 					"http://magnatune.com/favicon.ico", this._song.desc,
 					"by "+Magnatune.Collection.Albums[this._song.albumname].artist.artist+
 					" of the album "+this._song.albumname);
-				notification.onshow = this._timed_hide_notification;
+				notification.ondisplay = this._timed_hide_notification;
 				notification.show();
 			}
 		},
@@ -567,7 +567,7 @@ $.extend(Magnatune, {
 				timeout = 6000;
 			}
 			
-			if (timeout <= 0) {
+			if (timeout > 0) {
 				setTimeout(function () {
 					this.cancel();
 				}.bind(this), timeout);
