@@ -482,6 +482,18 @@ $.extend(Magnatune, {
 			};
 		}
 	},
+	setNotificationsEnabled: function (enabled) {
+		enabled = !!enabled;
+		if (typeof(localStorage) !== "undefined") {
+			localStorage.setItem('notifications.enabled',String(enabled));
+		}
+		if (window.webkitNotifications && window.webkitNotifications.checkPermission() !== 0) {
+			window.webkitNotifications.requestPermission();
+		}
+	},
+	getNotificationsEnabled: function () {
+		return getBoolean('notifications.enabled');
+	},
 	Player: {
 		_song: null,
 		song: function () {
@@ -1119,20 +1131,26 @@ $.extend(Magnatune, {
 			about: function (opts) {
 				// TODO: don't inline this HTML here
 				var page = tag('div',{'class':'about'});
-				var install = '';
+				var more = '';
 				if (window.chrome && window.chrome.app) {
 					if (window.chrome.app.isInstalled) {
-						install = '<span class="app installed">App is installed</span>';
+						more = '<span class="app installed">App is installed</span>';
+						if (window.webkitNotifications) {
+							more += ('<br/><input type="checkbox" id="notifications-enabled" '+
+								'onchange="Magnatune.setNotificationsEnabled($(this).is(":checked"));"'+
+								(getBoolean('notifications.enabled') ? ' checked' : '')+'/> ' +
+								'<label for="notifications-enabled">Show notifications on song change</label>');
+						}
 					}
 					else {
-						install = '<a class="button app" href="app/magnatune-player.crx">Install App</a>';
+						more = '<a class="button app" href="app/magnatune-player.crx">Install App</a>';
 					}
 				}
 				$(page).html(
 					'<h2>Magnatune Player</h2>'+
 					'<div class="about-float">'+
 					'<a class="logo" title="Magnatune" href="http://magnatune.com/"><img alt="" src="images/logo.png"/></a>'+
-					install+
+					more+
 					'</div>'+
 					'<p>This is a proof of concept interface to <a href="http://magnatune.com/">magnatune.com</a> '+
 					'that is organized like a music player. It uses the '+
