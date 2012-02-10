@@ -22,9 +22,11 @@
 	var move_and_resize = function () {
 	// move:
 	Magnatune.DnD.draggable($('#main'), {
+		condition: function (event) {
+			return !$(event.target).parents().andSelf().is(
+				'.tab-content, #tree, .popup-menu, .button, a, button, input, textarea');
+		},
 		create: function (event) {
-			if ($(event.target).parents().andSelf().is('.tab-content, #tree, .popup-menu, .button, a, button, input, textarea'))
-				return null;
 			var startX = event.screenX, startY = event.screenY,
 			    winY = window.screenTop||window.screenY,
 			    winX = window.screenLeft||window.screenX;

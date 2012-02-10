@@ -550,7 +550,7 @@ $.extend(Magnatune, {
 				var notification = window.webkitNotifications.createNotification(
 					"http://magnatune.com/favicon.ico", this._song.desc,
 					"by "+Magnatune.Collection.Albums[this._song.albumname].artist.artist+
-					" of the album "+this._song.albumname);
+					" from the album "+this._song.albumname);
 				notification.ondisplay = this._timed_hide_notification;
 				notification.show();
 			}
@@ -3192,7 +3192,12 @@ $.extend(Magnatune, {
 		source:  null,
 		handler: null,
 		draggable: function (element, options) {
-			$(element).attr('onselectstart','return false;'); // IE
+			// IE
+			$(element).on('selectstart', function (event) {
+				if (!options.condition || options.condition(event)) {
+					event.preventDefault();
+				}
+			});
 			$(element).on(Magnatune.TouchDevice ? 'touchstart' : 'mousedown', function (event) {
 				if (Magnatune.DnD.source) return;
 
@@ -3201,6 +3206,9 @@ $.extend(Magnatune, {
 					if (!event) return;
 				}
 				else if (event.which !== 1) {
+					return;
+				}
+				else if (options.condition && !options.condition(event)) {
 					return;
 				}
 				else {
