@@ -559,10 +559,13 @@ $.extend(Magnatune, {
 				getBoolean('notifications.enabled') &&
 				window.webkitNotifications &&
 				window.webkitNotifications.checkPermission() === 0) {
+				var album = Magnatune.Collection.Albums[this._song.albumname];
 				var notification = window.webkitNotifications.createNotification(
-					"http://magnatune.com/favicon.ico", this._song.desc,
-					"by "+Magnatune.Collection.Albums[this._song.albumname].artist.artist+
-					" from the album "+this._song.albumname);
+					'http://he3.magnatune.com/music/'+
+					encodeURIComponent(album.artist.artist)+'/'+
+					encodeURIComponent(album.albumname)+'/cover_75.jpg',
+					this._song.desc,
+					"by "+album.artist.artist+" from the album "+this._song.albumname);
 				notification.ondisplay = this._timed_hide_notification;
 				notification.show();
 			}
