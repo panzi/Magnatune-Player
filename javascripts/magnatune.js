@@ -563,7 +563,7 @@ $.extend(Magnatune, {
 				var notification = window.webkitNotifications.createNotification(
 					'http://he3.magnatune.com/music/'+
 					encodeURIComponent(album.artist.artist)+'/'+
-					encodeURIComponent(album.albumname)+'/cover_75.jpg',
+					encodeURIComponent(album.albumname)+'/cover_50.jpg',
 					this._song.desc,
 					"by "+album.artist.artist+" from the album "+this._song.albumname);
 				notification.ondisplay = this._timed_hide_notification;
