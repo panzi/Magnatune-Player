@@ -1137,7 +1137,7 @@ $.extend(Magnatune, {
 						more = '<span class="app installed">App is installed</span>';
 						if (window.webkitNotifications) {
 							more += ('<br/><input type="checkbox" id="notifications-enabled" '+
-								'onchange="Magnatune.setNotificationsEnabled($(this).is(":checked"));"'+
+								'onchange="Magnatune.setNotificationsEnabled($(this).is(\':checked\'));"'+
 								(getBoolean('notifications.enabled') ? ' checked' : '')+'/> ' +
 								'<label for="notifications-enabled">Show notifications on song change</label>');
 						}
