@@ -549,7 +549,8 @@ $.extend(Magnatune, {
 				window.webkitNotifications.checkPermission() === 0) {
 				var notification = window.webkitNotifications.createNotification(
 					"http://magnatune.com/favicon.ico", this._song.desc,
-					"by "+this._song.artist+" of the album "+this._song.albumname);
+					"by "+Magnatune.Collection.Albums[this._song.albumname].artist.artist+
+					" of the album "+this._song.albumname);
 				notification.onshow = this._timed_hide_notification;
 				notification.show();
 			}
@@ -568,7 +569,7 @@ $.extend(Magnatune, {
 			
 			if (timeout <= 0) {
 				setTimeout(function () {
-					this.close();
+					this.cancel();
 				}.bind(this), timeout);
 			}
 		},
