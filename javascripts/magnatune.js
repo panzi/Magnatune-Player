@@ -397,7 +397,7 @@ var Magnatune = {
 (function (undefined) {
 
 var DOWNLOAD_MIME_TYPE_MAP = {
-	"m3u":  "audio/x-mpegurl",
+	"m3u":  "audio/mpegurl",
 	"xspf": "application/xspf+xml",
 	"json": "application/octet-stream"
 };
@@ -1709,6 +1709,7 @@ $.extend(Magnatune, {
 					read(file, Magnatune.Playlist.importJson.bind(Magnatune.Playlist));
 					break;
 
+				case "audio/mpegurl":
 				case "audio/x-mpegurl":
 					read(file, Magnatune.Playlist.importM3u.bind(Magnatune.Playlist));
 					break;
@@ -1779,41 +1780,43 @@ $.extend(Magnatune, {
 		},
 		importM3u: function (data) {
 			var lines = data.split(/\r?\n/g);
-
-			if (lines.length === 0) return;
-			if (!lines[lines.length-1].trim()) lines.pop();
-			if (lines.length === 0) return;
-
 			var songs = [];
-			var extm3u = lines[0].trimRight() === "#EXTM3U";
+			var extm3u = lines[0] === "#EXTM3U";
 			var unknown = 0;
 
+			var duration = NaN;
+			var desc = null;
 			for (var i = extm3u ? 1 : 0; i < lines.length; ++ i) {
-				var line = lines[i].trimRight();
-				var duration = NaN;
-				var desc = null;
+				var line = lines[i];
+
+				if (!line) continue;
+
 				if (extm3u && /^#EXTINF:/.test(line)) {
 					var info = /^#EXTINF:([^,]*)(?:,(.*))?$/.exec(line);
 					desc = info[2];
 					duration = parseInt(info[1], 10);
 					if (duration < 0) duration = NaN;
-					line = lines[++ i];
 				}
-				
-				var song = this._guessSongFromUrl(line);
-				if (song) {
-					song.duration = duration;
-					if (desc) {
-						var prefix = song.artist.replace(/\s*[-:\n]+\s*/g,' ')+' - ';
-						if (desc.slice(0,prefix.length).toLowerCase() === prefix.toLowerCase()) {
-							desc = desc.slice(prefix.length);
+				else if (!/^#/.test(line)) {
+					var song = this._guessSongFromUrl(line);
+
+					if (song) {
+						song.duration = duration;
+						if (desc) {
+							var prefix = song.artist.replace(/\s*[-:\n]+\s*/g,' ')+' - ';
+							if (desc.slice(0,prefix.length).toLowerCase() === prefix.toLowerCase()) {
+								desc = desc.slice(prefix.length);
+							}
+							song.desc = desc;
 						}
-						song.desc = desc;
+						songs.push(song);
 					}
-					songs.push(song);
-				}
-				else {
-					++ unknown;
+					else {
+						++ unknown;
+					}
+
+					duration = NaN;
+					desc = null;
 				}
 			}
 
