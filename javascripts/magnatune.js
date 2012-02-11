@@ -396,6 +396,26 @@ var Magnatune = {
 
 (function (undefined) {
 
+var DOWNLOAD_MIME_TYPE_MAP = {
+	"m3u":  "audio/x-mpegurl",
+	"xspf": "application/xspf+xml",
+	"json": "application/octet-stream"
+};
+
+var XML_CHAR_MAP = {
+	'<': '&lt;',
+	'>': '&gt;',
+	'&': '&amp;',
+	'"': '&quot;',
+	"'": '&apos;'
+};
+
+function escapeXml (s) {
+	return s.replace(/[<>&"']/g, function (ch) {
+		return XML_CHAR_MAP[ch];
+	});
+}
+
 function getBoolean (name) {
 	var value = localStorage.getItem(name);
 	if (value !== null) {
@@ -1497,15 +1517,14 @@ $.extend(Magnatune, {
 				this.showExportMenu();
 			}
 		},
-		exportM3u: function (format) {
-			var songs = this.songs();
+		exportM3u: function (format, songs) {
 			var buf = ["#EXTM3U\n"];
 			var prefix = "http://he3.magnatune.com/all/";
 			var get_file;
 			switch (String(format).toLowerCase()) {
 				case "mp3": get_file = encodeURIComponent; break;
 				case "ogg": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'.ogg')); }; break;
-				default: throw new Error("Illegal format: "+format);
+				default: throw new Error("Illegal track format: "+format);
 			}
 			
 			for (var i = 0; i < songs.length; ++ i) {
@@ -1517,29 +1536,70 @@ $.extend(Magnatune, {
 
 			return buf.join("");
 		},
-		exportAsMp3: function () {
-			this.hideExportMenu();
-			showSave(this.exportM3u("mp3"),"Playlist.m3u","audio/x-mpegurl");
+		exportXspf: function (format, songs) {
+			var prefix = "http://stream.magnatune.com/music/";
+			var get_file;
+			switch (String(format).toLowerCase()) {
+				case "mp3": get_file = encodeURIComponent; break;
+				case "ogg": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'.ogg')); }; break;
+				default: throw new Error("Illegal track format: "+format);
+			}
+			var buf = [
+				'<?xml version="1.0" encoding="UTF-8"?>\n'+
+				'<playlist version="1" xmlns="http://xspf.org/ns/0/">\n'+
+				'\t<image>http://magnatune.com/favicon.ico</image>\n'+
+				'\t<trackList>\n'
+			];
+
+			for (var i = 0; i < songs.length; ++ i) {
+				var song = songs[i];
+				var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
+				var folder = encodeURIComponent(artist)+"/"+encodeURIComponent(song.albumname)+"/";
+				var url = prefix+folder+get_file(song.mp3);
+				var id = 'magnatune:'+folder+encodeURIComponent(song.desc);
+				var image = prefix+folder+'cover_100.jpg';
+				buf.push(
+					'\t\t<track>\n'+
+					'\t\t\t<location>'+escapeXml(url)+'</location>\n'+
+					'\t\t\t<identifier>'+escapeXml(id)+'</identifier>\n'+
+					'\t\t\t<title>'+escapeXml(song.desc)+'</title>\n'+
+					'\t\t\t<trackNum>'+song.number+'</trackNum>\n'+
+					'\t\t\t<creator>'+escapeXml(artist)+'</creator>\n'+
+					'\t\t\t<album>'+escapeXml(song.albumname)+'</album>\n'+
+					'\t\t\t<image>'+escapeXml(image)+'</image>\n'+
+					'\t\t</track>\n');
+			}
+
+			buf.push('\t</trackList>\n</playlist>\n');
+			return buf.join('');
 		},
-		exportAsOgg: function () {
-			this.hideExportMenu();
-			showSave(this.exportM3u("ogg"),"Playlist.m3u","audio/x-mpegurl");
-		},
-		exportAsJSON: function () {
-			this.hideExportMenu();
-			var playlist = JSON.stringify({
+		exportJson: function (songs) {
+			return JSON.stringify({
 				head: {
 					version: "1.0",
 					type: "magnatune-player",
 					subtype: "playlist"
 				},
-				body: this.songs()
+				body: songs
 			});
-			showSave(playlist,"Playlist.json");
 		},
-		exportSavedAsJSON: function () {
+		exportPlaylist: function (playlist_format, track_format, songs) {
+			switch (String(playlist_format).toLowerCase()) {
+				case "m3u":  return this.exportM3u(track_format, songs);
+				case "xspf": return this.exportXspf(track_format, songs);
+				case "json": return this.exportJson(songs);
+				default: throw new Error("Unknown playlist format: "+playlist_format);
+			}
+		},
+		showExportCurrent: function (playlist_format, track_format) {
 			this.hideExportMenu();
-			var playlists = JSON.stringify({
+			showSave(
+				this.exportPlaylist(playlist_format,track_format,this.songs()),
+				"Playlist."+playlist_format,
+				DOWNLOAD_MIME_TYPE_MAP[playlist_format]);
+		},
+		exportSaved: function () {
+			return JSON.stringify({
 				head: {
 					version: "1.0",
 					type: "magnatune-player",
@@ -1547,7 +1607,10 @@ $.extend(Magnatune, {
 				},
 				body: this._getSavedPlaylists()
 			});
-			showSave(playlists,"Playlists.json");
+		},
+		showExportSaved: function () {
+			this.hideExportMenu();
+			showSave(this.exportSaved(),"Playlists.json");
 		},
 		importFiles: function (files) {
 			if (!files) return;
