@@ -1643,11 +1643,12 @@ $.extend(Magnatune, {
 		},
 		exportM3u: function (format, songs) {
 			var buf = ["#EXTM3U\n"];
-			var prefix = "http://stream.magnatune.com/music/";
+			var prefix = "http://he3.magnatune.com/music/";
 			var get_file;
 			switch (String(format).toLowerCase()) {
-				case "mp3": get_file = encodeURIComponent; break;
-				case "ogg": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'.ogg')); }; break;
+				case "mp3": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'_spoken.mp3')); }; break;
+				case "m4a": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'_spoken.m4a')); }; break;
+				case "ogg": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'_spoken.ogg')); }; break;
 				default: throw new Error("Illegal track format: "+format);
 			}
 			
@@ -1661,11 +1662,12 @@ $.extend(Magnatune, {
 			return buf.join("");
 		},
 		exportXspf: function (format, songs, title) {
-			var prefix = "http://stream.magnatune.com/music/";
+			var prefix = "http://he3.magnatune.com/music/";
 			var get_file;
 			switch (String(format).toLowerCase()) {
-				case "mp3": get_file = encodeURIComponent; break;
-				case "ogg": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'.ogg')); }; break;
+				case "mp3": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'_spoken.mp3')); }; break;
+				case "m4a": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'_spoken.m4a')); }; break;
+				case "ogg": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'_spoken.ogg')); }; break;
 				default: throw new Error("Illegal track format: "+format);
 			}
 			var buf = [
@@ -1753,10 +1755,11 @@ $.extend(Magnatune, {
 				'</thead>\n'+
 				'</tbody>\n');
 
+			var prefix = "http://he3.magnatune.com/music/";
 			for (var i = 0; i < songs.length; ++ i) {
 				var song = songs[i];
 				var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
-				var url = "http://he3.magnatune.com/all/"+encodeURIComponent(song.mp3);
+				var folder = prefix+encodeURIComponent(artist)+"/"+encodeURIComponent(song.albumname)+"/";
 				var duration = song.duration;
 
 				if (isNaN(duration) || duration === Infinity || duration < 0) {
@@ -1792,8 +1795,9 @@ $.extend(Magnatune, {
 					'<td class="album">'+escapeXml(song.albumname)+'</td>\n'+
 					'<td class="contributor">'+escapeXml(artist)+'</td>\n'+
 					'<td>\n<audio controls preload="none" class="sample">\n'+
-					'<source type="audio/ogg" src="'+escapeXml(url.replace(/\.mp3$/i,'.ogg'))+'"/>\n'+
-					'<source type="audio/mpeg;codec=&quot;mp3&quot;" src="'+escapeXml(url)+'"/>\n'+
+					'<source type="audio/ogg" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_spoken.ogg')))+'"/>\n'+
+					'<source type="audio/m4a" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_spoken.m4a')))+'"/>\n'+
+					'<source type="audio/mpeg;codec=&quot;mp3&quot;" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_spoken.mp3')))+'"/>\n'+
 					'</audio></td>\n'+
 					'</tr>\n');
 			}
@@ -1921,7 +1925,7 @@ $.extend(Magnatune, {
 				};
 
 				var location = track.find('> location').text();
-				var mp3 = /^http:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi)?\.(?:mp3|ogg|m4v|flac|wav)$/.exec(location);
+				var mp3 = /^http:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken)?\.(?:mp3|ogg|m4v|flac|wav)$/.exec(location);
 
 				var album;
 				if (!mp3 || !song.albumname || !song.desc ||
@@ -2000,7 +2004,7 @@ $.extend(Magnatune, {
 					}
 				}
 				
-				mp3 = /^http:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi)?\.(?:mp3|ogg|m4v|flac|wav)$/.exec(mp3||'');
+				mp3 = /^http:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken)?\.(?:mp3|ogg|m4v|flac|wav)$/.exec(mp3||'');
 
 				var album;
 				if (!mp3 || !song.albumname || !song.desc ||
@@ -2025,7 +2029,7 @@ $.extend(Magnatune, {
 			}
 		},
 		_guessSongFromUrl: function (url) {
-			var guess = /^http:\/\/(?:download|stream|he3)\.magnatune\.com\/music\/([^\/=?&#]+)\/([^\/=?&#]+)\/((\d+)-[^\/=?&#]*?)(?:_nospeech|-lofi)?\.(?:mp3|ogg|m4v|flac|wav)$/.exec(url);
+			var guess = /^http:\/\/(?:download|stream|he3)\.magnatune\.com\/music\/([^\/=?&#]+)\/([^\/=?&#]+)\/((\d+)-[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken)?\.(?:mp3|ogg|m4v|flac|wav)$/.exec(url);
 
 			if (!guess) return null;
 
