@@ -1662,7 +1662,7 @@ $.extend(Magnatune, {
 				suffix = "_spoken";
 			}
 
-			var format = String(opts.format).toLowerCase();
+			var format = String(opts.track_format).toLowerCase();
 			switch (format) {
 				case "mp3":
 				case "m4a":
@@ -1671,7 +1671,7 @@ $.extend(Magnatune, {
 					break;
 
 				default:
-					throw new Error("Illegal track format: "+opts.format);
+					throw new Error("Illegal track format: "+opts.track_format);
 			}
 
 			return function (song) {
