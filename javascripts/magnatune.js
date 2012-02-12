@@ -1621,7 +1621,14 @@ $.extend(Magnatune, {
 		showExportMenu: function () {
 			var menu = $('#export-menu');
 			var button = $('#export-button');
+			var member = $('#export-member-options');
 			var pos = button.position();
+			if (Magnatune.authenticated) {
+				member.show();
+			}
+			else {
+				member.hide();
+			}
 			menu.css({
 				visibility: 'hidden',
 				display: ''
@@ -1643,41 +1650,56 @@ $.extend(Magnatune, {
 				this.showExportMenu();
 			}
 		},
-		exportM3u: function (format, songs) {
-			var buf = ["#EXTM3U\n"];
-			var prefix = "http://he3.magnatune.com/music/";
-			var get_file;
-			switch (String(format).toLowerCase()) {
-				case "mp3": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'_spoken.mp3')); }; break;
-				case "m4a": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'_spoken.m4a')); }; break;
-				case "ogg": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'_spoken.ogg')); }; break;
-				default: throw new Error("Illegal track format: "+format);
+		_url_getter: function (opts) {
+			var prefix, suffix;
+			
+			if (opts.member && Magnatune.authenticated) {
+				prefix = "http://stream.magnatune.com/music/";
+				suffix = "";
 			}
+			else {
+				prefix = "http://he3.magnatune.com/music/";
+				suffix = "_spoken";
+			}
+
+			var format = String(opts.format).toLowerCase();
+			switch (format) {
+				case "mp3":
+				case "m4a":
+				case "ogg":
+					suffix += '.'+format;
+					break;
+
+				default:
+					throw new Error("Illegal track format: "+opts.format);
+			}
+
+			return function (song) {
+				var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
+				return prefix+encodeURIComponent(artist)+"/"+encodeURIComponent(song.albumname)+"/"+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix));
+			};
+		},
+		exportM3u: function (songs, opts) {
+			var buf = ["#EXTM3U\n"];
+			var get_url = this._url_getter(opts);
 			
 			for (var i = 0; i < songs.length; ++ i) {
 				var song = songs[i];
 				var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
 				buf.push("#EXTINF:"+song.duration+","+artist.replace(/\s*[-:\n]+\s*/g,' ')+" - "+song.desc.replace(/\n/g," ")+"\n");
-				buf.push(prefix+encodeURIComponent(artist)+"/"+encodeURIComponent(song.albumname)+"/"+get_file(song.mp3)+"\n");
+				buf.push(get_url(song)+"\n");
 			}
 
 			return buf.join("");
 		},
-		exportXspf: function (format, songs, title) {
-			var prefix = "http://he3.magnatune.com/music/";
-			var get_file;
-			switch (String(format).toLowerCase()) {
-				case "mp3": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'_spoken.mp3')); }; break;
-				case "m4a": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'_spoken.m4a')); }; break;
-				case "ogg": get_file = function (mp3) { return encodeURIComponent(mp3.replace(/\.mp3$/i,'_spoken.ogg')); }; break;
-				default: throw new Error("Illegal track format: "+format);
-			}
+		exportXspf: function (songs, opts) {
 			var buf = [
 				'<?xml version="1.0" encoding="UTF-8"?>\n'+
 				'<playlist version="1" xmlns="http://xspf.org/ns/0/">\n'
-			]
+			];
+			var get_url = this._url_getter(opts);
 
-			if (title) buf.push('\t<title>'+escapeXml(title)+'</title>\n');
+			if (opts.title) buf.push('\t<title>'+escapeXml(opts.title)+'</title>\n');
 
 			buf.push(
 				'\t<image>http://magnatune.com/favicon.ico</image>\n'+
@@ -1687,12 +1709,11 @@ $.extend(Magnatune, {
 				var song = songs[i];
 				var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
 				var folder = encodeURIComponent(artist)+"/"+encodeURIComponent(song.albumname)+"/";
-				var url = prefix+folder+get_file(song.mp3);
 				var id = 'magnatune:'+folder+encodeURIComponent(song.desc);
-				var image = prefix+folder+'cover_100.jpg';
+				var image = "http://he3.magnatune.com/music/"+folder+'cover_100.jpg';
 				buf.push(
 					'\t\t<track>\n'+
-					'\t\t\t<location>'+escapeXml(url)+'</location>\n'+
+					'\t\t\t<location>'+escapeXml(get_url(song))+'</location>\n'+
 					'\t\t\t<identifier>'+escapeXml(id)+'</identifier>\n'+
 					'\t\t\t<title>'+escapeXml(song.desc)+'</title>\n'+
 					'\t\t\t<album>'+escapeXml(song.albumname)+'</album>\n'+
@@ -1706,7 +1727,7 @@ $.extend(Magnatune, {
 			buf.push('\t</trackList>\n</playlist>\n');
 			return buf.join('');
 		},
-		exportJson: function (songs, title) {
+		exportJson: function (songs, opts) {
 			var data = {
 				head: {
 					version: "1.0",
@@ -1715,17 +1736,17 @@ $.extend(Magnatune, {
 				},
 				body: songs
 			};
-			if (title) data.head.title = title;
+			if (opts.title) data.head.title = opts.title;
 			return JSON.stringify(data);
 		},
-		exportHtml: function (songs, title) {
+		exportHtml: function (songs, opts) {
 			// using hAudio microformat: http://microformats.org/wiki/haudio
 			var buf = [
 				'<?xml version="1.0" encoding="UTF-8"?>\n'+
 				'<!DOCTYPE html>\n'+
 				'<html lang="en">\n'+
 				'<meta http-equiv="content-type" content="text/html; charset=utf-8"/>\n'+
-				'<title>'+escapeXml(title||"Music from Magnatune")+'</title>\n'+
+				'<title>'+escapeXml(opts.title||"Music from Magnatune")+'</title>\n'+
 				'<link rel="shortcut icon" type="image/x-icon" href="http://magnatune.com/favicon.ico"/>\n'+
 				'<style type="text/css">\n'+
 				'.number, .duration {\n'+
@@ -1741,8 +1762,8 @@ $.extend(Magnatune, {
 
 			return buf.join('');
 		},
-		_exportHtml: function (buf, songs, title) {
-			if (title) buf.push('<h2>'+escapeXml(title)+'</h2>\n');
+		_exportHtml: function (buf, songs, opts) {
+			if (opts.title) buf.push('<h2>'+escapeXml(opts.title)+'</h2>\n');
 			buf.push(
 				'<table>\n'+
 				'<thead>\n'+
@@ -1757,7 +1778,18 @@ $.extend(Magnatune, {
 				'</thead>\n'+
 				'</tbody>\n');
 
-			var prefix = "http://he3.magnatune.com/music/";
+			var prefix, suffix, audio_class;
+			if (opts.member && Magnatune.authenticated) {
+				prefix = "http://stream.magnatune.com/music/";
+				suffix = "";
+				audio_class = "enclosure";
+			}
+			else {
+				prefix = "http://he3.magnatune.com/music/";
+				suffix = "_spoken";
+				audio_class = "sample";
+			}
+
 			for (var i = 0; i < songs.length; ++ i) {
 				var song = songs[i];
 				var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
@@ -1796,23 +1828,23 @@ $.extend(Magnatune, {
 					'<td class="duration">'+duration+'</td>\n'+
 					'<td class="album">'+escapeXml(song.albumname)+'</td>\n'+
 					'<td class="contributor">'+escapeXml(artist)+'</td>\n'+
-					'<td>\n<audio controls preload="none" class="sample">\n'+
-					'<source type="audio/ogg" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_spoken.ogg')))+'"/>\n'+
-					'<source type="audio/m4a" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_spoken.m4a')))+'"/>\n'+
-					'<source type="audio/mpeg;codec=&quot;mp3&quot;" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,'_spoken.mp3')))+'"/>\n'+
+					'<td>\n<audio controls preload="none" class="'+audio_class+'">\n'+
+					'<source type="audio/ogg" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.ogg')))+'"/>\n'+
+					'<source type="audio/m4a" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.m4a')))+'"/>\n'+
+					'<source type="audio/mpeg;codec=&quot;mp3&quot;" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.mp3')))+'"/>\n'+
 					'</audio></td>\n'+
 					'</tr>\n');
 			}
 
 			buf.push('</tbody>\n</table>\n');
 		},
-		exportPlaylist: function (playlist_format, track_format, songs, title) {
-			switch (String(playlist_format).toLowerCase()) {
-				case "m3u":  return this.exportM3u(track_format, songs);
-				case "xspf": return this.exportXspf(track_format, songs, title);
-				case "json": return this.exportJson(songs, title);
-				case "html": return this.exportHtml(songs, title);
-				default: throw new Error("Unknown playlist format: "+playlist_format);
+		exportPlaylist: function (songs, opts) {
+			switch (String(opts.playlist_format).toLowerCase()) {
+				case "m3u":  return this.exportM3u(songs, opts);
+				case "xspf": return this.exportXspf(songs, opts);
+				case "json": return this.exportJson(songs, opts);
+				case "html": return this.exportHtml(songs, opts);
+				default: throw new Error("Unknown playlist format: "+opts.playlist_format);
 			}
 		},
 		exportSaved: function () {
@@ -1825,17 +1857,28 @@ $.extend(Magnatune, {
 				body: this._getSavedPlaylists()
 			});
 		},
-		showExport: function (what, playlist_format, track_format) {
+		showExport: function () {
+			var what = $('#export-what').val();
+
 			switch (what) {
-				case "current": return this.showExportCurrent(playlist_format, track_format);
-				case "saved":   return this.showExportSaved();
-				default: throw new Error("Unknown export selection: "+what);
+				case "current":
+					return this.showExportCurrent({
+						playlist_format: $('#export-playlist-format').val(),
+						track_format: $('#export-track-format').val(),
+						member: $('#export-member').is(':checked')
+					});
+
+				case "saved":
+					return this.showExportSaved();
+
+				default:
+					throw new Error("Unknown export selection: "+what);
 			}
 		},
-		showExportCurrent: function (playlist_format, track_format) {
+		showExportCurrent: function (opts) {
 			this.hideExportMenu();
 			showSave(
-				this.exportPlaylist(playlist_format,track_format,this.songs()),
+				this.exportPlaylist(this.songs(), opts),
 				"Playlist."+playlist_format,
 				DOWNLOAD_MIME_TYPE_MAP[playlist_format]);
 		},

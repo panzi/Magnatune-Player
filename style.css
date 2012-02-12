@@ -1285,7 +1285,7 @@ td.embed-config {
 	min-width: 240px;
 }
 
-#export-menu label {
+#export-menu .left {
 	text-align: right;
 	min-width: 100px;
 	display: inline-block;

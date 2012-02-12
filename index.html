@@ -164,10 +164,10 @@
 						</form>
 					</span>
 					<a id="export-button" class="button" href="javascript:Magnatune.Playlist.toggleExportMenu();void(0)">Export...</a>
-					<form action="javascript:Magnatune.Playlist.showExport(%24('%23export-what').val()%2C%24('%23export-playlist-format').val()%2C%24('%23export-track-format').val())%3Bvoid(0)"
+					<form action="javascript:Magnatune.Playlist.showExport();void(0)"
 						id="export-menu" class="popup-menu popup-form" data-button="export-button" style="display:none;">
 
-						<label for="export-what">What:</label>
+						<label for="export-what" class="left">What:</label>
 						<select id="export-what" onchange="var e = $('#export-playlist-options'); if (this.value === 'saved') {e.hide();} else {e.show();}">
 							<option value="current" selected>Current Playlist</option>
 							<option value="saved">Saved Playlists</option>
@@ -175,8 +175,12 @@
 
 						<div id="export-playlist-options">
 							<div id="export-playlist-format-options">
-								<label for="export-playlist-format">Playlist format:</label>
-								<select id="export-playlist-format" onchange="var e = $('#export-track-format-options'); if (this.value === 'json' || this.value === 'html') {e.hide();} else {e.show();}">
+								<label for="export-playlist-format" class="left">Playlist format:</label>
+								<select id="export-playlist-format" onchange="
+										var e = $('#export-track-format-options');
+										if (this.value === 'json' || this.value === 'html') {e.hide();} else {e.show();}
+										e = $('#export-member-options');
+										if (this.value === 'json') {e.hide();} else {e.show();}">
 									<option value="xspf" selected>XSPF</option>
 									<option value="m3u">M3U</option>
 									<option value="json" title="Special format of Magnatune Player. Use it to import the playlist in Magnatune Player again.">JSON</option>
@@ -185,12 +189,19 @@
 							</div>
 
 							<div id="export-track-format-options">
-								<label for="export-track-format">Track format:</label>
+								<label for="export-track-format" class="left">Track format:</label>
 								<select id="export-track-format">
 									<option value="ogg">Ogg Vorbis (.ogg)</option>
 									<option value="m4a">MPEG4 (.m4a)</option>
 									<option value="mp3" selected>MP3 (.mp3)</option>
 								</select>
+							</div>
+
+							<div id="export-member-options" style="display:none;" title="This option will require your audio player to support HTTP authentication.">
+								<span class="left">
+									<input type="checkbox" id="export-member"/>
+								</span>
+								<label for="export-member">member streams</label>
 							</div>
 						</div>
 
