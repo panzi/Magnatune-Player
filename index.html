@@ -175,7 +175,7 @@
 					</ul>
 					<span id="import-button" class="button">
 						<span>Import...</span>
-						<div id="import-wrapper"><input type="file" id="import" onchange="Magnatune.Playlist.importFiles(this.files);"/></div>
+						<div id="import-wrapper"><input type="file" id="import" onchange="Magnatune.Playlist.importFiles(this.files);$(this).replaceWith($(this).clone());"/></div>
 					</span>
 				</div>
 				<div class="tab-content">
