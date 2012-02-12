@@ -55,11 +55,12 @@ $.base64Decode = function (input) {
 (function ($, undefined) {
 	var dom_parser = false;
 
-	// from: https://developer.mozilla.org/en/DOMParser
+	// based on: https://developer.mozilla.org/en/DOMParser
+	// does not work with IE < 9
 	// Firefox/Opera/IE throw errors on unsupported types
 	try {
 		// WebKit returns null on unsupported types
-		if ((new DOMParser).parseFromString("", "text/html")) {
+		if ((new DOMParser()).parseFromString("", "text/html")) {
 			// text/html parsing is natively supported
 			dom_parser = true;
 		}
@@ -70,19 +71,37 @@ $.base64Decode = function (input) {
 			return new DOMParser().parseFromString(html, "text/html");
 		};
 	}
-	else {
+	else if (document.implementation && document.implementation.createHTMLDocument) {
 		$.parseHTML = function (html) {
 			var doc = document.implementation.createHTMLDocument("");
-			var doc_elt = doc.documentElement;
-			var first_elt;
-  
-			doc_elt.innerHTML = html;
-			first_elt = doc_elt.firstElementChild;
+			var doc_el = doc.documentElement;
+
+			doc_el.innerHTML = html;
+
+			var els = [], el = doc_el.firstChild;
+
+			while (el) {
+				if (el.nodeType === 1) els.push(el);
+				el = el.nextSibling;
+			}
 
   			// are we dealing with an entire document or a fragment?
-			if (doc_elt.childElementCount === 1 &&
-				first_elt.localName.toLowerCase() === "html") {
-				doc.replaceChild(first_elt, doc_elt);
+			if (els.length === 1 && els[0].localName.toLowerCase() === "html") {
+				doc.removeChild(doc_el);
+				el = doc_el.firstChild;
+				while (el) {
+					var next = el.nextSibling;
+					doc.appendChild(el);
+					el = next;
+				}
+			}
+			else {
+				el = doc_el.firstChild;
+				while (el) {
+					var next = el.nextSibling;
+					if (el.nodeType !== 1 && el.nodeType !== 3) doc.insertBefore(el,doc_el);
+					el = next;
+				}
 			}
 
 			return doc;
