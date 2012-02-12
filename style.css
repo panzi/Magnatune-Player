@@ -107,6 +107,13 @@ input[type="button"],
 	font-weight: bold;
 	color: #8492B4;
 	text-shadow: 1px 1px 2px #E8EFFC;
+}
+
+.button,
+button,
+input[type="submit"],
+input[type="button"],
+#status {
 	cursor: pointer;
 }
 
@@ -1272,4 +1279,18 @@ td.embed-config {
 	line-height: 20px;
 	width: 20px;
 	text-align: center;
+}
+
+#export-menu {
+	min-width: 240px;
+}
+
+#export-menu label {
+	text-align: right;
+	min-width: 100px;
+	display: inline-block;
+}
+
+#export-menu .popup-buttons {
+	margin-top: 10px;
 }

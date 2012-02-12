@@ -898,11 +898,13 @@ $.extend(Magnatune, {
 				]);
 			}
 			else {
-				var url = "http://he3.magnatune.com/all/"+encodeURIComponent(song.mp3);
+				var url = "http://he3.magnatune.com/music/"+encodeURIComponent(artist)+"/"+
+					encodeURIComponent(song.albumname)+"/"+encodeURIComponent(song.mp3);
 
 				this._set_sources([
-					{type:'audio/ogg',src:url.replace(/\.mp3$/i,'.ogg')},
-					{type:'audio/mpeg;codecs="mp3"',src:url}
+					{type:'audio/ogg',src:url.replace(/\.mp3$/i,'_spoken.ogg')},
+					{type:'audio/mp4',src:url.replace(/\.mp3$/i,'_spoken.m4a')},
+					{type:'audio/mpeg;codecs="mp3"',src:url.replace(/\.mp3$/i,'_spoken.mp3')}
 				]);
 			}
 
@@ -1813,13 +1815,6 @@ $.extend(Magnatune, {
 				default: throw new Error("Unknown playlist format: "+playlist_format);
 			}
 		},
-		showExportCurrent: function (playlist_format, track_format) {
-			this.hideExportMenu();
-			showSave(
-				this.exportPlaylist(playlist_format,track_format,this.songs()),
-				"Playlist."+playlist_format,
-				DOWNLOAD_MIME_TYPE_MAP[playlist_format]);
-		},
 		exportSaved: function () {
 			return JSON.stringify({
 				head: {
@@ -1829,6 +1824,20 @@ $.extend(Magnatune, {
 				},
 				body: this._getSavedPlaylists()
 			});
+		},
+		showExport: function (what, playlist_format, track_format) {
+			switch (what) {
+				case "current": return this.showExportCurrent(playlist_format, track_format);
+				case "saved":   return this.showExportSaved();
+				default: throw new Error("Unknown export selection: "+what);
+			}
+		},
+		showExportCurrent: function (playlist_format, track_format) {
+			this.hideExportMenu();
+			showSave(
+				this.exportPlaylist(playlist_format,track_format,this.songs()),
+				"Playlist."+playlist_format,
+				DOWNLOAD_MIME_TYPE_MAP[playlist_format]);
 		},
 		showExportSaved: function () {
 			this.hideExportMenu();
