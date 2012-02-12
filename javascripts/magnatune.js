@@ -52,6 +52,44 @@ $.base64Decode = function (input) {
 	return decodeURIComponent(escape(atob(input)));
 };
 
+(function ($, undefined) {
+	var dom_parser = false;
+
+	// from: https://developer.mozilla.org/en/DOMParser
+	// Firefox/Opera/IE throw errors on unsupported types
+	try {
+		// WebKit returns null on unsupported types
+		if ((new DOMParser).parseFromString("", "text/html")) {
+			// text/html parsing is natively supported
+			dom_parser = true;
+		}
+	} catch (ex) {}
+
+	if (dom_parser) {
+		$.parseHTML = function (html) {
+			return new DOMParser().parseFromString(html, "text/html");
+		};
+	}
+	else {
+		$.parseHTML = function (html) {
+			var doc = document.implementation.createHTMLDocument("");
+			var doc_elt = doc.documentElement;
+			var first_elt;
+  
+			doc_elt.innerHTML = html;
+			first_elt = doc_elt.firstElementChild;
+
+  			// are we dealing with an entire document or a fragment?
+			if (doc_elt.childElementCount === 1 &&
+				first_elt.localName.toLowerCase() === "html") {
+				doc.replaceChild(first_elt, doc_elt);
+			}
+
+			return doc;
+		};
+	}
+})(jQuery);
+
 var tag = (function ($,undefined) {
 	var add = function (element, arg) {
 		var type = typeof(arg);
@@ -1599,7 +1637,7 @@ $.extend(Magnatune, {
 
 			return buf.join("");
 		},
-		exportXspf: function (format, songs) {
+		exportXspf: function (format, songs, title) {
 			var prefix = "http://stream.magnatune.com/music/";
 			var get_file;
 			switch (String(format).toLowerCase()) {
@@ -1609,10 +1647,14 @@ $.extend(Magnatune, {
 			}
 			var buf = [
 				'<?xml version="1.0" encoding="UTF-8"?>\n'+
-				'<playlist version="1" xmlns="http://xspf.org/ns/0/">\n'+
+				'<playlist version="1" xmlns="http://xspf.org/ns/0/">\n'
+			]
+
+			if (title) buf.push('\t<title>'+escapeXml(title)+'</title>\n');
+
+			buf.push(
 				'\t<image>http://magnatune.com/favicon.ico</image>\n'+
-				'\t<trackList>\n'
-			];
+				'\t<trackList>\n');
 
 			for (var i = 0; i < songs.length; ++ i) {
 				var song = songs[i];
@@ -1637,21 +1679,109 @@ $.extend(Magnatune, {
 			buf.push('\t</trackList>\n</playlist>\n');
 			return buf.join('');
 		},
-		exportJson: function (songs) {
-			return JSON.stringify({
+		exportJson: function (songs, title) {
+			var data = {
 				head: {
 					version: "1.0",
 					type: "magnatune-player",
 					subtype: "playlist"
 				},
 				body: songs
-			});
+			};
+			if (title) data.head.title = title;
+			return JSON.stringify(data);
 		},
-		exportPlaylist: function (playlist_format, track_format, songs) {
+		exportHtml: function (songs, title) {
+			var buf = [
+				'<?xml version="1.0" encoding="UTF-8"?>\n'+
+				'<!DOCTYPE html>\n'+
+				'<html lang="en">\n'+
+				'<meta http-equiv="content-type" content="text/html; charset=utf-8"/>\n'+
+				'<title>'+escapeXml(title||"Music from Magnatune")+'</title>\n'+
+				'<link rel="shortcut icon" type="image/x-icon" href="http://magnatune.com/favicon.ico"/>\n'+
+				'<style type="text/css">\n'+
+				'.number, .duration {\n'+
+				'width: 3em; font-family: monospace; text-align: right;\n'+
+				'}\n'+
+				'</style>\n'+
+				'</head>\n'+
+				'<body>\n'+
+				'<p>Buy this music on <a href="http://magnatune.com/">Magnatune.com</a>.<p>\n'
+			];
+			this._exportHtml(buf, songs, title);
+			buf.push('</body>\n</html>\n');
+
+			return buf.join('');
+		},
+		_exportHtml: function (buf, songs, title) {
+			if (title) buf.push('<h2>'+escapeXml(title)+'</h2>\n');
+			buf.push(
+				'<table>\n'+
+				'<thead>\n'+
+				'<tr>\n'+
+				'<th>Nr.</th>\n'+
+				'<th>Title</th>\n'+
+				'<th>Duration</th>\n'+
+				'<th>Album</th>\n'+
+				'<th>Artist</th>\n'+
+				'<th>Preview</th>\n'+
+				'</tr>\n'+
+				'</thead>\n'+
+				'</tbody>\n');
+
+			for (var i = 0; i < songs.length; ++ i) {
+				var song = songs[i];
+				var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
+				var url = "http://he3.magnatune.com/all/"+encodeURIComponent(song.mp3);
+				var duration = song.duration;
+
+				if (isNaN(duration) || duration === Infinity || duration < 0) {
+					duration = "??:??";
+				}
+				else {
+					var secs = Math.round(duration);
+					var mins = Math.floor(secs / 60);
+					secs -= 60 * mins;
+					var hours = Math.floor(mins / 60);
+					mins -= 60 * hours;
+
+					secs = secs < 10 ? '0'+secs : String(secs);
+					if (hours > 0) {
+						mins = mins < 10 ? '0'+mins : String(mins);
+						duration = ('<span class="h">'+hours+
+							'</span>:<span class="min">'+mins+
+							'</span>:<span class="s">'+secs+
+							'</span>');
+					}
+					else {
+						duration = ('<span class="min">'+mins+
+							'</span>:<span class="s">'+secs+
+							'</span>');
+					}
+				}
+
+				buf.push(
+					'<tr class="haudio">\n'+
+					'<td class="number">'+escapeXml(String(song.number))+'</td>\n'+
+					'<td class="fn">'+escapeXml(song.desc)+'</td>\n'+
+					'<td class="duration">'+duration+'</td>\n'+
+					'<td class="album">'+escapeXml(song.albumname)+'</td>\n'+
+					'<td class="contributor">'+escapeXml(artist)+'</td>\n'+
+					'<td>\n<audio controls preload="none" class="sample">\n'+
+					'<source type="audio/ogg" src="'+escapeXml(url.replace(/\.mp3$/i,'.ogg'))+'"/>\n'+
+					'<source type="audio/mpeg;codec=&quot;mp3&quot;" src="'+escapeXml(url)+'"/>\n'+
+					'</audio></td>\n'+
+					'</tr>\n');
+			}
+
+			buf.push('</tbody>\n</table>\n');
+		},
+		exportPlaylist: function (playlist_format, track_format, songs, title) {
 			switch (String(playlist_format).toLowerCase()) {
 				case "m3u":  return this.exportM3u(track_format, songs);
-				case "xspf": return this.exportXspf(track_format, songs);
-				case "json": return this.exportJson(songs);
+				case "xspf": return this.exportXspf(track_format, songs, title);
+				case "json": return this.exportJson(songs, title);
+				case "html": return this.exportHtml(songs, title);
 				default: throw new Error("Unknown playlist format: "+playlist_format);
 			}
 		},
@@ -1694,8 +1824,11 @@ $.extend(Magnatune, {
 						else if (/^\s*{/.test(data)) {
 							Magnatune.Playlist.importJson(data);
 						}
-						else if (/^\s*(<\?xml\b|<(\S+:)?playlist\b)/.test(data)) {
+						else if (/^\s*(<\?xml\b.*?\?>\s*|<![^<>]*?>\s*)*<(\S+:)?playlist\b/.test(data)) {
 							Magnatune.Playlist.importXspf(data);
+						}
+						else if (/^\s*(<\?xml\b.*?\?>\s*|<![^<>]*?>\s*)*<html\b/i.test(data)) {
+							Magnatune.Playlist.importHtml(data);
 						}
 						else {
 							throw new Error("Failed to detect file type.");
@@ -1711,6 +1844,7 @@ $.extend(Magnatune, {
 
 				case "audio/mpegurl":
 				case "audio/x-mpegurl":
+				case "text/uri-list": // basically the same, even has # comments
 					read(file, Magnatune.Playlist.importM3u.bind(Magnatune.Playlist));
 					break;
 
