@@ -517,6 +517,10 @@ function read(file, opts) {
 	return reader;
 }
 
+function method (obj, method) {
+	return obj[method].bind(obj);
+}
+
 function getBoolean (name) {
 	var value = localStorage.getItem(name);
 	if (value !== null) {
@@ -1692,6 +1696,7 @@ $.extend(Magnatune, {
 			return JSON.stringify(data);
 		},
 		exportHtml: function (songs, title) {
+			// using hAudio microformat: http://microformats.org/wiki/haudio
 			var buf = [
 				'<?xml version="1.0" encoding="UTF-8"?>\n'+
 				'<!DOCTYPE html>\n'+
@@ -1824,10 +1829,10 @@ $.extend(Magnatune, {
 						else if (/^\s*{/.test(data)) {
 							Magnatune.Playlist.importJson(data);
 						}
-						else if (/^\s*(<\?xml\b.*?\?>\s*|<![^<>]*?>\s*)*<(\S+:)?playlist\b/.test(data)) {
+						else if (/^\s*(<\?.*?\?>\s*|<!--.*?-->|<!.*?>\s*)*<(\S+:)?playlist\b/.test(data)) {
 							Magnatune.Playlist.importXspf(data);
 						}
-						else if (/^\s*(<\?xml\b.*?\?>\s*|<![^<>]*?>\s*)*<html\b/i.test(data)) {
+						else if (/^\s*(<\?.*?\?>\s*|<!--.*?-->|<!.*?>\s*)*<html\b/i.test(data)) {
 							Magnatune.Playlist.importHtml(data);
 						}
 						else {
@@ -1839,18 +1844,36 @@ $.extend(Magnatune, {
 				case "application/json":
 				case "text/x-json":
 				case "text/json":
-					read(file, Magnatune.Playlist.importJson.bind(Magnatune.Playlist));
+					read(file, method(Magnatune.Playlist,'importJson'));
 					break;
 
 				case "audio/mpegurl":
 				case "audio/x-mpegurl":
 				case "text/uri-list": // basically the same, even has # comments
-					read(file, Magnatune.Playlist.importM3u.bind(Magnatune.Playlist));
+					read(file, method(Magnatune.Playlist,'importM3u'));
 					break;
 
 				case "text/xml":
+					read(file, function (data) {
+						if (/^\s*(<\?.*?\?>\s*|<!--.*?-->|<!.*?>\s*)*<(\S+:)?playlist\b/.test(data)) {
+							Magnatune.Playlist.importXspf(data);
+						}
+						else if (/^\s*(<\?.*?\?>\s*|<!--.*?-->|<!.*?>\s*)*<html\b/i.test(data)) {
+							Magnatune.Playlist.importHtml(data);
+						}
+						else {
+							throw new Error("Failed to detect file type.");
+						}
+					});
+					break;
+
 				case "application/xspf+xml":
-					read(file, Magnatune.Playlist.importXspf.bind(Magnatune.Playlist));
+					read(file, method(Magnatune.Playlist,'importXspf'));
+					break;
+
+				case "text/html":
+				case "application/xhtml+xml":
+					read(file, method(Magnatune.Playlist,'importHtml'));
 					break;
 
 				default:
@@ -1872,15 +1895,20 @@ $.extend(Magnatune, {
 				var track = $(tracks[i]);
 				var song = {
 					albumname: track.find('> album').text(),
+					artist:    track.find('> creator').text(),
 					desc:      track.find('> title').text(),
-					duration:  parseInt(track.find('> duration').text(),10),
-					number:    parseInt(track.find('> trackNum').text())
+					duration:  parseFloat(track.find('> duration').text()),
+					number:    parseInt(track.find('> trackNum').text(),10)
 				};
 
 				var location = track.find('> location').text();
-				var mp3 = /^http:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/([^\/=?&#]*?)(?:_nospeech|-lofi)?\.(?:mp3|ogg|m4v|flac|wav)$/.exec(location);
+				var mp3 = /^http:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi)?\.(?:mp3|ogg|m4v|flac|wav)$/.exec(location);
 
-				if (!mp3 || !song.albumname || !song.desc || isNaN(song.number) || song.number <= 0 || !Magnatune.Collection.Albums[song.albumname]) {
+				var album;
+				if (!mp3 || !song.albumname || !song.desc ||
+					(isNaN(song.number) && (!mp3[2] || isNaN(song.number = parseInt(mp3[2],10)))) ||
+					song.number <= 0 || !(album = Magnatune.Collection.Albums[song.albumname]) ||
+					album.artist.artist !== song.artist) {
 					++ unknown;
 				}
 				else {
@@ -1892,20 +1920,99 @@ $.extend(Magnatune, {
 			this.enqueue(songs);
 			
 			if (unknown > 0) {
-				alert($.format("Could not detect {unknown} of {count} Magnatune songs playlist entries.", {
+				alert($.format("Could not detect {unknown} of {count} Magnatune playlist entries.", {
+					unknown: unknown,
+					count: songs.length + unknown
+				}));
+			}
+		},
+		importHtml: function (data) {
+			var doc = $.parseHTML(data);
+			var tracks = $(doc.documentElement).find('.haudio');
+			var unknown = 0;
+			var songs = [];
+
+			for (var i = 0; i < tracks.length; ++ i) {
+				var track = $(tracks[i]);
+				var song = {
+					albumname: track.find('.album').text(),
+					artist:    track.find('.contributor').text(),
+					desc:      track.find('.fn').text(),
+					number:    parseInt(track.find('.number').text(), 10),
+					duration:  NaN
+				};
+
+				var duration = track.find('.duration');
+				var hours = parseInt(duration.find('.h').text(),10);
+				var mins  = parseInt(duration.find('.min').text(),10);
+				var secs  = parseFloat(duration.find('.s').text());
+
+				if (isNaN(hours) && isNaN(mins) && isNaN(secs)) {
+					if (duration.is('abbr')) {
+						// parse ISO 8601 duration (with some extensions)
+						duration = (duration.attr('title')||'').trim();
+						var match;
+
+						if ((match = /^P(?:Y(\d+))?(?:M(\d+))?(?:D(\d+))?(?:T(?:H(\d+))?(?:M(\d+))?(?:S(\d+(?:\.\d+)?(?:[eE][-+]?\d+)?))?)?$/.exec(duration)) ||
+							(match = /^P?(\d+)-(\d+)-(\d+)(?:T|\s+)(\d+):(\d+):(\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)$/.exec(duration)) ||
+							(match = /^P(\d\d\d\d)(\d\d)(\d\d)T(\d\d)(\d\d)(\d\d(?:\.\d+)?(?:[eE][-+]?\d+)?)$/.exec(duration))) {
+							song.duration = (((parseInt(match[1]||0,10)*365 + parseInt(match[2]||0,10)*(365/12) + parseInt(match[3]||0,10))*24 +
+								parseInt(match[4]||0,10))*60 + parseInt(match[5]||0,10))*60 + parseFloat(match[6]||0);
+						}
+						else if ((match = /^PW(\d+)$/.exec(duration))) {
+							song.duration = parseInt(duration[1]) * 7 * 24 * 60 * 60;
+						}
+					}
+				}
+				else if (!isNaN(hours) || !isNaN(mins) || !isNaN(secs)) {
+					song.duration = ((hours||0)*60 + (mins||0))*60 + (secs||0);
+				}
+
+				var mp3 = track.find('a[rel="enclosure"], a[rel="sample"]');
+				
+				if (mp3.length > 0) {
+					mp3 = mp3.attr('href');
+				}
+				else {
+					var audio = track.find('audio.enclosure, audio.sample');
+					mp3 = audio.attr('src');
+					if (!mp3) {
+						mp3 = audio.find('source').attr('src');
+					}
+				}
+				
+				mp3 = /^http:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi)?\.(?:mp3|ogg|m4v|flac|wav)$/.exec(mp3||'');
+
+				var album;
+				if (!mp3 || !song.albumname || !song.desc ||
+					(isNaN(song.number) && (!mp3[2] || isNaN(song.number = parseInt(mp3[2],10)))) ||
+					song.number <= 0 || !(album = Magnatune.Collection.Albums[song.albumname]) ||
+					album.artist.artist !== song.artist) {
+					++ unknown;
+				}
+				else {
+					song.mp3 = decodeURIComponent(mp3[1])+'.mp3';
+					songs.push(song);
+				}
+			}
+
+			this.enqueue(songs);
+			
+			if (unknown > 0) {
+				alert($.format("Could not detect {unknown} of {count} Magnatune playlist entries.", {
 					unknown: unknown,
 					count: songs.length + unknown
 				}));
 			}
 		},
 		_guessSongFromUrl: function (url) {
-			var guess = /^http:\/\/(?:download|stream|he3)\.magnatune\.com\/music\/([^\/=?&#]+)\/([^\/=?&#]+)\/(([0-9]+)-[^\/=?&#]*?)(?:_nospeech|-lofi)?\.(?:mp3|ogg|m4v|flac|wav)$/.exec(url);
+			var guess = /^http:\/\/(?:download|stream|he3)\.magnatune\.com\/music\/([^\/=?&#]+)\/([^\/=?&#]+)\/((\d+)-[^\/=?&#]*?)(?:_nospeech|-lofi)?\.(?:mp3|ogg|m4v|flac|wav)$/.exec(url);
 
 			if (!guess) return null;
 
 			var file = decodeURIComponent(guess[3]);
 			return {
-				desc:      file.replace(/^[0-9]+-/,''),
+				desc:      file.replace(/^\d+-/,''),
 				artist:    decodeURIComponent(guess[1]),
 				albumname: decodeURIComponent(guess[2]),
 				mp3:       file+'.mp3',
@@ -1957,7 +2064,7 @@ $.extend(Magnatune, {
 			this.enqueue(songs);
 			
 			if (unknown > 0) {
-				alert($.format("Could not detect {unknown} of {count} Magnatune songs playlist entries.", {
+				alert($.format("Could not detect {unknown} of {count} Magnatune playlist entries.", {
 					unknown: unknown,
 					count: songs.length + unknown
 				}));
@@ -1979,9 +2086,26 @@ $.extend(Magnatune, {
 					break;
 
 				case "playlists":
+					if (typeof(data.body) !== "object") {
+						throw new Error("Unrecognized file format.");
+					}
 					if (typeof(localStorage) !== "undefined") {
 						var playlists = this._getSavedPlaylists();
-						// TODO: wanrn replace
+						var conflict = [];
+						for (var name in data.body) {
+							if (!$.isArray(data.body[name])) {
+								throw new Error("Unrecognized file format.");
+							}
+							if (name in playlists) {
+								conflict.push(name);
+							}
+						}
+						conflict.sort();
+						if (conflict.length > 0 && !confirm(
+							"The folowing saved playlists already exist. Do you want to overwrite them?\n\n \u2022 "+
+							conflict.join("\n \u2022 "))) {
+							return;
+						}
 						$.extend(playlists, data.body);
 						if ($('#playlists-menu').is(':visible')) {
 							Magnatune.Playlist._loadPlaylistMenu(playlists);
