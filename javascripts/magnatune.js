@@ -1757,7 +1757,7 @@ $.extend(Magnatune, {
 				'<body>\n'+
 				'<p>Buy this music on <a href="http://magnatune.com/">Magnatune.com</a>.<p>\n'
 			];
-			this._exportHtml(buf, songs, title);
+			this._exportHtml(buf, songs, opts);
 			buf.push('</body>\n</html>\n');
 
 			return buf.join('');
@@ -1879,8 +1879,8 @@ $.extend(Magnatune, {
 			this.hideExportMenu();
 			showSave(
 				this.exportPlaylist(this.songs(), opts),
-				"Playlist."+playlist_format,
-				DOWNLOAD_MIME_TYPE_MAP[playlist_format]);
+				"Playlist."+opts.playlist_format,
+				DOWNLOAD_MIME_TYPE_MAP[opts.playlist_format]);
 		},
 		showExportSaved: function () {
 			this.hideExportMenu();
