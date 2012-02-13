@@ -1847,7 +1847,7 @@ $.extend(Magnatune, {
 					'<td class="contributor">'+escapeXml(artist)+'</td>\n'+
 					'<td>\n<audio controls preload="none" class="'+audio_class+'">\n'+
 					'<source type="audio/ogg" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.ogg')))+'"/>\n'+
-					'<source type="audio/m4a" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.m4a')))+'"/>\n'+
+					'<source type="audio/mp4" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.m4a')))+'"/>\n'+
 					'<source type="audio/mpeg;codec=&quot;mp3&quot;" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.mp3')))+'"/>\n'+
 					'</audio></td>\n'+
 					'</tr>\n');
