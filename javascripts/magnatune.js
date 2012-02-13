@@ -1733,11 +1733,11 @@ $.extend(Magnatune, {
 					'\t\t\t<location>'+escapeXml(get_url(song))+'</location>\n'+
 					'\t\t\t<identifier>'+escapeXml(id)+'</identifier>\n'+
 					'\t\t\t<title>'+escapeXml(song.desc)+'</title>\n'+
+					'\t\t\t<creator>'+escapeXml(artist)+'</creator>\n'+
+					'\t\t\t<image>'+escapeXml(image)+'</image>\n'+
 					'\t\t\t<album>'+escapeXml(song.albumname)+'</album>\n'+
 					'\t\t\t<trackNum>'+escapeXml(String(song.number))+'</trackNum>\n'+
-					'\t\t\t<creator>'+escapeXml(artist)+'</creator>\n'+
 					'\t\t\t<duration>'+escapeXml(String(song.duration))+'</duration>\n'+
-					'\t\t\t<image>'+escapeXml(image)+'</image>\n'+
 					'\t\t</track>\n');
 			}
 
