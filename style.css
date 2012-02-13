@@ -1282,15 +1282,19 @@ td.embed-config {
 }
 
 #export-menu {
-	min-width: 240px;
+	min-width: 260px;
 }
 
 #export-menu .left {
 	text-align: right;
-	min-width: 100px;
+	min-width: 110px;
 	display: inline-block;
 }
 
 #export-menu .popup-buttons {
 	margin-top: 10px;
+}
+
+#export-menu select {
+	margin: 2px 0px;
 }
