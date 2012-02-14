@@ -1343,6 +1343,9 @@ $.extend(Magnatune, {
 						href:'http://magnatune.com/genres/'+genre.genre.replace(/\s/g,'').toLowerCase()+'/',
 						target:'_blank'},
 						genre.genre)),
+					tag('p', tag('a',{'class':'button',href:'javascript:'+
+						encodeURIComponent('Magnatune.Playlist.randomAlbumOfGenre('+
+							JSON.stringify(genre.genre)+');void(0)')},'\u25B6 Play Random Album')),
 					Magnatune.Info._albumsList(albums));
 				Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);
 			},
@@ -2574,16 +2577,42 @@ $.extend(Magnatune, {
 			Magnatune.DnD.draggable(tr, Magnatune.Playlist.DraggableOptions);
 			return tr;
 		},
-		randomAlbum: function () {
-			var albums = Magnatune.Collection.SortedAlbums;
-			var album = albums[Math.round(Math.random() * (albums.length - 1))];
+		randomAlbum: function (albums) {
+			if (!albums) albums = Magnatune.Collection.SortedAlbums;
 
-			Magnatune.Collection.withSongs(album, function (album) {
+			var minchoose = Infinity;
+			for (var i = 0; i < albums.length; ++ i) {
+				var album = albums[i];
+				if (!('choose_count' in album)) {
+					album.choose_count = minchoose = 0;
+				}
+				else if (album.choose_count < minchoose) {
+					minchoose = album.choose_count;
+				}
+			}
+			var filtered = [];
+			for (var i = 0; i < albums.length; ++ i) {
+				var album = albums[i];
+				if (album.choose_count === minchoose) {
+					filtered.push(album);
+				}
+			}
+
+			var chosen = filtered[Math.round(Math.random() * (filtered.length - 1))];
+
+			chosen.choose_count = (chosen.choose_count||0) + 1;
+			
+			Magnatune.Collection.withSongs(chosen, function (album) {
 				for (var i = 0; i < album.songs.length; ++ i) {
 					album.songs[i].albumname = album.albumname;
 				}
 				Magnatune.Playlist.replace(album.songs,true);
 			});
+		},
+		randomAlbumOfGenre: function (genreName) {
+			var genre = Magnatune.Collection.Genres[genreName];
+			if (!genre) throw new Error("No such genre: "+genreName);
+			this.randomAlbum(genre.albums);
 		},
 		enqueue: function (songs) {
 			var tbody = $('#playlist > tbody');
