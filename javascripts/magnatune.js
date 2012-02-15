@@ -2001,7 +2001,7 @@ $.extend(Magnatune, {
 			if (/^#EXTM3U\b/.test(data)) {
 				return this.importM3u(data);
 			}
-			else if (/^\s*{/.test(data)) {
+			else if (/^\s*\{/.test(data)) {
 				return this.importJson(data);
 			}
 			else if (/^\s*(<\?.*?\?>\s*|<!--.*?-->|<!.*?>\s*)*<(\S+:)?playlist\b/.test(data)) {
