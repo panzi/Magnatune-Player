@@ -1760,7 +1760,9 @@ $.extend(Magnatune, {
 			return JSON.stringify(data);
 		},
 		exportHtml: function (songs, opts) {
-			// using hAudio microformat: http://microformats.org/wiki/haudio
+			// using hAudio and hMedia microformats:
+			// http://microformats.org/wiki/haudio
+			// http://microformats.org/wiki/hmedia
 			var buf = [
 				'<?xml version="1.0" encoding="UTF-8"?>\n'+
 				'<!DOCTYPE html>\n'+
@@ -1798,16 +1800,14 @@ $.extend(Magnatune, {
 				'</thead>\n'+
 				'</tbody>\n');
 
-			var prefix, suffix, audio_class;
+			var prefix, suffix;
 			if (opts.member && Magnatune.authenticated) {
 				prefix = "http://stream.magnatune.com/music/";
 				suffix = "";
-				audio_class = "enclosure";
 			}
 			else {
 				prefix = "http://he3.magnatune.com/music/";
 				suffix = "_spoken";
-				audio_class = "sample";
 			}
 
 			for (var i = 0; i < songs.length; ++ i) {
@@ -1842,13 +1842,13 @@ $.extend(Magnatune, {
 				}
 
 				buf.push(
-					'<tr class="haudio">\n'+
+					'<tr class="haudio hmedia">\n'+
 					'<td class="number">'+escapeXml(String(song.number))+'</td>\n'+
 					'<td class="fn">'+escapeXml(song.desc)+'</td>\n'+
 					'<td class="duration">'+duration+'</td>\n'+
 					'<td class="album">'+escapeXml(song.albumname)+'</td>\n'+
 					'<td class="contributor">'+escapeXml(artist)+'</td>\n'+
-					'<td>\n<audio controls preload="none" class="'+audio_class+'">\n'+
+					'<td><audio controls preload="none" class="player">\n'+
 					'<source type="audio/ogg" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.ogg')))+'"/>\n'+
 					'<source type="audio/mp4" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.m4a')))+'"/>\n'+
 					'<source type="audio/mpeg;codec=&quot;mp3&quot;" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.mp3')))+'"/>\n'+
@@ -2065,7 +2065,7 @@ $.extend(Magnatune, {
 		},
 		importHtml: function (data) {
 			var doc = $.parseHTML(data);
-			var tracks = $(doc.documentElement).find('.haudio');
+			var tracks = $(doc.documentElement).find('.haudio, .hmedia');
 			var unknown = 0;
 			var songs = [];
 
@@ -2111,7 +2111,7 @@ $.extend(Magnatune, {
 					mp3 = mp3.attr('href');
 				}
 				else {
-					var audio = track.find('audio.enclosure, audio.sample');
+					var audio = track.find('audio.player, audio.enclosure, audio.sample');
 					mp3 = audio.attr('src');
 					if (!mp3) {
 						mp3 = audio.find('source').attr('src');
