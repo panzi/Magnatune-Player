@@ -1174,7 +1174,7 @@ $.extend(Magnatune, {
 			var launchdate = new Date();
 			launchdate.setTime(album.launchdate * 1000);
 			launchdate = '('+launchdate.getFullYear()+')';
-			return tag('tr',
+			var row = tag('tr',
 				{title:album.albumname+' '+launchdate+' '+album.artist.artist},
 				tag('td', tag('a',
 					{href:'#/album/'+encodeURIComponent(album.albumname)},
@@ -1192,6 +1192,8 @@ $.extend(Magnatune, {
 					tag('a',
 						{href:'#/artist/'+encodeURIComponent(album.artist.artist)},
 						album.artist.artist)));
+			Magnatune.DnD.draggable(row, Magnatune.DnD.albumOptions(album));
+			return row;
 		},
 		_albumsList: function (albums) {
 			var list = $(tag('ul',{'class':'albums'}));
@@ -1376,7 +1378,7 @@ $.extend(Magnatune, {
 							var song = data.body.songs[i];
 						
 							song.albumname = album.albumname;
-							var row = $(tag('tr',
+							var row = $(tag('tr', {dataset: song},
 								tag('td', {'class':'number'}, song.number),
 								tag('td', song.desc),
 								tag('td', {'class':'duration'}, tag.time(song.duration))));
@@ -1390,9 +1392,9 @@ $.extend(Magnatune, {
 							}
 							row.append(tag('td', tag('a',{
 								title: 'Enqueue Track',
-								href:'javascript:'+encodeURIComponent('Magnatune.Playlist.enqueue(['+
-									JSON.stringify(song)+']);void(0)')},'+')));
-
+								onclick: 'Magnatune.Playlist.enqueue([$(this).parent().parent().dataset()]);',
+								href:'javascript:void(0)'},'+')));
+							Magnatune.DnD.draggable(row, Magnatune.DnD.SongOptions);
 							songs.append(row);
 						}
 						var genres = $(tag('ul',{'class':'genres'}));
@@ -1576,10 +1578,10 @@ $.extend(Magnatune, {
 							var album = albums[i];
 							var launchdate = new Date();
 							launchdate.setTime(album.launchdate * 1000);
-							tbody.append(tag('tr',
+							var row = tag('tr',
 								tag('td', tag('a',
 									{href:'#/album/'+encodeURIComponent(album.albumname)},
-									tag('img',{'class':'cover',
+									tag('img', {'class':'cover',
 										src:'http://he3.magnatune.com/music/'+
 											encodeURIComponent(album.artist.artist)+'/'+
 											encodeURIComponent(album.albumname)+'/cover_50.jpg'}))),
@@ -1587,10 +1589,12 @@ $.extend(Magnatune, {
 									{href:'#/album/'+encodeURIComponent(album.albumname)},
 									album.albumname),
 									' ',
-									tag('span', {'class':'launchdate'}, '('+launchdate.getFullYear()+')'))));
+									tag('span', {'class':'launchdate'}, '('+launchdate.getFullYear()+')')));
+							Magnatune.DnD.draggable(row, Magnatune.DnD.albumOptions(album));
+							tbody.append(row);
 						}
 						var breadcrumbs = [{href: hash, text: artist.artist}];
-						var page = tag('div',{'class':'artist'},
+						var page = tag('div', {'class':'artist'},
 							tag('h2', tag('a', {'class':'artist',
 								href:'http://magnatune.com/artists/'+data.body.homepage,
 								target:'_blank'},
@@ -3536,7 +3540,7 @@ $.extend(Magnatune, {
 												encodeURIComponent(album.albumname)+'/cover_50.jpg'})),
 									tag('td',{'class':'albumname'},album.albumname),
 									tag('td',{'class':'launchdate'}, launchdate))));
-						Magnatune.DnD.draggable(label, this.draggable(album));
+						Magnatune.DnD.draggable(label, Magnatune.DnD.albumOptions(album));
 
 						var hash = '#/album/'+encodeURIComponent(album.albumname);
 						list.append(tag.expander({
@@ -3600,56 +3604,6 @@ $.extend(Magnatune, {
 							}
 						});
 					}
-				},
-				draggable: function (album) {
-					return {
-						visual: true,
-						distance: 4,
-						create: function (event) {
-							var was_visible = Magnatune.Playlist.visible();
-							if (!was_visible) Magnatune.Playlist.show();
-							return {
-								drag: Magnatune.Playlist._dragover,
-								drop: function (event) {
-									var playlist = $('#playlist');
-									var target = playlist.find('.drop');
-									var before = target.hasClass('before');
-
-									if (target.length > 0) {
-										Magnatune.Collection.withSongs(album, function (album) {
-											var tracks = $();
-											var songs = album.songs;
-											for (var i = 0; i < songs.length; ++ i) {
-												var song = $.extend({},songs[i]);
-												song.albumname = album.albumname;
-												tracks.push(Magnatune.Playlist._buildTrack(song));
-											}
-											if (target.parent().is('thead')) {
-												playlist.find('> tbody').append(tracks);
-											}
-											else {
-												if (before) {
-													tracks.insertBefore(target);
-												}
-												else {
-													tracks.insertAfter(target);
-												}
-											}
-										});
-									}
-									(target.
-										removeClass('drop').
-										removeClass('before').
-										removeClass('after'));
-									if (!was_visible) Magnatune.Info.show();
-								},
-								cancel: function (event) {
-									Magnatune.Playlist._dragcancel(event);
-									if (!was_visible) Magnatune.Info.show();
-								}
-							};
-						}
-					};
 				}
 			},
 			Song: {
@@ -3664,55 +3618,11 @@ $.extend(Magnatune, {
 							title:song.desc,
 							ondblclick: Magnatune.Playlist.replace.bind(Magnatune.Playlist,[song],true)},
 							song.desc);
-						Magnatune.DnD.draggable(item, this.DraggableOptions);
+						Magnatune.DnD.draggable(item, Magnatune.DnD.SongOptions);
 						list.append(item);
 					}
 
 					$(parent).append(list);
-				},
-				DraggableOptions: {
-					visual: true,
-					distance: 4,
-					create: function (event) {
-						var was_visible = Magnatune.Playlist.visible();
-						if (!was_visible) Magnatune.Playlist.show();
-						var song = $(this).dataset();
-						return {
-							render: function () {
-								return tag('span',song.desc+' - '+song.albumname+' - '+
-									Magnatune.Collection.Albums[song.albumname].artist.artist);
-							},
-							drag: Magnatune.Playlist._dragover,
-							drop: function (event) {
-								var playlist = $('#playlist');
-								var target = playlist.find('.drop');
-
-								if (target.length > 0) {
-									var track = $(Magnatune.Playlist._buildTrack(song));
-									if (target.parent().is('thead')) {
-										playlist.find('> tbody').append(track);
-									}
-									else {
-										if (target.hasClass('before')) {
-											track.insertBefore(target);
-										}
-										else {
-											track.insertAfter(target);
-										}
-									}
-								}
-								(target.
-									removeClass('drop').
-									removeClass('before').
-									removeClass('after'));
-								if (!was_visible) Magnatune.Info.show();
-							},
-							cancel: function (event) {
-								Magnatune.Playlist._dragcancel(event);
-								if (!was_visible) Magnatune.Info.show();
-							}
-						};
-					}
 				}
 			}
 		},
@@ -3880,13 +3790,12 @@ $.extend(Magnatune, {
 		source:  null,
 		handler: null,
 		draggable: function (element, options) {
-			// IE
 			$(element).on('selectstart', function (event) {
+				// IE
 				if (!options.condition || options.condition(event)) {
 					event.preventDefault();
 				}
-			});
-			$(element).on(Magnatune.TouchDevice ? 'touchstart' : 'mousedown', function (event) {
+			}).addClass('draggable').on(Magnatune.TouchDevice ? 'touchstart' : 'mousedown', function (event) {
 				if (Magnatune.DnD.source) return;
 
 				if (event.type === 'touchstart') {
@@ -3927,12 +3836,12 @@ $.extend(Magnatune, {
 			element = null;
 		},
 		start: function (event, options) {
+			var offset = $(this).offset();
 			var handler = options.create.call(this,event);
 			if (!handler) {
 				Magnatune.DnD.source = null;
 			}
 			else if (options.visual || (!('visual' in options) && handler.render)) {
-				var offset = $(this).offset();
 				if (handler.render) {
 					Magnatune.DnD.element = $(handler.render.call(this));
 					Magnatune.DnD.element.addClass('dragged').css({
@@ -3991,6 +3900,100 @@ $.extend(Magnatune, {
 			}
 			else {
 				Magnatune.DnD.handler = handler;
+			}
+		},
+		albumOptions: function (album) {
+			return {
+				visual: true,
+				distance: 4,
+				create: function (event) {
+					var was_visible = Magnatune.Playlist.visible();
+					if (!was_visible) Magnatune.Playlist.show();
+					return {
+						drag: Magnatune.Playlist._dragover,
+						drop: function (event) {
+							var playlist = $('#playlist');
+							var target = playlist.find('.drop');
+							var before = target.hasClass('before');
+
+							if (target.length > 0) {
+								Magnatune.Collection.withSongs(album, function (album) {
+									var tracks = $();
+									var songs = album.songs;
+									for (var i = 0; i < songs.length; ++ i) {
+										var song = $.extend({},songs[i]);
+										song.albumname = album.albumname;
+										tracks.push(Magnatune.Playlist._buildTrack(song));
+									}
+									if (target.parent().is('thead')) {
+										playlist.find('> tbody').append(tracks);
+									}
+									else {
+										if (before) {
+											tracks.insertBefore(target);
+										}
+										else {
+											tracks.insertAfter(target);
+										}
+									}
+								});
+							}
+							(target.
+								removeClass('drop').
+								removeClass('before').
+								removeClass('after'));
+							if (!was_visible) Magnatune.Info.show();
+						},
+						cancel: function (event) {
+							Magnatune.Playlist._dragcancel(event);
+							if (!was_visible) Magnatune.Info.show();
+						}
+					};
+				}
+			};
+		},
+		SongOptions: {
+			visual: true,
+			distance: 4,
+			create: function (event) {
+				var was_visible = Magnatune.Playlist.visible();
+				if (!was_visible) Magnatune.Playlist.show();
+				var song = $(this).dataset();
+				return {
+					render: function () {
+						return tag('span',song.desc+' - '+song.albumname+' - '+
+							Magnatune.Collection.Albums[song.albumname].artist.artist);
+					},
+					drag: Magnatune.Playlist._dragover,
+					drop: function (event) {
+						var playlist = $('#playlist');
+						var target = playlist.find('.drop');
+
+						if (target.length > 0) {
+							var track = $(Magnatune.Playlist._buildTrack(song));
+							if (target.parent().is('thead')) {
+								playlist.find('> tbody').append(track);
+							}
+							else {
+								if (target.hasClass('before')) {
+									track.insertBefore(target);
+								}
+								else {
+									track.insertAfter(target);
+								}
+							}
+						}
+						(target.
+							removeClass('drop').
+							removeClass('before').
+							removeClass('after'));
+						if (!was_visible) Magnatune.Info.show();
+					},
+					cancel: function (event) {
+						Magnatune.Playlist._dragcancel(event);
+						if (!was_visible) Magnatune.Info.show();
+					}
+				};
 			}
 		}
 	},
