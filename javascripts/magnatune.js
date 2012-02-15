@@ -1803,7 +1803,7 @@ $.extend(Magnatune, {
 				'<th>Preview</th>\n'+
 				'</tr>\n'+
 				'</thead>\n'+
-				'</tbody>\n');
+				'<tbody>\n');
 
 			var prefix, suffix;
 			if (opts.member && Magnatune.authenticated) {
