@@ -1771,6 +1771,7 @@ $.extend(Magnatune, {
 				'<?xml version="1.0" encoding="UTF-8"?>\n'+
 				'<!DOCTYPE html>\n'+
 				'<html lang="en">\n'+
+				'<head profile="http://microformats.org/profile/haudio">\n'+
 				'<meta http-equiv="content-type" content="text/html; charset=utf-8"/>\n'+
 				'<title>'+escapeXml(opts.title||"Music from Magnatune")+'</title>\n'+
 				'<link rel="shortcut icon" type="image/x-icon" href="http://magnatune.com/favicon.ico"/>\n'+
