@@ -1095,11 +1095,17 @@ $.extend(Magnatune, {
 		}
 	},
 	Info: {
+		_scroll_top: 0,
+		_scroll_left: 0,
 		show: function () {
 			$('#info-button').addClass('active');
 			$('#playlist-button').removeClass('active');
+			var playlist_content = $('#playlist-container > .tab-content');
+			Magnatune.Playlist._scroll_left = playlist_content.scrollLeft();
+			Magnatune.Playlist._scroll_top = playlist_content.scrollTop();
 			$('#playlist-container').hide();
 			$('#info').show();
+			$('#info-content').scrollLeft(this._scroll_left).scrollTop(this._scroll_top);
 		},
 		toggleEmbed: function (albumname,sku) {
 			var embed_container = $('#embed-container');
@@ -1224,6 +1230,7 @@ $.extend(Magnatune, {
 			info.scrollLeft(0);
 			info.html(content);
 			
+			this._scroll_top = this._scroll_left = 0;
 			if (!keeptab) this.show();
 			if (!keeptab || Magnatune.Info.visible()) {
 				window.location.hash = hash;
@@ -1614,10 +1621,15 @@ $.extend(Magnatune, {
 		}
 	},
 	Playlist: {
+		_scroll_top: 0,
+		_scroll_left: 0,
 		show: function () {
 			$('#playlist-button').addClass('active');
 			$('#info-button').removeClass('active');
-			$('#playlist-container').show();
+			var info_content = $('#info-content');
+			Magnatune.Info._scroll_left = info_content.scrollLeft();
+			Magnatune.Info._scroll_top = info_content.scrollTop();
+			$('#playlist-container').show().find('> .tab-content').scrollLeft(this._scroll_left).scrollTop(this._scroll_top);
 			$('#info').hide();
 		},
 		visible: function () {
@@ -2626,19 +2638,61 @@ $.extend(Magnatune, {
 				tbody.append(this._buildTrack(songs[i]));
 			}
 		},
-		_dragcancel: function (event) {
+		_scroll_state: 'none',
+		_dragend: function (event) {
 			($('#playlist .drop').
 				removeClass('drop').
 				removeClass('before').
 				removeClass('after'));
+			if (Magnatune.Playlist._scroll_state !== "none") {
+				$('#playlist-container .tab-content').stop(true);
+				Magnatune.Playlist._scroll_state = "none";
+			}
 		},
 		_dragover: function (event) {
 			var playlist = $('#playlist');
+			var container = playlist.parent();
+			var container_el = container[0];
 			var track, before = false;
 			var tbody = playlist.find('> tbody');
 			var pos = tbody.offset();
 			var y = event.pageY;
 			var x = event.pageX;
+			var container_top = container.offset().top;
+			var container_bottom = container_top + container_el.offsetHeight;
+			var new_state = "none";
+
+			if (y >= container_top - 5 && y <= container_top + 30) {
+				if (container_el.scrollTop > 0) {
+					new_state = "up";
+
+					if (Magnatune.Playlist._scroll_state !== "up") {
+						container.stop(true).animate({scrollTop: 0}, {
+							duration: container_el.scrollTop * 5
+						});
+					}
+				}
+			}
+			else if (y <= container_bottom + 5 && y >= container_bottom - 30) {
+				var endpos = container_el.scrollHeight - container_el.offsetHeight;
+				var scroll_top = container_el.scrollTop;
+				if (scroll_top < endpos) {
+					new_state = "down";
+
+					if (Magnatune.Playlist._scroll_state !== "down") {
+						container.stop(true).animate({scrollTop: endpos}, {
+							duration: (endpos - scroll_top) * 5
+						});
+					}
+				}
+			}
+
+			if (new_state === "none" && Magnatune.Playlist._scroll_state !== "none") {
+				container.stop(true);
+			}
+
+			Magnatune.Playlist._scroll_state = new_state;
+			
 			if (!Magnatune.TouchDevice && (track = $(event.target).closest('tr')) && track.parent().parent().is(playlist)) {
 				// on browsers that support "pointer-events: none"
 				if (track.parent().is("thead")) {
@@ -2673,8 +2727,7 @@ $.extend(Magnatune, {
 				track = $();
 			}
 			else if (y <= pos.top) {
-				var tab_content = $('#playlist-container .tab-content:first');
-				if (y < tab_content.offset().top) {
+				if (y < container_top) {
 					track = $();
 				}
 				else {
@@ -2689,8 +2742,7 @@ $.extend(Magnatune, {
 				}
 			}
 			else if (y >= (pos.top + tbody.outerHeight())) {
-				var tab_content = $('#playlist-container .tab-content:first');
-				if (y > tab_content.offset().top + tab_content.outerHeight()) {
+				if (y > container_top + container.outerHeight()) {
 					track = $();
 				}
 				else {
@@ -2766,15 +2818,10 @@ $.extend(Magnatune, {
 					},
 					drag: Magnatune.Playlist._dragover,
 					drop: function (event) {
-						var target = $('#playlist .drop');
-						Magnatune.Playlist._moveSelected(target);
-
-						(target.
-							removeClass('drop').
-							removeClass('before').
-							removeClass('after'));
+						Magnatune.Playlist._moveSelected($('#playlist .drop'));
+						Magnatune.Playlist._dragend(event);
 					},
-					cancel: Magnatune.Playlist._dragcancel
+					cancel: Magnatune.Playlist._dragend
 				};
 			}
 		},
@@ -3940,14 +3987,11 @@ $.extend(Magnatune, {
 									}
 								});
 							}
-							(target.
-								removeClass('drop').
-								removeClass('before').
-								removeClass('after'));
+							Magnatune.Playlist._dragend(event);
 							if (!was_visible) Magnatune.Info.show();
 						},
 						cancel: function (event) {
-							Magnatune.Playlist._dragcancel(event);
+							Magnatune.Playlist._dragend(event);
 							if (!was_visible) Magnatune.Info.show();
 						}
 					};
@@ -3985,14 +4029,11 @@ $.extend(Magnatune, {
 								}
 							}
 						}
-						(target.
-							removeClass('drop').
-							removeClass('before').
-							removeClass('after'));
+						Magnatune.Playlist._dragend(event);
 						if (!was_visible) Magnatune.Info.show();
 					},
 					cancel: function (event) {
-						Magnatune.Playlist._dragcancel(event);
+						Magnatune.Playlist._dragend(event);
 						if (!was_visible) Magnatune.Info.show();
 					}
 				};
