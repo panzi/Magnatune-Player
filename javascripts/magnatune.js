@@ -2027,6 +2027,7 @@ $.extend(Magnatune, {
 				this.enqueue(imported.songs);
 				count = imported.songs.length;
 			}
+
 			if (imported.playlists) {
 				var playlists = this._getSavedPlaylists();
 				var conflict = [];
@@ -2040,7 +2041,7 @@ $.extend(Magnatune, {
 				if (conflict.length === 0 || confirm(
 						"The folowing saved playlists already exist. Do you want to overwrite them?\n\n \u2022 "+
 						conflict.join("\n \u2022 "))) {
-					$.extend(playlists, data.body);
+					$.extend(playlists, imported.playlists);
 
 					if ($('#playlists-menu').is(':visible')) {
 						this._loadPlaylistMenu(playlists);
