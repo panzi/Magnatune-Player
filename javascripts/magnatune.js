@@ -475,7 +475,7 @@ function escapeXml (s) {
 	});
 }
 
-function read(file, opts) {
+function read (file, opts) {
 	var onload;
 	var reader = new FileReader();
 
@@ -521,17 +521,15 @@ function read(file, opts) {
 			}
 		}
 
-		alert("Error reading file: "+msg);
+		if (file.name) {
+			alert("Error reading file »"+file.name+"«: "+msg);
+		}
+		else {
+			alert("Error reading file: "+msg);
+		}
 	};
 
-	reader.onload = function (event) {
-		try {
-			onload.call(this,this.result);
-		}
-		catch (e) {
-			alert("Error reading file: "+e.toString());
-		}
-	};
+	reader.onload = onload;
 	
 	reader.readAsText(file, opts.encoding || "UTF-8");
 
@@ -1621,6 +1619,23 @@ $.extend(Magnatune, {
 		}
 	},
 	Playlist: {
+		SupportedMimeTypes: {
+			"application/octet-stream": true, // maybe
+			"text/plain":               true, // maybe
+			"application/json":         true, // maybe
+			"text/x-json":              true, // maybe
+			"text/json":                true, // maybe
+			"audio/mpegurl":            true,
+			"audio/x-mpegurl":          true,
+			// basically same as m3u, even has # comments:
+			"text/uri-list":            true,
+			"text/xml":                 true, // maybe
+			"application/xspf+xml":     true,
+			"text/html":                true,
+			"application/xhtml+xml":    true,
+			"audio/x-scpls":            true,
+			"Files":                    true  // maybe
+		},
 		_scroll_top: 0,
 		_scroll_left: 0,
 		show: function () {
@@ -1933,116 +1948,141 @@ $.extend(Magnatune, {
 		},
 		importFile: function (file) {
 			if (!file) return;
-			function do_import (import_method,data) {
-				var imported = this[import_method](data);
-				var count = 0;
-				if (imported.songs) {
-					this.enqueue(imported.songs);
-					count = imported.songs.length;
-				}
-				if (imported.playlists) {
-					var playlists = this._getSavedPlaylists();
-					var conflict = [];
-					for (var name in imported.playlists) {
-						if (name in playlists) {
-							conflict.push(name);
-						}
-						count += imported.playlists[name].length;
+			var mimeType = (file.type || "application/octet-stream").split(";")[0];
+			if (this.SupportedMimeTypes[mimeType] === true) {
+				read(file, function () {
+					try {
+						Magnatune.Playlist.importString(this.result, mimeType);
 					}
-					conflict.sort();
-					if (conflict.length === 0 || confirm(
-							"The folowing saved playlists already exist. Do you want to overwrite them?\n\n \u2022 "+
-							conflict.join("\n \u2022 "))) {
-						$.extend(playlists, data.body);
-
-						if ($('#playlists-menu').is(':visible')) {
-							this._loadPlaylistMenu(playlists);
-						}
-
-						if (typeof(localStorage) !== "undefined") {
-							localStorage.setItem('playlist.saved', JSON.stringify(playlists));
-						}
+					catch (e) {
+						alert("Error reading file: "+e.toString());
 					}
-				}
-				if (imported.unknown > 0) {
-					alert($.format("Could not detect {unknown} of {all} Magnatune playlist entries.", {
-						unknown: unknown,
-						all: count + unknown
-					}));
-				}
+				});
 			}
-			switch ((file.type || "application/octet-stream").split(";")[0]) {
-				case "application/octet-stream":
-				case "text/plain":
-					read(file, do_import.bind(this,'importAny'));
-					break;
-
-				case "application/json":
-				case "text/x-json":
-				case "text/json":
-					read(file, do_import.bind(this,'importJson'));
-					break;
-
-				case "audio/mpegurl":
-				case "audio/x-mpegurl":
-				case "text/uri-list": // basically the same, even has # comments
-					read(file, do_import.bind(this,'importM3u'));
-					break;
-
-				case "text/xml":
-					read(file, do_import.bind(this,'importXml'));
-					break;
-
-				case "application/xspf+xml":
-					read(file, do_import.bind(this,'importXspf'));
-					break;
-
-				case "text/html":
-				case "application/xhtml+xml":
-					read(file, do_import.bind(this,'importHtml'));
-					break;
-
-				case "audio/x-scpls":
-				case "application/x-wine-extension-ini":
-					read(file, do_import.bind(this,'importPls'));
-					break;
-
-				default:
-					alert("Unrecognized file type: "+file.type);
+			else if (file.name) {
+				alert("Unrecognized file type »"+file.type+"« of file »"+file.name+"«.");
+			}
+			else {
+				alert("Unrecognized file type »"+file.type+"«.");
 			}
 		},
-		importAny: function (data) {
+		importString: function (data, mimeType) {
+			var imported;
+			
+			try {
+				switch ((mimeType || "text/plain").split(";")[0]) {
+					case "application/octet-stream":
+					case "text/plain":
+						imported = this.parseAny(data);
+						break;
+
+					case "application/json":
+					case "text/x-json":
+					case "text/json":
+						imported = this.parseJson(data);
+						break;
+
+					case "audio/mpegurl":
+					case "audio/x-mpegurl":
+					case "text/uri-list": // basically the same, even has # comments
+						imported = this.parseM3u(data);
+						break;
+
+					case "text/xml":
+						imported = this.parseXml(data);
+						break;
+
+					case "application/xspf+xml":
+						imported = this.parseXspf(data);
+						break;
+
+					case "text/html":
+					case "application/xhtml+xml":
+						imported = this.parseHtml(data);
+						break;
+
+					case "audio/x-scpls":
+						imported = this.parsePls(data);
+						break;
+
+					default:
+						alert("Unrecognized file type »"+mimeType+"«.");
+						return;
+				}
+			}
+			catch (e) {
+				alert("Error reading playlist: "+e.toString());
+				return;
+			}
+
+			var count = 0;
+			if (imported.songs) {
+				this.enqueue(imported.songs);
+				count = imported.songs.length;
+			}
+			if (imported.playlists) {
+				var playlists = this._getSavedPlaylists();
+				var conflict = [];
+				for (var name in imported.playlists) {
+					if (name in playlists) {
+						conflict.push(name);
+					}
+					count += imported.playlists[name].length;
+				}
+				conflict.sort();
+				if (conflict.length === 0 || confirm(
+						"The folowing saved playlists already exist. Do you want to overwrite them?\n\n \u2022 "+
+						conflict.join("\n \u2022 "))) {
+					$.extend(playlists, data.body);
+
+					if ($('#playlists-menu').is(':visible')) {
+						this._loadPlaylistMenu(playlists);
+					}
+
+					if (typeof(localStorage) !== "undefined") {
+						localStorage.setItem('playlist.saved', JSON.stringify(playlists));
+					}
+				}
+			}
+			if (imported.unknown > 0) {
+				alert($.format("Could not detect {unknown} of {all} Magnatune playlist entries.", {
+					unknown: unknown,
+					all: count + unknown
+				}));
+			}
+		},
+		parseAny: function (data) {
 			if (/^#EXTM3U\b/.test(data)) {
-				return this.importM3u(data);
+				return this.parseM3u(data);
 			}
 			else if (/^\s*\{/.test(data)) {
-				return this.importJson(data);
+				return this.parseJson(data);
 			}
 			else if (/^\s*(<\?.*?\?>\s*|<!--.*?-->|<!.*?>\s*)*<(\S+:)?playlist\b/.test(data)) {
-				return this.importXspf(data);
+				return this.parseXspf(data);
 			}
 			else if (/^\s*(<\?.*?\?>\s*|<!--.*?-->|<!.*?>\s*)*<html\b/i.test(data)) {
-				return this.importHtml(data);
+				return this.parseHtml(data);
 			}
 			else if (/^(\s*(;[^\n]*)?\n)*\[playlist\]\s*\n/i.test(data)) {
-				return this.importPls(data);
+				return this.parsePls(data);
 			}
 			else {
 				throw new Error("Failed to detect file type.");
 			}
 		},
-		importXml: function (data) {
+		parseXml: function (data) {
 			if (/^\s*(<\?.*?\?>\s*|<!--.*?-->|<!.*?>\s*)*<(\S+:)?playlist\b/.test(data)) {
-				return this.importXspf(data);
+				return this.parseXspf(data);
 			}
 			else if (/^\s*(<\?.*?\?>\s*|<!--.*?-->|<!.*?>\s*)*<html\b/i.test(data)) {
-				return this.importHtml(data);
+				return this.parseHtml(data);
 			}
 			else {
 				throw new Error("Failed to detect file type.");
 			}
 		},
-		importXspf: function (data) {
+		parseXspf: function (data) {
 			var doc = $.parseXML(data);
 			var root = doc.documentElement;
 			if (root.namespaceURI !== "http://xspf.org/ns/0/" || root.localName !== "playlist") {
@@ -2081,7 +2121,7 @@ $.extend(Magnatune, {
 
 			return {songs: songs, unknown: unknown};
 		},
-		importHtml: function (data) {
+		parseHtml: function (data) {
 			var doc = $.parseHTML(data);
 			var tracks = $(doc.documentElement).find('.haudio, .hmedia');
 			var unknown = 0;
@@ -2167,7 +2207,7 @@ $.extend(Magnatune, {
 				number:    parseInt(guess[4],10)
 			};
 		},
-		importM3u: function (data) {
+		parseM3u: function (data) {
 			var lines = data.split(/\r?\n/g);
 			var songs = [];
 			var extm3u = lines[0] === "#EXTM3U";
@@ -2211,7 +2251,7 @@ $.extend(Magnatune, {
 
 			return {songs: songs, unknown: unknown};
 		},
-		importPls: function (data) {
+		parsePls: function (data) {
 			var lines = data.split(/\r?\n/g);
 			var songs = [];
 			var unknown = 0;
@@ -2270,7 +2310,7 @@ $.extend(Magnatune, {
 
 			return {songs: songs, unknown: unknown};
 		},
-		importJson: function (data) {
+		parseJson: function (data) {
 			data = JSON.parse(data);
 
 			if (!data || !data.head || data.head.type !== "magnatune-player" || !data.body) {
