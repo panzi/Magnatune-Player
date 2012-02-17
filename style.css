@@ -1301,3 +1301,10 @@ td.embed-config {
 #export-menu select {
 	margin: 2px 0px;
 }
+
+#export-drag {
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background-image: url("images/dragicon.png");
+}

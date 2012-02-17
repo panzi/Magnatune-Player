@@ -453,6 +453,14 @@ var Magnatune = {
 
 (function (undefined) {
 
+var MIME_TYPE_MAP = {
+	"m3u":  "audio/mpegurl",
+	"xspf": "application/xspf+xml",
+	"json": "application/json",
+	"html": "text/html",
+	"pls":  "audio/x-scpls"
+};
+
 var DOWNLOAD_MIME_TYPE_MAP = {
 	"m3u":  "audio/mpegurl",
 	"xspf": "application/xspf+xml",
@@ -1619,23 +1627,22 @@ $.extend(Magnatune, {
 		}
 	},
 	Playlist: {
-		SupportedMimeTypes: {
-			"application/octet-stream": true, // maybe
-			"text/plain":               true, // maybe
-			"application/json":         true, // maybe
-			"text/x-json":              true, // maybe
-			"text/json":                true, // maybe
-			"audio/mpegurl":            true,
-			"audio/x-mpegurl":          true,
+		SupportedMimeTypes: [
+			"application/json",         // maybe
+			"text/x-json",              // maybe
+			"text/json",                // maybe
+			"application/xspf+xml",
+			"audio/mpegurl",
+			"audio/x-mpegurl",
+			"audio/x-scpls",
 			// basically same as m3u, even has # comments:
-			"text/uri-list":            true,
-			"text/xml":                 true, // maybe
-			"application/xspf+xml":     true,
-			"text/html":                true,
-			"application/xhtml+xml":    true,
-			"audio/x-scpls":            true,
-			"Files":                    true  // maybe
-		},
+			"text/uri-list",
+			"text/html",
+			"application/xhtml+xml",
+			"text/xml",                 // maybe
+			"text/plain",               // maybe
+			"application/octet-stream"  // maybe
+		],
 		_scroll_top: 0,
 		_scroll_left: 0,
 		show: function () {
@@ -1949,7 +1956,7 @@ $.extend(Magnatune, {
 		importFile: function (file) {
 			if (!file) return;
 			var mimeType = (file.type || "application/octet-stream").split(";")[0];
-			if (this.SupportedMimeTypes[mimeType] === true) {
+			if (this.SupportedMimeTypesMap[mimeType] === true) {
 				read(file, function () {
 					try {
 						Magnatune.Playlist.importString(this.result, mimeType);
@@ -2046,8 +2053,8 @@ $.extend(Magnatune, {
 			}
 			if (imported.unknown > 0) {
 				alert($.format("Could not detect {unknown} of {all} Magnatune playlist entries.", {
-					unknown: unknown,
-					all: count + unknown
+					unknown: imported.unknown,
+					all: count + imported.unknown
 				}));
 			}
 		},
@@ -2123,6 +2130,8 @@ $.extend(Magnatune, {
 		},
 		parseHtml: function (data) {
 			var doc = $.parseHTML(data);
+
+			// first try to parse HTML with hAudio/hMedia microformats:
 			var tracks = $(doc.documentElement).find('.haudio, .hmedia');
 			var unknown = 0;
 			var songs = [];
@@ -2188,6 +2197,22 @@ $.extend(Magnatune, {
 				else {
 					song.mp3 = decodeURIComponent(mp3[1])+'.mp3';
 					songs.push(song);
+				}
+			}
+
+			if (songs.length === 0 && unknown === 0) {
+				// if that fails just search for links to audio files
+				tracks = $(doc.documentElement).find('a[href]');
+				for (var i = 0; i < tracks.length; ++ i) {
+					var url = tracks[i].href;
+					var song = this._guessSongFromUrl(url);
+					if (song) {
+						songs.push(song);
+					}
+					else if (/https?:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:music|all)\/[^?&#]*\.(?:mp3|ogg|m4v|flac|wav)/i.test(url)) {
+						// don't complain about links that do not point to Magnatune songs
+						++ unknown;
+					}
 				}
 			}
 
@@ -4764,6 +4789,15 @@ $.extend(Magnatune, {
 	}
 });
 
+Magnatune.Playlist.SupportedMimeTypesMap = (function () {
+	var types = Magnatune.Playlist.SupportedMimeTypes;
+	var map = {};
+	for (var i = 0; i < types.length; ++ i) {
+		map[types[i]] = true;
+	}
+	return map;
+})();
+
 Magnatune.Events.extend(Magnatune.Collection);
 
 if (Magnatune.TouchDevice) {
@@ -4986,6 +5020,99 @@ $(function () {
 
 	if (typeof(FileReader) === "undefined") {
 		$('#import-button').hide();
+	}
+
+	Magnatune.Html5DnD = $("#export-drag")[0].draggable === true;
+
+	if (Magnatune.Html5DnD) {
+		$('#playlist-container .tab-content').on('dragenter dragover', function (event) {
+			var accept = false;
+			var types = event.originalEvent.dataTransfer.types;
+			var supported = Magnatune.Playlist.SupportedMimeTypesMap;
+			for (var i = 0; i < types.length; ++ i) {
+				var type = types[i];
+				if (type === "Files" || supported[type] === true) {
+					accept = true;
+					break;
+				}
+			}
+		
+			if (accept) {
+				event.originalEvent.dropEffect = 'copy';
+				event.stopPropagation();
+				event.preventDefault();
+			}
+			else {
+				event.originalEvent.dropEffect = 'none';
+			}
+		}).on('drop', function (event) {
+			event.stopPropagation();
+			event.preventDefault();
+
+			var transfer = event.originalEvent.dataTransfer;
+
+			if (transfer.files && transfer.files.length > 0) {
+				Magnatune.Playlist.importFiles(transfer.files);
+			}
+			else {
+				var types = transfer.types;
+				var typemap = {};
+				for (var i = 0; i < types.length; ++ i) {
+					typemap[types[i].split(";")[0]] = true;
+				}
+
+				var supportedTypes = Magnatune.Playlist.SupportedMimeTypes;
+				for (var i = 0; i < supportedTypes.length; ++ i) {
+					var type = supportedTypes[i];
+					if (typemap[type] === true) {
+						Magnatune.Playlist.importString(transfer.getData(type), type);
+						return;
+					}
+				}
+
+				alert("Dropped data is not supported: "+Array.prototype.join.call(types, ", "));
+			}
+		});
+
+		$("#export-drag").on("dragstart", function (event) {
+			var transfer = event.originalEvent.dataTransfer;
+			var what = $('#export-what').val();
+			var data, type;
+
+			switch (what) {
+				case "current":
+					var opts = {
+						playlist_format: $('#export-playlist-format').val(),
+						track_format: $('#export-track-format').val(),
+						member: $('#export-member').is(':checked')
+					};
+					type = MIME_TYPE_MAP[opts.playlist_format];
+					data = Magnatune.Playlist.exportPlaylist(Magnatune.Playlist.songs(), opts);
+					break;
+
+				case "saved":
+					type = "application/json";
+					data = Magnatune.Playlist.exportSaved();
+					break;
+
+				default:
+					console.error("Unknown export selection: "+what);
+			}
+
+			if (data) {
+				transfer.effectAllowed = 'copy';
+				transfer.setData(type, data);
+				transfer.setData("text/plain", data);
+				transfer.setDragImage(tag('img',{src:'images/dragicon.png'}), 0, 0);
+			}
+			else {
+				event.preventDefault();
+			}
+			event.stopPropagation();
+		});
+	}
+	else {
+		$("#export-drag").hide();
 	}
 });
 
