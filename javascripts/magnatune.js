@@ -2112,7 +2112,7 @@ $.extend(Magnatune, {
 				};
 
 				var location = track.find('> location').text();
-				var mp3 = /^http:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(location);
+				var mp3 = /^https?:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(location);
 
 				var album;
 				if (!mp3 || !song.albumname || !song.desc ||
@@ -2210,7 +2210,7 @@ $.extend(Magnatune, {
 					if (song) {
 						songs.push(song);
 					}
-					else if (/https?:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:music|all)\/[^?&#]*\.(?:mp3|ogg|m4a|flac|wav)/i.test(url)) {
+					else if (/https?:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:music|all)\/[^?&#]*\.(?:mp3|ogg|m4a|flac|wav)$/i.test(url)) {
 						// don't complain about links that do not point to Magnatune songs
 						++ unknown;
 					}
@@ -2220,7 +2220,7 @@ $.extend(Magnatune, {
 			return {songs: songs, unknown: unknown};
 		},
 		_guessSongFromUrl: function (url) {
-			var guess = /^http:\/\/(?:download|stream|he3)\.magnatune\.com\/music\/([^\/=?&#]+)\/([^\/=?&#]+)\/((\d+)-[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(url);
+			var guess = /^https?:\/\/(?:download|stream|he3)\.magnatune\.com\/music\/([^\/=?&#]+)\/([^\/=?&#]+)\/((\d+)-[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(url);
 
 			if (!guess) return null;
 
