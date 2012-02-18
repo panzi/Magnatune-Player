@@ -1947,19 +1947,19 @@ $.extend(Magnatune, {
 			this.hideExportMenu();
 			showSave(this.exportSaved(),"Playlists.json");
 		},
-		importFiles: function (files) {
+		importFiles: function (files, index) {
 			if (!files) return;
-			for (var i = 0; i < files.length; ++ i) {
-				this.importFile(files[0]);
+			for (var i = files.length - 1; i >= 0; -- i) {
+				this.importFile(files[0], index);
 			}
 		},
-		importFile: function (file) {
+		importFile: function (file, index) {
 			if (!file) return;
 			var mimeType = (file.type || "application/octet-stream").split(";")[0];
 			if (this.SupportedMimeTypesMap[mimeType] === true) {
 				read(file, function () {
 					try {
-						Magnatune.Playlist.importString(this.result, mimeType);
+						Magnatune.Playlist.importString(this.result, mimeType, index);
 					}
 					catch (e) {
 						alert("Error reading file: "+e.toString());
@@ -1973,7 +1973,7 @@ $.extend(Magnatune, {
 				alert("Unrecognized file type »"+file.type+"«.");
 			}
 		},
-		importString: function (data, mimeType) {
+		importString: function (data, mimeType, index) {
 			var imported;
 			
 			try {
@@ -2024,7 +2024,7 @@ $.extend(Magnatune, {
 
 			var count = 0;
 			if (imported.songs) {
-				this.enqueue(imported.songs);
+				this.enqueue(imported.songs, index);
 				count = imported.songs.length;
 			}
 
@@ -2698,13 +2698,45 @@ $.extend(Magnatune, {
 			if (!genre) throw new Error("No such genre: "+genreName);
 			this.randomAlbum(genre.albums);
 		},
-		enqueue: function (songs) {
+		enqueue: function (songs, index) {
 			var tbody = $('#playlist > tbody');
-			for (var i = 0; i < songs.length; ++ i) {
-				tbody.append(this._buildTrack(songs[i]));
+			var target;
+			if (index !== undefined) {
+				target = tbody.find('> tr')[index];
+			}
+
+			if (target) {
+				target = $(target);
+				for (var i = 0; i < songs.length; ++ i) {
+					target.before(this._buildTrack(songs[i]));
+				}
+			}
+			else {
+				for (var i = 0; i < songs.length; ++ i) {
+					tbody.append(this._buildTrack(songs[i]));
+				}
 			}
 		},
 		_scroll_state: 'none',
+		dropIndex: function () {
+			var playlist = $('#playlist');
+			var target = playlist.find('.drop');
+			var before = target.hasClass('before');
+
+			if (target.length > 0) {
+				if (target.parent().is('thead')) {
+					return 0;
+				}
+				else if (before) {
+					return target.index();
+				}
+				else {
+					return target.index() + 1;
+				}
+			}
+
+			return playlist.find('> tbody > tr').length;
+		},
 		_dragend: function (event) {
 			($('#playlist .drop').
 				removeClass('drop').
@@ -5039,6 +5071,7 @@ $(function () {
 			}
 		
 			if (accept) {
+				Magnatune.Playlist._dragover(event.originalEvent);
 				event.originalEvent.dropEffect = 'copy';
 				event.stopPropagation();
 				event.preventDefault();
@@ -5046,14 +5079,18 @@ $(function () {
 			else {
 				event.originalEvent.dropEffect = 'none';
 			}
-		}).on('drop', function (event) {
+		}).on('dragleave', Magnatune.Playlist._dragend
+		).on('drop', function (event) {
+			var index = Magnatune.Playlist.dropIndex();
+
+			Magnatune.Playlist._dragend(event.originalEvent);
 			event.stopPropagation();
 			event.preventDefault();
 
 			var transfer = event.originalEvent.dataTransfer;
 
 			if (transfer.files && transfer.files.length > 0) {
-				Magnatune.Playlist.importFiles(transfer.files);
+				Magnatune.Playlist.importFiles(transfer.files, index);
 			}
 			else {
 				var types = transfer.types;
@@ -5066,7 +5103,7 @@ $(function () {
 				for (var i = 0; i < supportedTypes.length; ++ i) {
 					var type = supportedTypes[i];
 					if (typemap[type] === true) {
-						Magnatune.Playlist.importString(transfer.getData(type), type);
+						Magnatune.Playlist.importString(transfer.getData(type), type, index);
 						return;
 					}
 				}
