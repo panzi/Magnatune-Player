@@ -483,6 +483,73 @@ function escapeXml (s) {
 	});
 }
 
+/**
+ * Build an absolute url using an base url.
+ * The provided base url has to be a valid absolute url. It will not be validated!
+ * If no base url is given the document location is used.
+ * Schemes that behave other than http might not work.
+ * It tries to support file:-urls, but might fails in some cases.
+ * email:-urls aren't supported at all (don't make sense anyway).
+ */
+function absurl (url, base) {
+	if (!base) base = document.location.href;
+	if (!url) {
+		return base;
+	}
+	else if (/^[a-z][-+\.a-z0-9]*:/i.test(url)) {
+		// The scheme actually could contain any kind of alphanumerical unicode
+		// character, but JavaScript regular expressions don't support unicode
+		// character classes. Maybe /^[^:]+:/ or even /^.*:/ would be sufficient?
+		return url;
+	}
+	else if (url.slice(0,2) === '//') {
+		return /^[^:]+:/.exec(base)[0]+url;
+	}
+	
+	var ch = url.charAt(0);
+	if (ch === '/') {
+		if (/^file:/i.test(base)) {
+			// file scheme has no hostname
+			return 'file://'+url;
+		}
+		else {
+			return /^[^:]+:\/*[^\/]+/i.exec(base)[0]+url;
+		}
+	}
+	else if (ch === '#') {
+		// assume "#" only occures at the end indicating the fragment
+		return base.replace(/#.*$/,'')+url;
+	}
+	else if (ch === '?') {
+		// assume "?" and "#" only occure at the end indicating the query
+		// and the fragment
+		return base.replace(/[\?#].*$/,'')+url;
+	}
+	else {
+		var base, path;
+		if (/^file:/i.test(base)) {
+			base = "file://";
+			path = base.replace(/^file:\/{0,2}/i,'');
+		}
+		else {
+			var match = /^([^:]+:\/*[^\/]+)(\/.*?)?(\?.*?)?(#.*)?$/.exec(base);
+			base = match[1];
+			path = match[2]||"/";
+		}
+	
+		path = path.split("/");
+		path.pop();
+		if (path.length === 0) {
+			// Ensure leading "/". Of course this is only valid on
+			// unix like filesystems. More magic would be needed to
+			// support other filesystems.
+			path.push("");
+		}
+		path.push(url);
+		return base+path.join("/");
+	}
+}
+
 function read (file, opts) {
 	var onload;
 	var reader = new FileReader();
@@ -2097,33 +2164,44 @@ $.extend(Magnatune, {
 				throw new Error("Unrecognized file format.");
 			}
 
-			var tracks = $(root).find("> trackList > track");
+			// The default base should be the URL of the XSPF file, but this is inaccessible here.
+			var base = absurl($(root).attr("xml:base")||"","http://stream.magnatune.com/");
 			var unknown = 0;
 			var songs = [];
 
-			for (var i = 0; i < tracks.length; ++ i) {
-				var track = $(tracks[i]);
-				var song = {
-					albumname: track.find('> album').text(),
-					artist:    track.find('> creator').text(),
-					desc:      track.find('> title').text(),
-					duration:  parseFloat(track.find('> duration').text()),
-					number:    parseInt(track.find('> trackNum').text(),10)
-				};
+			var trackLists = $(root).find("> trackList");
+			for (var trackListIndex = 0; trackListIndex < trackLists.length; ++ trackListIndex) {
+				var trackList = $(trackLists[trackListIndex]);
+				var trackListBase = absurl(trackList.attr("xml:base")||"",base);
+				var tracks = trackList.find("> track");
+				
+				for (var i = 0; i < tracks.length; ++ i) {
+					var track = $(tracks[i]);
+					var trackBase = absurl(track.attr("xml:base")||"",trackListBase);
+					var song = {
+						albumname: track.find('> album').text(),
+						artist:    track.find('> creator').text(),
+						desc:      track.find('> title').text(),
+						duration:  parseFloat(track.find('> duration').text()),
+						number:    parseInt(track.find('> trackNum').text(),10)
+					};
 
-				var location = track.find('> location').text();
-				var mp3 = /^https?:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(location);
+					var location = track.find('> location');
+					var locationBase = absurl(location.attr("xml:base")||"",trackBase);
+					location = absurl(location.text(),locationBase);
+					var mp3 = /^https?:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(location);
 
-				var album;
-				if (!mp3 || !song.albumname || !song.desc ||
-					(isNaN(song.number) && (!mp3[2] || isNaN(song.number = parseInt(mp3[2],10)))) ||
-					song.number <= 0 || !(album = Magnatune.Collection.Albums[song.albumname]) ||
-					album.artist.artist !== song.artist) {
-					++ unknown;
-				}
-				else {
-					song.mp3 = decodeURIComponent(mp3[1])+'.mp3';
-					songs.push(song);
+					var album;
+					if (!mp3 || !song.albumname || !song.desc ||
+						(isNaN(song.number) && (!mp3[2] || isNaN(song.number = parseInt(mp3[2],10)))) ||
+						song.number <= 0 || !(album = Magnatune.Collection.Albums[song.albumname]) ||
+						album.artist.artist !== song.artist) {
+						++ unknown;
+					}
+					else {
+						song.mp3 = decodeURIComponent(mp3[1])+'.mp3';
+						songs.push(song);
+					}
 				}
 			}
 
