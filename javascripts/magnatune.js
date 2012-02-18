@@ -5061,12 +5061,14 @@ $(function () {
 		$('#playlist-container .tab-content').on('dragenter dragover', function (event) {
 			var accept = false;
 			var types = event.originalEvent.dataTransfer.types;
-			var supported = Magnatune.Playlist.SupportedMimeTypesMap;
-			for (var i = 0; i < types.length; ++ i) {
-				var type = types[i];
-				if (type === "Files" || supported[type] === true) {
-					accept = true;
-					break;
+			if (types) {
+				var supported = Magnatune.Playlist.SupportedMimeTypesMap;
+				for (var i = 0; i < types.length; ++ i) {
+					var type = types[i];
+					if (type === "Files" || supported[type] === true) {
+						accept = true;
+						break;
+					}
 				}
 			}
 		
@@ -5093,10 +5095,12 @@ $(function () {
 				Magnatune.Playlist.importFiles(transfer.files, index);
 			}
 			else {
-				var types = transfer.types;
 				var typemap = {};
-				for (var i = 0; i < types.length; ++ i) {
-					typemap[types[i].split(";")[0]] = true;
+				var types = transfer.types;
+				if (types) {
+					for (var i = 0; i < types.length; ++ i) {
+						typemap[types[i].split(";")[0]] = true;
+					}
 				}
 
 				var supportedTypes = Magnatune.Playlist.SupportedMimeTypes;
@@ -5108,7 +5112,7 @@ $(function () {
 					}
 				}
 
-				alert("Dropped data is not supported: "+Array.prototype.join.call(types, ", "));
+				alert("Dropped data is not supported: "+Array.prototype.join.call(types||[], ", "));
 			}
 		});
 
