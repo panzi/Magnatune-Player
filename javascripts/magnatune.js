@@ -526,10 +526,10 @@ function absurl (url, base) {
 		return base.replace(/[\?#].*$/,'')+url;
 	}
 	else {
-		var base, path;
+		var path;
 		if (/^file:/i.test(base)) {
-			base = "file://";
 			path = base.replace(/^file:\/{0,2}/i,'');
+			base = "file://";
 		}
 		else {
 			var match = /^([^:]+:\/*[^\/]+)(\/.*?)?(\?.*?)?(#.*)?$/.exec(base);
@@ -5159,8 +5159,7 @@ $(function () {
 			else {
 				event.originalEvent.dropEffect = 'none';
 			}
-		}).on('dragleave', Magnatune.Playlist._dragend
-		).on('drop', function (event) {
+		}).on('dragleave', Magnatune.Playlist._dragend).on('drop', function (event) {
 			var index = Magnatune.Playlist.dropIndex();
 
 			Magnatune.Playlist._dragend(event.originalEvent);
