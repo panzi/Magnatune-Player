@@ -654,11 +654,11 @@ function showPopup (button, popup) {
 	else if (off.top + height > $(window).innerHeight() - 10) {
 		top = $(window).innerHeight() - height - 10 - off.top + top;
 	}
-	popup.css({
+	popup.hide().css({
 		visibility: '',
 		left: left+'px',
 		top: top+'px'
-	});
+	}).fadeIn('fast');
 }
 
 function showSave (data, name, mimetype) {
@@ -1107,7 +1107,6 @@ $.extend(Magnatune, {
 				control.hide();
 			}
 			else {
-				var element = control;
 				var button = $('#volume-button');
 				var pos = button.position();
 				control.css({
@@ -1115,10 +1114,11 @@ $.extend(Magnatune, {
 					display: ''
 				});
 				control.css({
-					left: Math.round(pos.left+(button.outerWidth()-element.outerWidth())*0.5)+'px',
+					left: Math.round(pos.left+(button.outerWidth()-control.outerWidth())*0.5)+'px',
 					top: (pos.top+button.outerHeight())+'px',
+					display: 'none',
 					visibility: ''
-				});
+				}).fadeIn('fast');
 			}
 		},
 		showCredentials: function () {
@@ -1132,9 +1132,11 @@ $.extend(Magnatune, {
 			showPopup($('#member-container'),$('#credentials'));
 		},
 		hideCredentials: function () {
-			$('#credentials, #login-spinner').hide();
-			// clear form so no one can spy the credentials when pants status down:
-			$('#username, #password').val('');
+			$('#login-spinner').hide();
+			$('#credentials').fadeOut('fast', function () {
+				// clear form so no one can spy the credentials when pants status down:
+				$('#username, #password').val('');
+			});
 	
 			if (typeof(localStorage) !== "undefined") {
 				var remember = $('#remember-login').is(':checked');
@@ -1725,28 +1727,17 @@ $.extend(Magnatune, {
 			return $('#playlist').is(':visible');
 		},
 		showExportMenu: function () {
-			var menu = $('#export-menu');
-			var button = $('#export-button');
 			var member = $('#export-member-options');
-			var pos = button.position();
 			if (Magnatune.authenticated) {
 				member.show();
 			}
 			else {
 				member.hide();
 			}
-			menu.css({
-				visibility: 'hidden',
-				display: ''
-			});
-			menu.css({
-				left: pos.left+'px',
-				top: (pos.top+button.outerHeight())+'px',
-				visibility: ''
-			});
+			showPopup($('#export-button'),$('#export-menu'));
 		},
 		hideExportMenu: function () {
-			$('#export-menu').hide();
+			$('#export-menu').fadeOut('fast');
 		},
 		toggleExportMenu: function () {
 			if ($('#export-menu').is(':visible')) {
@@ -2447,21 +2438,10 @@ $.extend(Magnatune, {
 		},
 		showPlaylistMenu: function () {
 			this.loadPlaylistMenu();
-			var menu = $('#playlists-menu');
-			var button = $('#playlists-button');
-			var pos = button.position();
-			menu.css({
-				visibility: 'hidden',
-				display: ''
-			});
-			menu.css({
-				left: pos.left+'px',
-				top: (pos.top+button.outerHeight())+'px',
-				visibility: ''
-			});
+			showPopup($('#playlists-button'),$('#playlists-menu'));
 		},
 		hidePlaylistMenu: function () {
-			$('#playlists-menu').hide();
+			$('#playlists-menu').fadeOut('fast');
 		},
 		togglePlaylistMenu: function () {
 			if ($('#playlists-menu').is(':visible')) {
@@ -2476,7 +2456,9 @@ $.extend(Magnatune, {
 			showPopup($('#save-button'),$('#save-popup'));
 		},
 		hideSaveDialog: function () {
-			$('#save-popup').hide();
+			$('#save-popup').fadeOut('fast', function () {
+				$('#save-playlist-name').val('');
+			});
 		},
 		toggleSaveDialog: function () {
 			if ($('#save-popup').is(':visible')) {
@@ -2490,17 +2472,16 @@ $.extend(Magnatune, {
 			var name = $('#save-playlist-name').val().trim();
 
 			if (!name) {
-				alert("Please enter a name.");
+				alert("Please enter a playlist name.");
 				return;
 			}
 						
-			if (name in this._getSavedPlaylists() && !confirm("A playlist with the name \u00bb"+name+"\u00ab already exists. Do you want to overwrite it?")) {
+			if (name in this._getSavedPlaylists() && !confirm("A playlist with the name \u00bb"+name+"\u00ab already exists. Do you want to replace it?")) {
 				return;
 			}
 			
 			this.hideSaveDialog();
 			this.save(name);
-			$('#save-playlist-name').val('');
 		},
 		save: function (name) {
 			if (typeof(localStorage) !== "undefined") {
@@ -2580,10 +2561,16 @@ $.extend(Magnatune, {
 						tag('td',{'class':'remove'},
 							tag('a',{href:'javascript:void(0)',
 							         title:'Remove Playlist',
-							         onclick:Magnatune.Playlist.removePlaylist.bind(Magnatune.Playlist,name)},
+							         onclick:this._click_remove_playlist.bind(this,name)},
 								'\u00d7'))));
 				}
 			}
+		},
+		_click_remove_playlist: function (name,event) {
+			event.stopPropagation();
+			event.preventDefault();
+
+			this.removePlaylist(name);
 		},
 		toggleSelectAll: function () {
 			if ($("#playlist > tbody > tr.selected").length > 0) {
@@ -3906,7 +3893,7 @@ $.extend(Magnatune, {
 			showPopup($('#tree-mode-button'),$('#tree-mode-select'));
 		},
 		hideModeSelect: function () {
-			$('#tree-mode-select').hide();
+			$('#tree-mode-select').fadeOut('fast');
 		},
 		toggleModeSelect: function () {
 			if ($('#tree-mode-select').is(':visible')) {
@@ -3920,7 +3907,7 @@ $.extend(Magnatune, {
 			showPopup($('#tree-order-button'),$('#tree-order-select'));
 		},
 		hideOrderSelect: function () {
-			$('#tree-order-select').hide();
+			$('#tree-order-select').fadeOut('fast');
 		},
 		toggleOrderSelect: function () {
 			if ($('#tree-order-select').is(':visible')) {
@@ -4444,6 +4431,14 @@ $.extend(Magnatune, {
 				onbackward: function () {
 					Magnatune.Playlist.remove(1,Magnatune.Playlist.length());
 				},
+				next: 'select_range'
+			},
+			html5_dnd: {
+				text: "You can drop exported playlists from your file browser directly into "+
+				      "this area instead of using the import button.",
+				context: "#playlist",
+				placed: {left: 20, top: 60},
+				arrow: 'up',
 				next: 'select_range'
 			},
 			select_range: {
@@ -5153,6 +5148,8 @@ $(function () {
 	Magnatune.Html5DnD = $("#export-drag")[0].draggable === true;
 
 	if (Magnatune.Html5DnD) {
+		Magnatune.Tour.Pages.dnd_album.next = "html5_dnd";
+
 		$('#playlist-container .tab-content').on('dragenter dragover', function (event) {
 			var accept = false;
 			var types = event.originalEvent.dataTransfer.types;
@@ -5264,20 +5261,18 @@ if ((!window.matchMedia || window.matchMedia("not handheld").matches) &&
 $(document).on('click touchend touchcancel', function (event) {
 	var menus = $('.popup-menu');
 	var target = event.target;
-	var parents = $(target).parents();
+	var related = $(target).parents().andSelf();
 
 	for (var i = 0; i < menus.length; ++ i) {
 		var menu = $(menus[i]);
 		var button = $('#'+menu.dataset('button'));
 		
 		if (menu.is(':visible') &&
-			!menu.is(target) &&
-			!button.is(target) &&
-			parents.index(button) === -1 &&
-			parents.index(menu) === -1) {
+			!related.is(button) &&
+			!related.is(menu)) {
 			var action = menu.dataset('hide-action');
 			if (action === undefined) {
-				menu.hide();
+				menu.fadeOut('fast');
 			}
 			else {
 				(new Function("event",action)).call(menus[i],event);
