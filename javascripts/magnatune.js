@@ -382,42 +382,67 @@ var tag = (function ($,undefined) {
 		field.trigger('numberchange');
 	}
 
+	function click_expander (event) {
+		tag.expander.toggle(this);
+		event.preventDefault();
+	}
+
 	tag.expander = function (opts) {
-		function expand (event) {
-			var self = $(this).parent();
-			var body = self.children('.body');
-			var expander = self.find('> .head > .expander:first');
-
-			if (body.length === 0) {
-				expander.text('\u25BC');
-				var newbody = tag('div',{'class':'body'},opts.body_attrs);
-				opts.render(newbody);
-				self.append(newbody);
-			}
-			else {
-				expander.text('\u25B6');
-				body.remove();
-			}
-			event.preventDefault();
-		}
-
-		var head = tag('a', {
+		var element, head = tag('a', {
 			'class': 'head',
 			href:'javascript:void(0)',
-			onclick: expand},
+			onclick: click_expander},
 			opts.head_attrs,
 			tag('span',{'class':'expander'},'\u25B6'),
 			' ',opts.label);
 
 		try {
+			element = tag('li', opts.attrs, head);
+			$(element).data('options',opts);
 			if (opts.expanded) {
-				expand.call(head,{preventDefault:function(){}});
+				tag.expander.expand(element);
 			}
-			return tag('li', opts.attrs, head);
+			return element;
 		}
 		finally {
 			head = null;
+			element = null;
 		}
+	};
+
+	tag.expander.toggle = function (element) {
+		element = $(element);
+		if (element.is(".head, .body")) element = element.parent();
+		
+		if (element.children('.body').length === 0) {
+			tag.expander.expand(element);
+		}
+		else {
+			tag.expander.collapse(element);
+		}
+	};
+
+	tag.expander.expand = function (element) {
+		element = $(element);
+		if (element.is(".head, .body")) element = element.parent();
+		
+		element.find('> .head > .expander:first').text('\u25BC');
+
+		var body = element.children('.body');
+		if (body.length === 0) {
+			var opts = element.data("options");
+			var newbody = tag('div',{'class':'body'},opts.body_attrs);
+			opts.render(newbody);
+			element.append(newbody);
+		}
+	};
+
+	tag.expander.collapse = function (element) {
+		element = $(element);
+		if (element.is(".head, .body")) element = element.parent();
+		
+		element.find('> .head > .expander:first').text('\u25B6');
+		element.children('.body').remove();
 	};
 
 	return tag;
@@ -4371,16 +4396,14 @@ $.extend(Magnatune, {
 				placed: {left: 200},
 				arrow: 'left',
 				onshow: function () {
-					var genre = $("#tree a[href='#/genre/Ambient']");
-					if (!genre.next(".body").is(":visible")) genre.click();
-					var artist = $("#tree a[href='#/artist/Jami%20Sieber']");
-					if (!artist.next(".body").is(":visible")) artist.click();
+					tag.expander.expand("#tree a[href='#/genre/Ambient']");
+					tag.expander.expand("#tree a[href='#/artist/Jami%20Sieber']");
 					var album = $(this.context);
-					if (!album.next(".body").is(":visible")) album.click();
+					tag.expander.expand(album);
+					window.location = album.attr("href");
 				},
 				onbackward: function () {
-					var genre = $("#tree a[href='#/genre/Ambient']");
-					if (genre.next(".body").is(":visible")) genre.click();
+					tag.expander.collapse("#tree a[href='#/genre/Ambient']");
 				},
 				next: 'playlist'
 			},
