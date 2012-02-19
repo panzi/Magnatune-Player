@@ -509,11 +509,11 @@ function escapeXml (s) {
 }
 
 /**
- * Build an absolute url using an base url.
+ * Build an absolute url using a base url.
  * The provided base url has to be a valid absolute url. It will not be validated!
  * If no base url is given the document location is used.
  * Schemes that behave other than http might not work.
- * It tries to support file:-urls, but might fails in some cases.
+ * It tries to support file:-urls, but might fail in some cases.
  * email:-urls aren't supported at all (don't make sense anyway).
  */
 function absurl (url, base) {
@@ -575,6 +575,17 @@ function absurl (url, base) {
 	}
 }
 
+var ERROR_MAP = {
+	timeout:     "Connection timeout",
+	error:       "Connection error",
+	abort:       "Request aborted by user",
+	parsererror: "Illegal data sent by server"
+};
+
+function errorHeadline (textStatus, errorThrown) {
+	return ERROR_MAP[textStatus] || (errorThrown ? errorThrown.toString() : 'Error');
+}
+
 function read (file, opts) {
 	var onload;
 	var reader = new FileReader();
@@ -622,7 +633,7 @@ function read (file, opts) {
 		}
 
 		if (file.name) {
-			alert("Error reading file »"+file.name+"«: "+msg);
+			alert("Error reading file \u00bb"+file.name+"\u00ab: "+msg);
 		}
 		else {
 			alert("Error reading file: "+msg);
@@ -1344,9 +1355,9 @@ $.extend(Magnatune, {
 				content);
 			this.update(hash,breadcrumbs,content,keeptab);
 		},
-		serverError: function (hash,breadcrumbs,content,keeptab) {
-			content = tag('div',{'class':'errorpage servererror'},
-				tag('h2','Server Error'),
+		ajaxError: function (hash,breadcrumbs,textStatus,errorThrown,content,keeptab) {
+			content = tag('div',{'class':'errorpage ajaxerror'},
+				tag('h2',errorHeadline(textStatus,errorThrown)),
 				content);
 			this.update(hash,breadcrumbs,content,keeptab);
 		},
@@ -1681,11 +1692,12 @@ $.extend(Magnatune, {
 								Magnatune.Info._albumsTable(also)));
 						Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);
 					},
-					error: function (request, textStatus, exception) {
+					error: function (request, textStatus, errorThrown) {
 						if (textStatus === "abort") return;
-						Magnatune.Info.serverError(
+						Magnatune.Info.ajaxError(
 							hash,
 							breadcrumbs,
+							textStatus, errorThrown,
 							tag('p','Error retrieving information of album \u00bb'+opts.id+'\u00ab from server.'),
 							opts.keeptab);
 					}
@@ -1741,11 +1753,12 @@ $.extend(Magnatune, {
 							tag.textify(data.body.bio));
 						Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);
 					},
-					error: function (request, textStatus, exception) {
+					error: function (request, textStatus, errorThrown) {
 						if (textStatus === "abort") return;
-						Magnatune.Info.serverError(
+						Magnatune.Info.ajaxError(
 							hash,
 							breadcrumbs,
+							textStatus, errorThrown,
 							tag('p','Error retrieving information of artist \u00bb'+opts.id+'\u00ab from server.'),
 							opts.keeptab);
 					}
@@ -2083,10 +2096,10 @@ $.extend(Magnatune, {
 				});
 			}
 			else if (file.name) {
-				alert("Unrecognized file type »"+file.type+"« of file »"+file.name+"«.");
+				alert("Unrecognized file type \u00bb"+file.type+"\u00ab of file \u00bb"+file.name+"\u00ab.");
 			}
 			else {
-				alert("Unrecognized file type »"+file.type+"«.");
+				alert("Unrecognized file type \u00bb"+file.type+"\u00ab.");
 			}
 		},
 		importString: function (data, mimeType, index) {
@@ -2129,7 +2142,7 @@ $.extend(Magnatune, {
 						break;
 
 					default:
-						alert("Unrecognized file type »"+mimeType+"«.");
+						alert("Unrecognized file type \u00bb"+mimeType+"\u00ab.");
 						return;
 				}
 			}
@@ -3260,8 +3273,9 @@ $.extend(Magnatune, {
 					Magnatune.Collection._state = 'ready';
 					Magnatune.Collection.trigger('ready');
 				},
-				error: function () {
-					// TODO
+				error: function (request, textStatus, errorThrown) {
+					alert(errorHeadline(textStatus, errorThrown)+
+						"\n\nCannot receive album index from server.");
 				}
 			});
 		},
@@ -3354,8 +3368,10 @@ $.extend(Magnatune, {
 						if (!data.body) return; // TODO
 						callback(data.body);
 					},
-					error: function () {
-						// TODO
+					error: function (request, textStatus, errorThrown) {
+						alert(errorHeadline(textStatus, errorThrown)+
+							"\n\nCannot receive information of album \u00bb"+
+							album.albumname+"\u00ab.\n");
 					}
 				});
 			}
