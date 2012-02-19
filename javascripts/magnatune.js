@@ -1129,7 +1129,7 @@ $.extend(Magnatune, {
 		toggleVolume: function () {
 			var control = $('#volume-control');
 			if (control.is(':visible')) {
-				control.hide();
+				control.fadeOut('fast');
 			}
 			else {
 				var button = $('#volume-button');
