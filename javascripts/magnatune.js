@@ -4588,7 +4588,7 @@ $.extend(Magnatune, {
 			$(document.body).append(element);
 
 			var placed = page.placed || "below";
-			var context = $(page.context||"body");
+			var context = $(page.context||document.body);
 
 			var context_el = context[0];
 			if (context_el) {
@@ -4683,14 +4683,43 @@ $.extend(Magnatune, {
 			}
 			return element;
 		},
-		start: function () {
-			var page = this.Pages[this.first];
-			this._trigger(page,'forward');
-			var element = this._render(page);
-			this.stop();
+		_transit: function (element) {
+			if (this.element) {
+				if (element) {
+					var current = $(this.element);
+					element = $(element);
+					var cur_pos = current.position();
+					var new_pos = element.position();
+					current.remove();
+					element.css({
+						left: cur_pos.left+'px',
+						top:  cur_pos.top+'px',
+						visibility: ''
+					}).animate({
+						left: new_pos.left+'px',
+						top:  new_pos.top+'px'
+					}, 'slow');
+				}
+				else {
+					$(this.element).fadeOut('fast',function () { $(this).remove(); });
+				}
+			}
+			else {
+				if (element) {
+					$(element).hide().css("visibility","").fadeIn('fast');
+				}
+			}
 			this.element = element;
-			element.style.visibility = "";
-
+		},
+		start: function () {
+			var page;
+			if (this.history.length > 0) {
+				page = this.Pages[this.history[this.history.length - 1]];
+				this._trigger(page,'hide');
+			}
+			page = this.Pages[this.first];
+			this._trigger(page,'forward');
+			this._transit(this._render(page));
 			this.history = [this.first];
 		},
 		stop: function () {
@@ -4698,8 +4727,7 @@ $.extend(Magnatune, {
 				var page = this.Pages[this.history[this.history.length - 1]];
 				this._trigger(page,'hide');
 			}
-			$(this.element).remove();
-			this.element = null;
+			this._transit(null);
 			this.history = [];
 		},
 		next: function () {
@@ -4709,15 +4737,11 @@ $.extend(Magnatune, {
 				if (page.next) {
 					var next = this.Pages[page.next];
 					this._trigger(next,'forward');
-					var element = this._render(next,{previous:true});
-					$(this.element).remove();
-					this.element = element;
-					element.style.visibility = "";
+					this._transit(this._render(next,{previous:true}));
 					this.history.push(page.next);
 				}
 				else {
-					$(this.element).remove();
-					this.element = null;
+					this._transit(null);
 					this.history = [];
 				}
 			}
@@ -4731,14 +4755,10 @@ $.extend(Magnatune, {
 			}
 			if (this.history.length > 0) {
 				var page = this.Pages[this.history[this.history.length - 1]];
-				var element = this._render(page,{previous:this.history.length > 1});
-				$(this.element).remove();
-				this.element = element;
-				element.style.visibility = "";
+				this._transit(this._render(page,{previous:this.history.length > 1}));
 			}
 			else {
-				$(this.element).remove();
-				this.element = null;
+				this._transit(null);
 			}
 		},
 		show: function (pagename) {
@@ -4748,10 +4768,7 @@ $.extend(Magnatune, {
 			}
 			var page = this.Pages[pagename];
 			this._trigger(page,'forward');
-			var element = this._render(page,{previous:this.history.length > 0});
-			$(this.element).remove();
-			this.element = element;
-			element.style.visibility = "";
+			this._transit(this._render(page,{previous:this.history.length > 0}));
 			this.history.push(pagename);
 		}
 	},
