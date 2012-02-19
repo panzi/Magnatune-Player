@@ -3253,7 +3253,8 @@ $.extend(Magnatune, {
 						opts.success.call(this,data);
 					}
 				},
-				error: opts.error
+				error:    opts.error,
+				complete: opts.complete
 			});
 		},
 		load: function () {
@@ -3477,30 +3478,45 @@ $.extend(Magnatune, {
 				}, Magnatune.Navigation.FilterInput.Delay);
 			}
 		},
+		_filter_request: null,
 		filter: function (query) {
 			// TODO: keep expansion state and scroll position
 			query = query.trim();
 			$('#search').val(query);
 			var tree = $('#tree');
+			if (this._filter_request) {
+				try {
+					this._filter_request.abort();
+				}
+				catch (e) {
+					console.error(e);
+				}
+			}
 			switch (this.mode()) {
 				case 'album':
-					Magnatune.Navigation.Modes.Album.filter(tree, query);
+					this._filter_request = Magnatune.Navigation.Modes.Album.filter(tree, query);
 					break;
 
 				case 'artist/album':
-					Magnatune.Navigation.Modes.ArtistAlbum.filter(tree, query);
+					this._filter_request = Magnatune.Navigation.Modes.ArtistAlbum.filter(tree, query);
 					break;
 
 				case 'genre/album':
-					Magnatune.Navigation.Modes.GenreAlbum.filter(tree, query);
+					this._filter_request = Magnatune.Navigation.Modes.GenreAlbum.filter(tree, query);
 					break;
 
 				case 'genre/artist/album':
-					Magnatune.Navigation.Modes.GenreArtistAlbum.filter(tree, query);
+					this._filter_request = Magnatune.Navigation.Modes.GenreArtistAlbum.filter(tree, query);
 					break;
+
+				default:
+					this._filter_request = null;
 			}
 		},
 		Modes: {
+			_requestComplete: function (request) {
+				Magnatune.Navigation._filter_request = null;
+			},
 			_tooShort: function (tree) {
 				tree.append(tag('div',{'class':'error tooshort'},"Search term(s) are to short."));
 			},
@@ -3548,7 +3564,7 @@ $.extend(Magnatune, {
 						this.render(parent, Magnatune.Collection.SortedGenres);
 					}
 					else {
-						Magnatune.Collection.request({
+						return Magnatune.Collection.request({
 							args: {action: 'search', query: query, mode: 'genre/artist/album'},
 							success: function (data) {
 								parent.empty();
@@ -3637,7 +3653,8 @@ $.extend(Magnatune, {
 								if (textStatus === "abort") return;
 								parent.empty();
 								Magnatune.Navigation.Modes._ajaxError(parent, textStatus, errorThrown);
-							}
+							},
+							complete: Magnatune.Navigation.Modes._requestComplete
 						});
 					}
 				}
@@ -3672,7 +3689,7 @@ $.extend(Magnatune, {
 						this.render(parent, Magnatune.Navigation.sortedArtists());
 					}
 					else {
-						Magnatune.Collection.request({
+						return Magnatune.Collection.request({
 							args: {action: 'search', query: query, mode: 'artist/album'},
 							success: function (data) {
 								parent.empty();
@@ -3738,7 +3755,8 @@ $.extend(Magnatune, {
 								if (textStatus === "abort") return;
 								parent.empty();
 								Magnatune.Navigation.Modes._ajaxError(parent, textStatus, errorThrown);
-							}
+							},
+							complete: Magnatune.Navigation.Modes._requestComplete
 						});
 					}
 				}
@@ -3781,7 +3799,7 @@ $.extend(Magnatune, {
 						this.render(parent, Magnatune.Collection.SortedGenres);
 					}
 					else {
-						Magnatune.Collection.request({
+						return Magnatune.Collection.request({
 							args: {action: 'search', query: query, mode: 'genre/artist/album'},
 							success: function (data) {
 								parent.empty();
@@ -3849,7 +3867,8 @@ $.extend(Magnatune, {
 								if (textStatus === "abort") return;
 								parent.empty();
 								Magnatune.Navigation.Modes._ajaxError(parent, textStatus, errorThrown);
-							}
+							},
+							complete: Magnatune.Navigation.Modes._requestComplete
 						});
 					}
 				}
@@ -3909,7 +3928,7 @@ $.extend(Magnatune, {
 						this.render(parent, Magnatune.Navigation.sortedAlbums());
 					}
 					else {
-						Magnatune.Collection.request({
+						return Magnatune.Collection.request({
 							args: {action: 'search', query: query, mode: 'album'},
 							success: function (data) {
 								parent.empty();
@@ -3946,7 +3965,8 @@ $.extend(Magnatune, {
 								if (textStatus === "abort") return;
 								parent.empty();
 								Magnatune.Navigation.Modes._ajaxError(parent, textStatus, errorThrown);
-							}
+							},
+							complete: Magnatune.Navigation.Modes._requestComplete
 						});
 					}
 				}
