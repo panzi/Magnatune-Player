@@ -1316,6 +1316,8 @@ $.extend(Magnatune, {
 			return $("#info-content").dataset('hash');
 		},
 		update: function (hash,breadcrumbs,content,keeptab) {
+			this._async_page = null;
+
 			var list = $('#breadcrumbs');
 			list.empty();
 			list.append(tag('li', {'class':'first'}, tag('a', {href:'#/about'}, 'Home')));
@@ -1336,13 +1338,19 @@ $.extend(Magnatune, {
 				window.location.hash = hash;
 			}
 		},
-		pageNotFound: function (hash,content,keeptab) {
-			var breadcrumbs = [{href: hash, text: 'Not Found'}];
-			content = tag('div',{'class':'notfound'},
+		pageNotFound: function (hash,breadcrumbs,content,keeptab) {
+			content = tag('div',{'class':'errorpage notfound'},
 				tag('h2','Not Found'),
 				content);
 			this.update(hash,breadcrumbs,content,keeptab);
 		},
+		serverError: function (hash,breadcrumbs,content,keeptab) {
+			content = tag('div',{'class':'errorpage servererror'},
+				tag('h2','Server Error'),
+				content);
+			this.update(hash,breadcrumbs,content,keeptab);
+		},
+		_async_page: null,
 		load: function (hash,opts) {
 			var m = /^#?\/([^\/]+)(?:\/(.*))?/.exec(hash);
 			
@@ -1354,13 +1362,23 @@ $.extend(Magnatune, {
 				opts.id = decodeURIComponent(m[2]);
 			}
 
+			if (this._async_page) {
+				try {
+					this._async_page.abort();
+				}
+				catch (e) {
+					console.error(e);
+				}
+				this._async_page = null;
+			}
 			if (Object.prototype.hasOwnProperty.call(this.Pages,page)) {
-				this.Pages[page](opts||{});
+				this._async_page = this.Pages[page](opts||{});
 				return true;
 			}
 			else {
 				this.pageNotFound(
 					hash,
+					[{href: hash, text: 'Not Found'}],
 					tag('p','Page not found. Please check whether you have you have misstyped the URL.'),
 					opts.keeptab);
 				return false;
@@ -1437,14 +1455,15 @@ $.extend(Magnatune, {
 			genre: function (opts) {
 				var hash = '#/genre/'+encodeURIComponent(opts.id);
 				var genre = Magnatune.Collection.Genres[opts.id];
+				var breadcrumbs = [{href:hash,text:opts.id}];
 				if (!genre) {
 					Magnatune.Info.pageNotFound(
 						hash,
+						breadcrumbs,
 						tag('p','Genre \u00bb'+opts.id+'\u00ab was not found.'),
 						opts.keeptab);
 					return;
 				}
-				var breadcrumbs = [{href:hash,text:genre.genre}];
 				var albums = genre.albums.slice();
 				albums.sort(Magnatune.Navigation.albumSorter());
 				var page = tag('div',{'class':'genre'},
@@ -1459,26 +1478,28 @@ $.extend(Magnatune, {
 				Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);
 			},
 			album: function (opts) {
-				Magnatune.Collection.request({
+				var hash = '#/album/'+encodeURIComponent(opts.id);
+				var album = Magnatune.Collection.Albums[opts.id];
+				var artist = album ? album.artist.artist : 'Unknown Artist';
+				var breadcrumbs = [
+					{href: '#/artist/'+encodeURIComponent(artist), text: artist},
+					{href: hash, text: opts.id}];
+
+				return Magnatune.Collection.request({
 					args: {action: 'album', name: opts.id},
 					success: function (data) {
-						var hash = '#/album/'+encodeURIComponent(opts.id);
 						if (!data.body) {
 							Magnatune.Info.pageNotFound(
 								hash,
+								breadcrumbs,
 								tag('p','Album \u00bb'+opts.id+'\u00ab was not found.'),
 								opts.keeptab);
 							return;
 						}
-						var album = Magnatune.Collection.Albums[opts.id];
-						var artist = album.artist;
-						var breadcrumbs = [
-							{href: '#/artist/'+encodeURIComponent(artist.artist), text: artist.artist},
-							{href: hash, text: album.albumname}];
 						var authenticated = Magnatune.authenticated && Magnatune.Player.member();
 						var songs = $(tag('tbody'));
 						var url_prefix = 'http://download.magnatune.com/music/'+
-							encodeURIComponent(artist.artist)+'/'+
+							encodeURIComponent(artist)+'/'+
 							encodeURIComponent(album.albumname)+'/';
 						var album_prefix = "http://download.magnatune.com/membership/download?";
 						for (var i = 0; i < data.body.songs.length; ++ i) {
@@ -1560,7 +1581,7 @@ $.extend(Magnatune, {
 													src:'http://i.creativecommons.org/l/by-nc-sa/1.0/88x31.png'})))))),
 							tag('img', {'class':cover_class,
 								src: 'http://he3.magnatune.com/music/'+
-									encodeURIComponent(artist.artist)+'/'+
+									encodeURIComponent(artist)+'/'+
 									encodeURIComponent(album.albumname)+cover_file,
 								alt: 'Cover'}),
 							tag.textify(data.body.description),
@@ -1660,19 +1681,27 @@ $.extend(Magnatune, {
 								Magnatune.Info._albumsTable(also)));
 						Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);
 					},
-					error: function () {
-						// TODO
+					error: function (request, textStatus, exception) {
+						if (textStatus === "abort") return;
+						Magnatune.Info.serverError(
+							hash,
+							breadcrumbs,
+							tag('p','Error retrieving information of album \u00bb'+opts.id+'\u00ab from server.'),
+							opts.keeptab);
 					}
 				});
 			},
 			artist: function (opts) {
-				Magnatune.Collection.request({
+				var hash = '#/artist/'+encodeURIComponent(opts.id);
+				var breadcrumbs = [{href: hash, text: opts.id}];
+
+				return Magnatune.Collection.request({
 					args: {action: 'artist', name: opts.id},
 					success: function (data) {
-						var hash = '#/artist/'+encodeURIComponent(opts.id);
 						if (!data.body) {
 							Magnatune.Info.pageNotFound(
 								hash,
+								breadcrumbs,
 								tag('p','Artist \u00bb'+opts.id+'\u00ab was not found.'),
 								opts.keeptab);
 							return;
@@ -1700,7 +1729,6 @@ $.extend(Magnatune, {
 							Magnatune.DnD.draggable(row, Magnatune.DnD.albumOptions(album));
 							tbody.append(row);
 						}
-						var breadcrumbs = [{href: hash, text: artist.artist}];
 						var page = tag('div', {'class':'artist'},
 							tag('h2', tag('a', {'class':'artist',
 								href:'http://magnatune.com/artists/'+data.body.homepage,
@@ -1713,8 +1741,13 @@ $.extend(Magnatune, {
 							tag.textify(data.body.bio));
 						Magnatune.Info.update(hash,breadcrumbs,page,opts.keeptab);
 					},
-					error: function () {
-						// TODO
+					error: function (request, textStatus, exception) {
+						if (textStatus === "abort") return;
+						Magnatune.Info.serverError(
+							hash,
+							breadcrumbs,
+							tag('p','Error retrieving information of artist \u00bb'+opts.id+'\u00ab from server.'),
+							opts.keeptab);
 					}
 				});
 			}
@@ -3193,7 +3226,7 @@ $.extend(Magnatune, {
 			return b.launchdate - a.launchdate;
 		},
 		request: function (opts) {
-			$.ajax({
+			return $.ajax({
 				url: 'cgi-bin/query.cgi',
 				data: $.extend({changed:this.Changed}, opts.args),
 				dataType: 'json',
