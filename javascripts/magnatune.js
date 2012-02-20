@@ -1531,7 +1531,7 @@ $.extend(Magnatune, {
 							}
 							row.append(tag('td', tag('a',{
 								title: 'Enqueue Track',
-								onclick: 'Magnatune.Playlist.enqueue([$(this).parent().parent().dataset()]);',
+								onclick: 'Magnatune.Playlist.enqueue([$(this).parent().parent().dataset()],undefined,true);',
 								href:'javascript:void(0)'},'+')));
 							Magnatune.DnD.draggable(row, Magnatune.DnD.SongOptions);
 							songs.append(row);
@@ -1648,7 +1648,7 @@ $.extend(Magnatune, {
 									'\u25B6 Play Album'),
 								' ',
 								tag('a', {'class':'button',href:'javascript:void(0)',
-									onclick:'Magnatune.Playlist.enqueue($(this).parent().parent().find(".tracklist tbody tr").map(function () { return $(this).dataset(); }), true);'},
+									onclick:'Magnatune.Playlist.enqueue($(this).parent().parent().find(".tracklist tbody tr").map(function () { return $(this).dataset(); }), undefined, true);'},
 									'Enqueue Album'),
 								' ',
 								tag('a', {'class':'button',id:'embed-button',href:'javascript:'+encodeURIComponent(
@@ -2153,7 +2153,7 @@ $.extend(Magnatune, {
 
 			var count = 0;
 			if (imported.songs) {
-				this.enqueue(imported.songs, index);
+				this.enqueue(imported.songs, index, true);
 				count = imported.songs.length;
 			}
 
@@ -2768,9 +2768,11 @@ $.extend(Magnatune, {
 		_dblclick_song: function (event) {
 			Magnatune.Playlist.setCurrentIndex($(this).index(), true);
 		},
-		_buildTrack: function (song) {
+		_buildTrack: function (song, selected, selection_start) {
 			var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
 			var attrs = {dataset:song};
+			if (selected && selection_start) attrs['class'] = "selected selection-start";
+			else if (selected)               attrs['class'] = "selected";
 			if (Magnatune.TouchDevice) {
 				attrs.ontouchstart = Magnatune.Playlist._touch_song;
 			}
@@ -2834,22 +2836,23 @@ $.extend(Magnatune, {
 			if (!genre) throw new Error("No such genre: "+genreName);
 			this.randomAlbum(genre.albums);
 		},
-		enqueue: function (songs, index) {
+		enqueue: function (songs, index, select) {
 			var tbody = $('#playlist > tbody');
 			var target;
 			if (index !== undefined) {
 				target = tbody.find('> tr')[index];
 			}
 
+			if (select) this.selectNone();
 			if (target) {
 				target = $(target);
 				for (var i = 0; i < songs.length; ++ i) {
-					target.before(this._buildTrack(songs[i]));
+					target.before(this._buildTrack(songs[i],select,i===0));
 				}
 			}
 			else {
 				for (var i = 0; i < songs.length; ++ i) {
-					tbody.append(this._buildTrack(songs[i]));
+					tbody.append(this._buildTrack(songs[i],select,i===0));
 				}
 			}
 		},
@@ -3059,9 +3062,9 @@ $.extend(Magnatune, {
 				};
 			}
 		},
-		replace: function (songs, forceplay) {
+		replace: function (songs, forceplay, select) {
 			this.clear();
-			this.enqueue(songs);
+			this.enqueue(songs, undefined, select);
 			if (forceplay) this.setCurrentIndex(0, forceplay);
 		},
 		clear: function () {
@@ -4285,10 +4288,11 @@ $.extend(Magnatune, {
 								Magnatune.Collection.withSongs(album, function (album) {
 									var tracks = $();
 									var songs = album.songs;
+									Magnatune.Playlist.selectNone();
 									for (var i = 0; i < songs.length; ++ i) {
 										var song = $.extend({},songs[i]);
 										song.albumname = album.albumname;
-										tracks.push(Magnatune.Playlist._buildTrack(song));
+										tracks.push(Magnatune.Playlist._buildTrack(song,true,i===0));
 									}
 									if (target.parent().is('thead')) {
 										playlist.find('> tbody').append(tracks);
@@ -4332,7 +4336,8 @@ $.extend(Magnatune, {
 						var target = playlist.find('.drop');
 
 						if (target.length > 0) {
-							var track = $(Magnatune.Playlist._buildTrack(song));
+							Magnatune.Playlist.selectNone();
+							var track = $(Magnatune.Playlist._buildTrack(song,true,true));
 							if (target.parent().is('thead')) {
 								playlist.find('> tbody').append(track);
 							}
@@ -4576,7 +4581,7 @@ $.extend(Magnatune, {
 						for (var i = 0; i < album.songs.length; ++ i) {
 							album.songs[i].albumname = album.albumname;
 						}
-						Magnatune.Playlist.enqueue(album.songs);
+						Magnatune.Playlist.enqueue(album.songs, undefined, true);
 					});
 				},
 				onbackward: function () {
