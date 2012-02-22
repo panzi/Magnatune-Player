@@ -86,7 +86,7 @@ $.base64Decode = function (input) {
 			}
 
   			// are we dealing with an entire document or a fragment?
-			if (els.length === 1 && els[0].localName.toLowerCase() === "html") {
+			if (els.length === 1 && els[0].nodeName === "HTML") {
 				doc.removeChild(doc_el);
 				el = doc_el.firstChild;
 				while (el) {
@@ -1781,7 +1781,8 @@ $.extend(Magnatune, {
 			"application/xhtml+xml",
 			"text/xml",                 // maybe
 			"text/plain",               // maybe
-			"application/octet-stream"  // maybe
+			"application/octet-stream", // maybe
+			"Text"                      // IE, like text/plain
 		],
 		_scroll_top: 0,
 		_scroll_left: 0,
@@ -1932,7 +1933,9 @@ $.extend(Magnatune, {
 			// http://microformats.org/wiki/hmedia
 			var buf = [
 				'<?xml version="1.0" encoding="UTF-8"?>\n'+
-				'<!DOCTYPE html>\n'+
+				// don't declare a doctype so it's a valid XML document an can be
+				// parsed using $.parseXML in IE, which does not support $.parseHTML
+//				'<!DOCTYPE html>\n'+
 				'<html lang="en">\n'+
 				'<head>\n'+
 				'<meta http-equiv="content-type" content="text/html; charset=utf-8"/>\n'+
@@ -1946,7 +1949,7 @@ $.extend(Magnatune, {
 				'</style>\n'+
 				'</head>\n'+
 				'<body>\n'+
-				'<p>Buy this music on <a href="http://magnatune.com/">Magnatune.com</a>.<p>\n'
+				'<p>Buy this music on <a href="http://magnatune.com/">Magnatune.com</a>.</p>\n'
 			];
 			this._exportHtml(buf, songs, opts);
 			buf.push('</body>\n</html>\n');
@@ -2017,7 +2020,7 @@ $.extend(Magnatune, {
 					'<td class="duration">'+duration+'</td>\n'+
 					'<td class="album">'+escapeXml(song.albumname)+'</td>\n'+
 					'<td class="contributor">'+escapeXml(artist)+'</td>\n'+
-					'<td><audio controls preload="none" class="player">\n'+
+					'<td><audio controls="controls" preload="none" class="player">\n'+
 					'<source type="audio/ogg" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.ogg')))+'"/>\n'+
 					'<source type="audio/mp4" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.m4a')))+'"/>\n'+
 					'<source type="audio/mpeg;codec=&quot;mp3&quot;" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.mp3')))+'"/>\n'+
@@ -2109,6 +2112,7 @@ $.extend(Magnatune, {
 				switch ((mimeType || "text/plain").split(";")[0]) {
 					case "application/octet-stream":
 					case "text/plain":
+					case "Text":
 						imported = this.parseAny(data);
 						break;
 
@@ -2222,7 +2226,17 @@ $.extend(Magnatune, {
 		parseXspf: function (data) {
 			var doc = $.parseXML(data);
 			var root = doc.documentElement;
-			if (root.namespaceURI !== "http://xspf.org/ns/0/" || root.localName !== "playlist") {
+			var localName = root.localName;
+			if (!localName) {
+				// IE
+				if (root.prefix) {
+					localName = root.nodeName.slice(root.prefix.length + 1);
+				}
+				else {
+					localName = root.nodeName;
+				}
+			}
+			if (root.namespaceURI !== "http://xspf.org/ns/0/" || localName !== "playlist") {
 				throw new Error("Unrecognized file format.");
 			}
 
@@ -2270,7 +2284,19 @@ $.extend(Magnatune, {
 			return {songs: songs, unknown: unknown};
 		},
 		parseHtml: function (data) {
-			var doc = $.parseHTML(data);
+			var doc;
+			if ($.parseHTML) {
+				doc = $.parseHTML(data);
+			}
+			else {
+				// IE, try xml
+				try {
+					doc = $.parseXML(data);
+				}
+				catch (e) {
+					throw new Error("Your browser does not support parsing HTML files in JavaScript.");
+				}
+			}
 
 			// first try to parse HTML with hAudio/hMedia microformats:
 			var tracks = $(doc.documentElement).find('.haudio, .hmedia');
@@ -5144,7 +5170,9 @@ else {
 	});
 }
 
-$(function () {
+$(document).ready(function () {
+	Magnatune.Html5DnD = $("#export-drag")[0].draggable === true || ($.browser.msie && parseFloat($.browser.version) >= 5.5);
+
 	if (!document.body.scrollIntoView && !document.body.scrollIntoViewIfNeeded) {
 		$('#show-current').hide();
 	}
@@ -5250,9 +5278,17 @@ $(function () {
 	});
 	if (typeof(localStorage) === "undefined") {
 		$('#playlists-controls').hide();
+
+		$('label[for="export-what"]').hide();
+		$("#export-what").val('current').trigger('onchange').hide();
 	}
 	if (typeof(btoa) === "undefined") {
-		$("#export-button").hide();
+		if (Magnatune.Html5DnD) {
+			$('#export-menu input[type="submit"]').hide();
+		}
+		else {
+			$("#export-button").hide();
+		}
 	}
 	Magnatune.Collection.on('ready', function () {
 		Magnatune.load();
@@ -5301,11 +5337,10 @@ $(function () {
 		$('#import-button').hide();
 	}
 
-	Magnatune.Html5DnD = $("#export-drag")[0].draggable === true;
-
 	if (Magnatune.Html5DnD) {
 		Magnatune.Tour.Pages.dnd_album.next = "html5_dnd";
-
+		
+		$.event.fixHooks.dragenter = $.event.fixHooks.dragover = $.event.mouseHooks;
 		$('#playlist-container .tab-content').on('dragenter dragover', function (event) {
 			var accept = false;
 			var types = event.originalEvent.dataTransfer.types;
@@ -5319,9 +5354,13 @@ $(function () {
 					}
 				}
 			}
+			else if ($.browser.msie) {
+				// IE has not types property!
+				accept = true;
+			}
 		
 			if (accept) {
-				Magnatune.Playlist._dragover(event.originalEvent);
+				Magnatune.Playlist._dragover(event);
 				event.originalEvent.dropEffect = 'copy';
 				event.stopPropagation();
 				event.preventDefault();
@@ -5342,24 +5381,46 @@ $(function () {
 				Magnatune.Playlist.importFiles(transfer.files, index);
 			}
 			else {
-				var typemap = {};
+				var supportedTypes = Magnatune.Playlist.SupportedMimeTypes;
 				var types = transfer.types;
 				if (types) {
+					var typemap = {};
 					for (var i = 0; i < types.length; ++ i) {
 						typemap[types[i].split(";")[0]] = true;
 					}
-				}
 
-				var supportedTypes = Magnatune.Playlist.SupportedMimeTypes;
-				for (var i = 0; i < supportedTypes.length; ++ i) {
-					var type = supportedTypes[i];
-					if (typemap[type] === true) {
-						Magnatune.Playlist.importString(transfer.getData(type), type, index);
-						return;
+					for (var i = 0; i < supportedTypes.length; ++ i) {
+						var type = supportedTypes[i];
+						if (typemap[type] === true) {
+							Magnatune.Playlist.importString(transfer.getData(type), type, index);
+							return;
+						}
+					}
+				}
+				else if ($.browser.msie) {
+					// it seems that IE does not have the type object so I guess I just have to try:
+					for (var i = 0; i < supportedTypes.length; ++ i) {
+						var type = supportedTypes[i];
+						try {
+							var value = transfer.getData(type);
+							if (value) {
+								Magnatune.Playlist.importString(value, type, index);
+								return;
+							}
+						}
+						catch (e) {
+							// if the type is not supported by the dataTransfer objet it throws an exception
+							console.error(e);
+						}
 					}
 				}
 
-				alert("Dropped data is not supported: "+Array.prototype.join.call(types||[], ", "));
+				if (types) {
+					alert("Dropped data is not supported: "+Array.prototype.join.call(types, ", "));
+				}
+				else {
+					alert("Dropped data is not supported.");
+				}
 			}
 		});
 
@@ -5390,9 +5451,20 @@ $(function () {
 
 			if (data) {
 				transfer.effectAllowed = 'copy';
-				transfer.setData(type, data);
-				transfer.setData("text/plain", data);
-				transfer.setDragImage(tag('img',{src:'images/dragicon.png'}), 0, 0);
+				var formats = {"text/plain": 1};
+				formats[type] = 1;
+				if ($.browser.msie) { formats.Text = 1; }
+				for (var format in formats) {
+					try {
+						transfer.setData(format, data);
+					}
+					catch (e) {
+						console.error(e);
+					}
+				}
+				if (transfer.setDragImage) {
+					transfer.setDragImage(tag('img',{src:'images/dragicon.png'}), 0, 0);
+				}
 			}
 			else {
 				event.preventDefault();

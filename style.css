@@ -1316,9 +1316,11 @@ td.embed-config {
 	margin: 2px 0px;
 }
 
-#export-drag {
+#export-drag,
+#export-drag:hover,
+#export-drag:active {
 	display: inline-block;
 	width: 16px;
 	height: 16px;
-	background-image: url("images/dragicon.png");
+	background: url("images/dragicon.png");
 }

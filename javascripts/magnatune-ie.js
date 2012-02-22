@@ -24,11 +24,6 @@ if ($.browser.msie) {
 			event.preventDefault();
 		}
 	});
-	
-	$(document).ready(function () {
-		// data url foo is not working in IE
-		$('#export-button').hide();
-	});
 }
 
 // overload standard functions with IE stuff
@@ -111,7 +106,7 @@ if ($.browser.msie && parseInt($.browser.version.split(/\./g)[0],10) < 9) {
 		initAudio: function () {
 			var audio = tag('object',{classid:'CLSID:6BF52A52-394A-11d3-B153-00C04F79FAA6'});
 			audio.uiMode = 'invisible';
-			$(document).append(audio);
+			$(document.body).append(audio);
 			audio.settings.autoStart = false;
 			audio.settings.volume = 100;
 			for (var handler in this.Handlers) {
