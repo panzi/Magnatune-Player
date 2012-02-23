@@ -5326,8 +5326,17 @@ $(document).ready(function () {
 		}
 	});
 	Magnatune.Collection.load();
-	$(window).unload(function (event) {
-		Magnatune.save();
+	var unloaded = false;
+	$(window).on('unload beforeunload',function (event) {
+		// unload seems not to fire before load fires,
+		// even if the page is left before it finishes loading.
+		// And if all albums are shown load might not fire
+		// for a very long time. But beforeunload seems to
+		// fire anyway.
+		if (!unloaded) {
+			unloaded = true;
+			Magnatune.save();
+		}
 	});
 	$(window).on('hashchange',function (event) {
 		Magnatune.showHash();
