@@ -5401,7 +5401,8 @@ $(document).ready(function () {
 					for (var i = 0; i < supportedTypes.length; ++ i) {
 						var type = supportedTypes[i];
 						if (typemap[type] === true) {
-							Magnatune.Playlist.importString(transfer.getData(type), type, index);
+							// safari is broken and returns undefined
+							Magnatune.Playlist.importString(transfer.getData(type)||"", type, index);
 							return;
 						}
 					}
