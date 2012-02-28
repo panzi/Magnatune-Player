@@ -1631,8 +1631,8 @@ $.extend(Magnatune, {
 								', ',
 								tag('a',{target:'_blank',href:album_prefix+$.param({
 									sku: sku,
-									format: 'acc',
-									filename: sku+'-acc.zip',
+									format: 'aac',
+									filename: sku+'-aac.zip',
 									path: url_prefix+sku+'-aac.zip'})},'iTunes AAC')),
 							tag('p',
 								tag('span',{'class':'download-headline'},'Cover:'),
