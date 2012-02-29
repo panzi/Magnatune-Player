@@ -710,11 +710,11 @@ function loadVisibleImages (scroller) {
 	var index = 0;
 	// TODO: speed up with binary search?
 	for (; index < images.length; ++ index) {
-		if ($(images[index]).offset().top >= -150) {
+		if ($(images[index]).offset().top >= startpos) {
 			break;
 		}
 	}
-		
+	
 	for (; index < images.length; ++ index) {
 		var image = $(images[index]);
 		if (image.offset().top >= endpos) {
@@ -5388,6 +5388,7 @@ $(document).ready(function () {
 
 	$('#tree').on('scroll',Magnatune.Navigation.loadVisibleImages);
 	$('#info-content').on('scroll',Magnatune.Info.loadVisibleImages);
+	$(window).on('resize',Magnatune.Info.loadVisibleImages);
 	
 	if (Magnatune.Html5DnD) {
 		Magnatune.Tour.Pages.dnd_album.next = "html5_dnd";
