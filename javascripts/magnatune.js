@@ -434,6 +434,7 @@ var tag = (function ($,undefined) {
 			var newbody = tag('div',{'class':'body'},opts.body_attrs);
 			opts.render(newbody);
 			element.append(newbody);
+			if (opts.rendered) opts.rendered();
 		}
 	};
 
@@ -699,6 +700,28 @@ function showPopup (button, popup) {
 
 function showSave (data, name, mimetype) {
 	window.open("data:"+(mimetype||"application/octet-stream")+";charset=utf-8;base64,"+$.base64Encode(data),name||"Download");
+}
+
+function loadVisibleImages (scroller) {
+	var pos = scroller.offset();
+	var startpos = pos.top - 150;
+	var endpos = pos.top + scroller.outerHeight() + 200;
+	var images = scroller.find('img[data-src]');
+	var index = 0;
+	// TODO: speed up with binary search?
+	for (; index < images.length; ++ index) {
+		if ($(images[index]).offset().top >= -150) {
+			break;
+		}
+	}
+		
+	for (; index < images.length; ++ index) {
+		var image = $(images[index]);
+		if (image.offset().top >= endpos) {
+			break;
+		}
+		image.attr("src",image.attr("data-src")).removeAttr("data-src");
+	}
 }
 
 $.extend(Magnatune, {
@@ -1296,7 +1319,7 @@ $.extend(Magnatune, {
 				tag('td', tag('a',
 					{href:'#/album/'+encodeURIComponent(album.albumname)},
 					tag('img',{'class':'cover',
-						src:'http://he3.magnatune.com/music/'+
+						'data-src':'http://he3.magnatune.com/music/'+
 							encodeURIComponent(album.artist.artist)+'/'+
 							encodeURIComponent(album.albumname)+'/cover_50.jpg'}))),
 				tag('td',
@@ -1326,6 +1349,9 @@ $.extend(Magnatune, {
 		hash: function () {
 			return $("#info-content").dataset('hash');
 		},
+		loadVisibleImages: function () {
+			loadVisibleImages($("#info-content"));
+		},
 		update: function (hash,breadcrumbs,content,keeptab) {
 			this._async_page = null;
 
@@ -1348,6 +1374,7 @@ $.extend(Magnatune, {
 			if (!keeptab || Magnatune.Info.visible()) {
 				window.location.hash = hash;
 			}
+			loadVisibleImages(info);
 		},
 		pageNotFound: function (hash,breadcrumbs,content,keeptab) {
 			content = tag('div',{'class':'errorpage notfound'},
@@ -1730,7 +1757,7 @@ $.extend(Magnatune, {
 								tag('td', tag('a',
 									{href:'#/album/'+encodeURIComponent(album.albumname)},
 									tag('img', {'class':'cover',
-										src:'http://he3.magnatune.com/music/'+
+										'data-src':'http://he3.magnatune.com/music/'+
 											encodeURIComponent(album.artist.artist)+'/'+
 											encodeURIComponent(album.albumname)+'/cover_50.jpg'}))),
 								tag('td', tag('a',
@@ -3542,6 +3569,9 @@ $.extend(Magnatune, {
 					this._filter_request = null;
 			}
 		},
+		loadVisibleImages: function () {
+			loadVisibleImages($("#tree"));
+		},
 		Modes: {
 			_requestComplete: function (request) {
 				Magnatune.Navigation._filter_request = null;
@@ -3591,6 +3621,7 @@ $.extend(Magnatune, {
 					if (!query) {
 						parent.empty();
 						this.render(parent, Magnatune.Collection.SortedGenres);
+						Magnatune.Navigation.loadVisibleImages();
 					}
 					else {
 						return Magnatune.Collection.request({
@@ -3676,6 +3707,7 @@ $.extend(Magnatune, {
 								else {
 									sorted_genres.sort(Magnatune.Navigation.genreSorter());
 									Magnatune.Navigation.Modes.GenreArtistAlbum.render(parent, sorted_genres);
+									Magnatune.Navigation.loadVisibleImages();
 								}
 							},
 							error: function (request, textStatus, errorThrown) {
@@ -3706,7 +3738,8 @@ $.extend(Magnatune, {
 								var albums = album_filter ? this.albums.filter(album_filter) : this.albums.slice();
 								albums.sort(Magnatune.Navigation.albumSorter());
 								Magnatune.Navigation.Modes.Album.render(parent, albums);
-							}.bind(artist)
+							}.bind(artist),
+							rendered: Magnatune.Navigation.loadVisibleImages
 						}));
 					}
 
@@ -3716,6 +3749,7 @@ $.extend(Magnatune, {
 					if (!query) {
 						parent.empty();
 						this.render(parent, Magnatune.Navigation.sortedArtists());
+						Magnatune.Navigation.loadVisibleImages();
 					}
 					else {
 						return Magnatune.Collection.request({
@@ -3778,6 +3812,7 @@ $.extend(Magnatune, {
 								else {
 									sorted_artists.sort(Magnatune.Navigation.artistSorter());
 									Magnatune.Navigation.Modes.ArtistAlbum.render(parent, sorted_artists);
+									Magnatune.Navigation.loadVisibleImages();
 								}
 							},
 							error: function (request, textStatus, errorThrown) {
@@ -3816,7 +3851,8 @@ $.extend(Magnatune, {
 								var albums = this.albums.filter(album_filter.bind(this));
 								albums.sort(Magnatune.Navigation.albumSorter());
 								Magnatune.Navigation.Modes.Album.render(parent, albums);
-							}.bind(genre)
+							}.bind(genre),
+							rendered: Magnatune.Navigation.loadVisibleImages
 						}));
 					}
 
@@ -3826,6 +3862,7 @@ $.extend(Magnatune, {
 					if (!query) {
 						parent.empty();
 						this.render(parent, Magnatune.Collection.SortedGenres);
+						Magnatune.Navigation.loadVisibleImages();
 					}
 					else {
 						return Magnatune.Collection.request({
@@ -3890,6 +3927,7 @@ $.extend(Magnatune, {
 								else {
 									sorted_genres.sort(Magnatune.Navigation.genreSorter());
 									Magnatune.Navigation.Modes.GenreAlbum.render(parent, sorted_genres);
+									Magnatune.Navigation.loadVisibleImages();
 								}
 							},
 							error: function (request, textStatus, errorThrown) {
@@ -3918,7 +3956,7 @@ $.extend(Magnatune, {
 									tag('td',
 										tag('img',{
 											alt:'',draggable:false,
-											src:'http://he3.magnatune.com/music/'+
+											'data-src':'http://he3.magnatune.com/music/'+
 												encodeURIComponent(album.artist.artist)+'/'+
 												encodeURIComponent(album.albumname)+'/cover_50.jpg'})),
 									tag('td',{'class':'albumname'},album.albumname),
@@ -3955,6 +3993,7 @@ $.extend(Magnatune, {
 					if (!query) {
 						parent.empty();
 						this.render(parent, Magnatune.Navigation.sortedAlbums());
+						Magnatune.Navigation.loadVisibleImages();
 					}
 					else {
 						return Magnatune.Collection.request({
@@ -3988,6 +4027,7 @@ $.extend(Magnatune, {
 								else {
 									sorted_albums.sort(Magnatune.Navigation.albumSorter());
 									Magnatune.Navigation.Modes.Album.render(parent, sorted_albums);
+									Magnatune.Navigation.loadVisibleImages();
 								}
 							},
 							error: function (request, textStatus, errorThrown) {
@@ -5346,6 +5386,9 @@ $(document).ready(function () {
 		$('#import-button').hide();
 	}
 
+	$('#tree').on('scroll',Magnatune.Navigation.loadVisibleImages);
+	$('#info-content').on('scroll',Magnatune.Info.loadVisibleImages);
+	
 	if (Magnatune.Html5DnD) {
 		Magnatune.Tour.Pages.dnd_album.next = "html5_dnd";
 		
