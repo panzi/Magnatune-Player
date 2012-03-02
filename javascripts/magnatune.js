@@ -43,6 +43,74 @@ $.format = function (fmt, args) {
 	});
 };
 
+// scrollIntoView and scrollIntoViewIfNeeded "plugin":
+(function ($, undefined) {
+	$.fn.scrollIntoView = function () {
+		var e = this[0];
+		if (e) e.scrollIntoView();
+	};
+	
+	$.fn.scrollIntoViewIfNeeded = (document.documentElement ||
+		document.body || document.createElement('div')).scrollIntoViewIfNeeded ?
+		function () {
+			var e = this[0];
+			if (e) e.scrollIntoViewIfNeeded();
+		} : $.fn.scrollIntoView;
+})(jQuery);
+
+// window size/coordinates "plugin":
+(function ($, undefined) {
+	if (!$.window) $.window = {};
+	$.each(["Width", "Height"], function (i, name) {
+		$.window["inner"+name] = ("inner"+name) in window ?
+			function () {
+				return window["inner"+name];
+			} :
+			document.documentElement && ("client"+name in document.documentElement) ?
+			function () {
+				return document.documentElement["client"+name];
+			} :
+			function () {
+				return document.body["client"+name];
+			};
+			
+		$.window["outer"+name] = ("outer"+name) in window ?
+			function () {
+				return window["outer"+name];
+			} :
+			document.documentElement && ("client"+name in document.documentElement) ?
+			function () {
+				return document.documentElement["client"+name];
+			} :
+			function () {
+				return document.body["client"+name];
+			};
+
+		$.window.screenX = ('screenX' in window) && !$.browser.opera ?
+			function () {
+				return window.screenX;
+			} :
+			function () {
+				return window.screenLeft;
+			};
+			
+		$.window.screenY = ('screenY' in window) && !$.browser.opera ?
+			function () {
+				return window.screenY;
+			} :
+			function () {
+				return window.screenTop;
+			};
+
+		$.window.position = function () {
+			return {
+				left: $.window.screenX(),
+				top:  $.window.screenY()
+			};
+		};
+	});
+})(jQuery);
+
 // inspired by:
 // http://farhadi.ir/posts/utf8-in-javascript-with-a-new-trick
 $.base64Encode = function (input) {
@@ -681,15 +749,15 @@ function showPopup (button, popup) {
 	if (off.left < 10) {
 		left = 10 - off.left + left;
 	}
-	else if (off.left + width > $(window).innerWidth() - 10) {
-		left = $(window).innerWidth() - width - 10 - off.left + left;
+	else if (off.left + width > $.window.innerWidth() - 10) {
+		left = $.window.innerWidth() - width - 10 - off.left + left;
 	}
 
 	if (off.top < 10) {
 		top = 10 - off.top + top;
 	}
-	else if (off.top + height > $(window).innerHeight() - 10) {
-		top = $(window).innerHeight() - height - 10 - off.top + top;
+	else if (off.top + height > $.window.innerHeight() - 10) {
+		top = $.window.innerHeight() - height - 10 - off.top + top;
 	}
 	popup.hide().css({
 		visibility: '',
@@ -1581,7 +1649,7 @@ $.extend(Magnatune, {
 						var embed_width  = tag.number({id: 'embed_width',  value: 400, min: 0, max: 1920, decimals: 0, step: 10, onchange: embed_update});
 						var embed_height = tag.number({id: 'embed_height', value: 300, min: 0, max: 1080, decimals: 0, step: 10, onchange: embed_update});
 						var cover_file, cover_class;
-						if (window.innerWidth < 1280) {
+						if ($.window.innerWidth() < 1280) {
 							cover_file = '/cover_200.jpg';
 							cover_class = 'cover big';
 						}
@@ -3181,15 +3249,7 @@ $.extend(Magnatune, {
 			}
 		},
 		showCurrent: function () {
-			var current = $('#playlist .current')[0];
-			if (current) {
-				if (current.scrollIntoViewIfNeeded) {
-					current.scrollIntoViewIfNeeded();
-				}
-				else {
-					current.scrollIntoView();
-				}
-			}
+			$('#playlist .current').scrollIntoViewIfNeeded();
 		},
 		_songs: function (selector) {
 			var rows = $(selector);
@@ -4807,15 +4867,7 @@ $.extend(Magnatune, {
 			var placed = page.placed || "below";
 			var context = $(page.context||document.body);
 
-			var context_el = context[0];
-			if (context_el) {
-				if (context_el.scrollIntoViewIfNeeded) {
-					context_el.scrollIntoViewIfNeeded();
-				}
-				else if (context_el.scrollIntoView) {
-					context_el.scrollIntoView();
-				}
-			}
+			context.scrollIntoViewIfNeeded();
 
 			var ctx_pos = context.offset();
 			var ctx_width  = context.outerWidth();
@@ -4882,15 +4934,15 @@ $.extend(Magnatune, {
 			if (left < 10) {
 				left = 10;
 			}
-			else if (left + el_width > $(window).innerWidth() - 10) {
-				left = $(window).innerWidth() - el_width - 10;
+			else if (left + el_width > $.window.innerWidth() - 10) {
+				left = $.window.innerWidth() - el_width - 10;
 			}
 
 			if (top < 10) {
 				top = 10;
 			}
-			else if (top + el_height > $(window).innerHeight() - 10) {
-				top = $(window).innerHeight() - el_height - 10;
+			else if (top + el_height > $.window.innerHeight() - 10) {
+				top = $.window.innerHeight() - el_height - 10;
 			}
 
 			element.style.left = left+'px';
@@ -5213,9 +5265,6 @@ else {
 $(document).ready(function () {
 	Magnatune.Html5DnD = $("#export-drag")[0].draggable === true || ($.browser.msie && parseFloat($.browser.version) >= 5.5);
 
-	if (!document.body.scrollIntoView && !document.body.scrollIntoViewIfNeeded) {
-		$('#show-current').hide();
-	}
 	try {
 		Magnatune.Player.initAudio();
 	}
@@ -5536,7 +5585,7 @@ $(document).ready(function () {
 // be used without window decoration
 if ((!window.matchMedia || window.matchMedia("not handheld").matches) &&
 	window.chrome && window.chrome.app && window.chrome.app.isInstalled &&
-	window.outerHeight - window.innerHeight < 62) {
+	window.outerHeight - $.window.innerHeight() < 62) {
 	$.ajax('javascripts/move_and_resize.js',{dataType:'script',cache:true});
 }
 

@@ -28,8 +28,8 @@
 		},
 		create: function (event) {
 			var startX = event.screenX, startY = event.screenY,
-			    winY = window.screenTop||window.screenY,
-			    winX = window.screenLeft||window.screenX;
+			    winY = $.window.screenY(),
+			    winX = $.window.screenX();
 			return {drag: function (event) {
 			    var dx = event.screenX - startX,
 			        dy = event.screenY - startY;
@@ -43,15 +43,15 @@
 	var min_height = $('#player').outerHeight();
 
 	var minWidth = function () {
-		return min_width+(window.outerWidth-window.innerWidth);
+		return min_width+($.window.outerWidth() - $.window.innerWidth());
 	};
 
 	var minHeight = function () {
 		if (Magnatune.Player.visible()) {
-			return min_height+(window.outerHeight-window.innerHeight);
+			return min_height+($.window.outerHeight() - $.window.innerHeight());
 		}
 		else {
-			return 35+(window.outerHeight-window.innerHeight);
+			return 35+($.window.outerHeight() - $.window.innerHeight());
 		}
 	};
 
@@ -146,14 +146,14 @@
 	Magnatune.DnD.draggable(top_resizer, {
 		create: function (event) {
 			var startY = event.screenY,
-			    width = window.outerWidth,
-			    height = window.outerHeight,
-			    winY = window.screenTop||window.screenY,
-			    winX = window.screenLeft||window.screenX;
+			    width = $.window.outerWidth(),
+			    height = $.window.outerHeight(),
+			    winY = $.window.screenY(),
+			    winX = $.window.screenX();
 			return {drag: function (event) {
 			    var dy = event.screenY - startY;
-			    window.resizeTo(width,Math.max(height-dy,min_height+(window.outerHeight-window.innerHeight)));
-			    window.moveTo(winX,winY+(height-window.outerHeight));
+			    window.resizeTo(width,Math.max(height-dy,minHeight()));
+			    window.moveTo(winX,winY+(height-$.window.outerHeight()));
 			}};
 		}
 	});
@@ -161,11 +161,11 @@
 	Magnatune.DnD.draggable(bottom_resizer, {
 		create: function (event) {
 			var startY = event.screenY,
-			    width = window.outerWidth,
-			    height = window.outerHeight;
+			    width = $.window.outerWidth(),
+			    height = $.window.outerHeight();
 			return {drag: function (event) {
 			    var dy = event.screenY - startY;
-			    window.resizeTo(width,Math.max(height+dy,min_height+(window.outerHeight-window.innerHeight)));
+			    window.resizeTo(width,Math.max(height+dy,minHeight()));
 			}};
 		}
 	});
@@ -173,14 +173,14 @@
 	Magnatune.DnD.draggable(left_resizer, {
 		create: function (event) {
 			var startX = event.screenX,
-			    width = window.outerWidth,
-			    height = window.outerHeight,
-			    winY = window.screenTop||window.screenY,
-			    winX = window.screenLeft||window.screenX;
+			    width = $.window.outerWidth(),
+			    height = $.window.outerHeight(),
+			    winY = $.window.screenY(),
+			    winX = $.window.screenX();
 			return {drag: function (event) {
 			    var dx = event.screenX - startX;
 			    window.resizeTo(Math.max(width-dx,minWidth()),height);
-			    window.moveTo(winX+(width-window.outerWidth),winY);
+			    window.moveTo(winX+(width-$.window.outerWidth()),winY);
 			}};
 		}
 	});
@@ -188,8 +188,8 @@
 	Magnatune.DnD.draggable(right_resizer, {
 		create: function (event) {
 			var startX = event.screenX,
-			    width = window.outerWidth,
-			    height = window.outerHeight;
+			    width = $.window.outerWidth(),
+			    height = $.window.outerHeight();
 			return {drag: function (event) {
 			    var dx = event.screenX - startX;
 			    window.resizeTo(Math.max(width+dx,minWidth()),height);
@@ -201,17 +201,17 @@
 		create: function (event) {
 			var startX = event.screenX,
 			    startY = event.screenY,
-			    width = window.outerWidth,
-			    height = window.outerHeight,
-			    winY = window.screenTop||window.screenY,
-			    winX = window.screenLeft||window.screenX;
+			    width = $.window.outerWidth(),
+			    height = $.window.outerHeight(),
+			    winY = $.window.screenY(),
+			    winX = $.window.screenX();
 			return {drag: function (event) {
 			    var dx = event.screenX - startX,
 			        dy = event.screenY - startY;
 			    window.resizeTo(
 					Math.max(width-dx,minWidth()),
-					Math.max(height-dy,min_height+(window.outerHeight-window.innerHeight)));
-			    window.moveTo(winX+(width-window.outerWidth),winY+(height-window.outerHeight));
+					Math.max(height-dy,minHeight()));
+			    window.moveTo(winX+(width-$.window.outerWidth()),winY+(height-$.window.outerHeight()));
 			}};
 		}
 	});
@@ -220,17 +220,17 @@
 		create: function (event) {
 			var startX = event.screenX,
 			    startY = event.screenY,
-			    width = window.outerWidth,
-			    height = window.outerHeight,
-			    winY = window.screenTop||window.screenY,
-			    winX = window.screenLeft||window.screenX;
+			    width = $.window.outerWidth(),
+			    height = $.window.outerHeight(),
+			    winY = $.window.screenY(),
+			    winX = $.window.screenX();
 			return {drag: function (event) {
 			    var dx = event.screenX - startX,
 			        dy = event.screenY - startY;
 			    window.resizeTo(
 					Math.max(width-dx,minWidth()),
-					Math.max(height+dy,min_height+(window.outerHeight-window.innerHeight)));
-			    window.moveTo(winX+(width-window.outerWidth),winY);
+					Math.max(height+dy,minHeight()));
+			    window.moveTo(winX+(width-$.window.outerWidth()),winY);
 			}};
 		}
 	});
@@ -239,14 +239,14 @@
 		create: function (event) {
 			var startX = event.screenX,
 			    startY = event.screenY,
-			    width = window.outerWidth,
-			    height = window.outerHeight;
+			    width = $.window.outerWidth(),
+			    height = $.window.outerHeight();
 			return {drag: function (event) {
 			    var dx = event.screenX - startX,
 			        dy = event.screenY - startY;
 			    window.resizeTo(
 					Math.max(width+dx,minWidth()),
-					Math.max(height+dy,min_height+(window.outerHeight-window.innerHeight)));
+					Math.max(height+dy,min_height+($.window.outerHeight()-$.window.innerHeight())));
 			}};
 		}
 	});
@@ -257,5 +257,5 @@
 
 	// strange jQuery bug when run as chrome app?
 	if (document.body) move_and_resize();
-	else $(move_and_resize);
+	else $(document).ready(move_and_resize);
 })();
