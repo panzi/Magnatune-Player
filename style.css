@@ -1122,6 +1122,10 @@ td.embed-config {
 		cursor: move;
 	}
 
+	#main.draggable {
+		cursor: auto;
+	}
+
 	.playlist tr {
 		cursor: default;
 	}

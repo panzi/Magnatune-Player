@@ -42,16 +42,19 @@
 	var min_width  = $('#player').outerWidth();
 	var min_height = $('#player').outerHeight();
 
+	var paddingHor = $.window.outerWidth()  - $.window.innerWidth();
+	var paddingVer = $.window.outerHeight() - $.window.innerHeight();
+
 	var minWidth = function () {
-		return min_width+($.window.outerWidth() - $.window.innerWidth());
+		return min_width+paddingHor;
 	};
 
 	var minHeight = function () {
 		if (Magnatune.Player.visible()) {
-			return min_height+($.window.outerHeight() - $.window.innerHeight());
+			return min_height+paddingVer;
 		}
 		else {
-			return 35+($.window.outerHeight() - $.window.innerHeight());
+			return 35+paddingVer;
 		}
 	};
 
@@ -150,6 +153,7 @@
 			    height = $.window.outerHeight(),
 			    winY = $.window.screenY(),
 			    winX = $.window.screenX();
+			paddingVer = height - $.window.innerHeight();
 			return {drag: function (event) {
 			    var dy = event.screenY - startY;
 			    window.resizeTo(width,Math.max(height-dy,minHeight()));
@@ -163,6 +167,7 @@
 			var startY = event.screenY,
 			    width = $.window.outerWidth(),
 			    height = $.window.outerHeight();
+			paddingVer = height - $.window.innerHeight();
 			return {drag: function (event) {
 			    var dy = event.screenY - startY;
 			    window.resizeTo(width,Math.max(height+dy,minHeight()));
@@ -177,6 +182,7 @@
 			    height = $.window.outerHeight(),
 			    winY = $.window.screenY(),
 			    winX = $.window.screenX();
+			paddingHor = width - $.window.innerWidth();
 			return {drag: function (event) {
 			    var dx = event.screenX - startX;
 			    window.resizeTo(Math.max(width-dx,minWidth()),height);
@@ -190,6 +196,7 @@
 			var startX = event.screenX,
 			    width = $.window.outerWidth(),
 			    height = $.window.outerHeight();
+			paddingHor = width - $.window.innerWidth();
 			return {drag: function (event) {
 			    var dx = event.screenX - startX;
 			    window.resizeTo(Math.max(width+dx,minWidth()),height);
@@ -205,6 +212,8 @@
 			    height = $.window.outerHeight(),
 			    winY = $.window.screenY(),
 			    winX = $.window.screenX();
+			paddingHor = width - $.window.innerWidth();
+			paddingVer = height - $.window.innerHeight();
 			return {drag: function (event) {
 			    var dx = event.screenX - startX,
 			        dy = event.screenY - startY;
@@ -224,6 +233,8 @@
 			    height = $.window.outerHeight(),
 			    winY = $.window.screenY(),
 			    winX = $.window.screenX();
+			paddingHor = width - $.window.innerWidth();
+			paddingVer = height - $.window.innerHeight();
 			return {drag: function (event) {
 			    var dx = event.screenX - startX,
 			        dy = event.screenY - startY;
@@ -241,6 +252,7 @@
 			    startY = event.screenY,
 			    width = $.window.outerWidth(),
 			    height = $.window.outerHeight();
+			paddingHor = width - $.window.innerWidth();
 			return {drag: function (event) {
 			    var dx = event.screenX - startX,
 			        dy = event.screenY - startY;
