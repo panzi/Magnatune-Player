@@ -982,7 +982,7 @@ $.extend(Magnatune, {
 				Magnatune.Player.showSpinner();
 			},
 			error: function (event) {
-				console.log('error',event);
+				console.error(event);
 				Magnatune.Player.hideSpinner();
 				Magnatune.Player.stop();
 				// TODO
@@ -4267,7 +4267,7 @@ $.extend(Magnatune, {
 				type: type,
 				detail: detail,
 				eventType: 'on'+type, // IE
-				button:   $.browser.msie ? 1 : 0,
+				button:   0,
 				buttons:  1,
 				screenX:  touch.screenX,
 				screenY:  touch.screenY,
@@ -5526,6 +5526,20 @@ $(document).ready(function () {
 				}
 			}
 		});
+
+		if ($.browser.msie) {
+			// IE needs the drag start element to be an anchor element.
+			// But Firefox produces wrong drop data on cross browser D'n'D
+			// when it is an anchor. So we usually make it an span and only
+			// change it for IE:
+			$("#export-drag").replaceWith(tag('a',{
+				id: "export-drag",
+				href: '#',
+				onclick: function (event) {event.preventDefault();},
+				draggable: true,
+				'class': $("#export-drag").attr('class'),
+				title: $("#export-drag").attr('title')}));
+		}
 
 		$("#export-drag").on("dragstart", function (event) {
 			var transfer = event.originalEvent.dataTransfer;
