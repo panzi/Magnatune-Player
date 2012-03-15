@@ -1901,6 +1901,19 @@ $.extend(Magnatune, {
 			else {
 				member.hide();
 			}
+			var saved = this._getSavedPlaylists();
+			var names = [];
+			for (var name in saved) {
+				names.push(name);
+			}
+			names.sort();
+			$('#export-what option[value="single"]').prop('disabled',names.length === 0);
+			var name_select = $("#export-playlist-name");
+			name_select.empty();
+			for (var i = 0; i < names.length; ++ i) {
+				var name = names[i];
+				name_select.append(tag('option',name));
+			}
 			showPopup($('#export-button'),$('#export-menu'));
 		},
 		hideExportMenu: function () {
@@ -2150,7 +2163,16 @@ $.extend(Magnatune, {
 
 			switch (what) {
 				case "current":
-					return this.showExportCurrent({
+					return this.showExportPlaylist(this.songs(), {
+						playlist_format: $('#export-playlist-format').val(),
+						track_format: $('#export-track-format').val(),
+						member: $('#export-member').is(':checked')
+					});
+
+				case "single":
+					var name = $("#export-playlist-name").val();
+					return this.showExportPlaylist(this._getSavedPlaylists()[name], {
+						title: name,
 						playlist_format: $('#export-playlist-format').val(),
 						track_format: $('#export-track-format').val(),
 						member: $('#export-member').is(':checked')
@@ -2163,10 +2185,10 @@ $.extend(Magnatune, {
 					throw new Error("Unknown export selection: "+what);
 			}
 		},
-		showExportCurrent: function (opts) {
+		showExportPlaylist: function (playlist, opts) {
 			this.hideExportMenu();
 			showSave(
-				this.exportPlaylist(this.songs(), opts),
+				this.exportPlaylist(playlist, opts),
 				"Playlist."+opts.playlist_format,
 				DOWNLOAD_MIME_TYPE_MAP[opts.playlist_format]);
 		},
@@ -5555,6 +5577,19 @@ $(document).ready(function () {
 					};
 					type = MIME_TYPE_MAP[opts.playlist_format];
 					data = Magnatune.Playlist.exportPlaylist(Magnatune.Playlist.songs(), opts);
+					break;
+
+				case "single":
+					var name = $("#export-playlist-name").val();
+					var opts = {
+						title: name,
+						playlist_format: $('#export-playlist-format').val(),
+						track_format: $('#export-track-format').val(),
+						member: $('#export-member').is(':checked')
+					};
+					type = MIME_TYPE_MAP[opts.playlist_format];
+					data = Magnatune.Playlist.exportPlaylist(
+						Magnatune.Playlist._getSavedPlaylists()[name], opts);
 					break;
 
 				case "saved":

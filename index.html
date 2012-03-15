@@ -168,12 +168,22 @@
 						id="export-menu" class="popup-menu popup-form" data-button="export-button" style="display:none;">
 
 						<label for="export-what" class="left">What:</label>
-						<select id="export-what" onchange="var e = $('#export-playlist-options'); if (this.value === 'saved') {e.hide();} else {e.show();}">
+						<select id="export-what" onchange="
+								var e = $('#export-playlist-options');
+								if (this.value === 'saved') {e.hide();} else {e.show();}
+								e = $('#export-playlist-single-options');
+								if (this.value === 'single') {e.show();} else {e.hide();}">
 							<option value="current" selected>Current Playlist</option>
-							<option value="saved">Saved Playlists</option>
+							<option value="saved">All Saved Playlists</option>
+							<option value="single" disabled>Single Saved Playlist</option>
 						</select>
 
 						<div id="export-playlist-options">
+							<div id="export-playlist-single-options" style="display:none;">
+								<label for="export-playlist-name" class="left">Playlist:</label>
+								<select id="export-playlist-name"></select>
+							</div>
+
 							<div id="export-playlist-format-options">
 								<label for="export-playlist-format" class="left">Playlist format:</label>
 								<select id="export-playlist-format" onchange="
