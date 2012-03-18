@@ -5634,7 +5634,7 @@ $(document).ready(function () {
 // be used without window decoration
 if ((!window.matchMedia || window.matchMedia("not handheld").matches) &&
 	window.chrome && window.chrome.app && window.chrome.app.isInstalled &&
-	window.outerHeight - $.window.innerHeight() < 62) {
+	$.window.outerHeight() - $.window.innerHeight() < 62) {
 	$.ajax('javascripts/move_and_resize.js',{dataType:'script',cache:true});
 }
 
