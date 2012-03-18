@@ -5395,7 +5395,7 @@ $(document).ready(function () {
 	}
 	if (typeof(btoa) === "undefined") {
 		if (Magnatune.Html5DnD) {
-			$('#export-menu input[type="submit"]').hide();
+			$('#export-menu button[type="submit"]').hide();
 		}
 		else {
 			$("#export-button").hide();
