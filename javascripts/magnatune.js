@@ -5566,11 +5566,11 @@ $(document).ready(function () {
 		$("#export-drag").on("dragstart", function (event) {
 			var transfer = event.originalEvent.dataTransfer;
 			var what = $('#export-what').val();
-			var data, type;
+			var data, type, opts;
 
 			switch (what) {
 				case "current":
-					var opts = {
+					opts = {
 						playlist_format: $('#export-playlist-format').val(),
 						track_format: $('#export-track-format').val(),
 						member: $('#export-member').is(':checked')
@@ -5581,7 +5581,7 @@ $(document).ready(function () {
 
 				case "single":
 					var name = $("#export-playlist-name").val();
-					var opts = {
+					opts = {
 						title: name,
 						playlist_format: $('#export-playlist-format').val(),
 						track_format: $('#export-track-format').val(),
