@@ -1162,6 +1162,7 @@ $.extend(Magnatune, {
 				Magnatune.Player._stopTitleAnim();
 				currently_playing.css({bottom:'6px',width:new_width});
 				$('#navigation, #content').stop().css({top:'50px'});
+				Magnatune.Info.loadVisibleImages();
 			}
 			else {
 				var d = Magnatune.Options.AnimationDuration;
@@ -1169,7 +1170,8 @@ $.extend(Magnatune, {
 				currently_playing = $('#currently-playing').stop();
 				Magnatune.Player._stopTitleAnim();
 				currently_playing.animate({bottom:'6px',width:new_width},d);
-				$('#navigation, #content').stop().animate({top:'50px'},d);
+				$('#navigation, #content').stop().animate({top:'50px'},
+					{duration: d, complete: Magnatune.Info.loadVisibleImages});
 			}
 		},
 		show: function (skipAnimation) {
@@ -3541,10 +3543,12 @@ $.extend(Magnatune, {
 			if (skipAnimation) {
 				$('#content').stop().css({left:'20px'});
 				$('#navigation').stop().css({left:'-360px'});
+				Magnatune.Info.loadVisibleImages();
 			}
 			else {
 				var d = Magnatune.Options.AnimationDuration;
-				$('#content').stop().animate({left:'20px'},d);
+				$('#content').stop().animate({left:'20px'},
+					{duration: d, complete: Magnatune.Info.loadVisibleImages});
 				$('#navigation').stop().animate({left:'-360px'},d);
 			}
 			$('#navigation-hide').hide();
