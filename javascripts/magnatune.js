@@ -1437,7 +1437,8 @@ $.extend(Magnatune, {
 			info.dataset('hash',hash);
 			info.scrollTop(0);
 			info.scrollLeft(0);
-			info.html(content);
+			info.empty();
+			info.append(content);
 			
 			this._scroll_top = this._scroll_left = 0;
 			if (!keeptab) this.show();
@@ -1511,54 +1512,24 @@ $.extend(Magnatune, {
 				}
 			},
 			about: function (opts) {
-				// TODO: don't inline this HTML here
-				var page = tag('div',{'class':'about'});
-				var more = '';
+				var page = $("#description").clone();
 				if (window.chrome && window.chrome.app) {
+					var about_float = page.find(".about-float");
 					if (window.chrome.app.isInstalled) {
-						more = '<span class="app installed">App is installed</span>';
+						about_float.append('<span class="app installed">App is installed</span>');
 						if (window.webkitNotifications) {
-							more += ('<br/><input type="checkbox" id="notifications-enabled" '+
+							about_float.append('<br/><input type="checkbox" id="notifications-enabled" '+
 								'onchange="Magnatune.setNotificationsEnabled($(this).is(\':checked\'));"'+
 								(getBoolean('notifications.enabled') ? ' checked' : '')+'/> ' +
 								'<label for="notifications-enabled">Show notifications on song change</label>');
 						}
 					}
 					else {
-						more = '<a class="button app" href="app/magnatune-player.crx">Install App</a>';
+						about_float.append('<a class="button app" href="app/magnatune-player.crx">Install App</a>');
 					}
 				}
-				$(page).html(
-					'<h2>Magnatune Player</h2>'+
-					'<div class="about-float">'+
-					'<a class="logo" title="Magnatune" href="http://magnatune.com/"><img alt="" src="images/logo.png"/></a>'+
-					more+
-					'</div>'+
-					'<p>This is a proof of concept interface to <a href="http://magnatune.com/">magnatune.com</a> '+
-					'that is organized like a music player. It uses the '+
-					'<a href="http://www.sqlite.org/">SQLite</a> export from the '+
-					'<a href="http://magnatune.com/info/api">Magnatune API</a> and the '+
-					'<a href="http://dev.w3.org/html5/spec/the-audio-element.html">HTML5 Audio Element</a>. '+
-					'Depending on the browser HTML5 Audio is still not bug free, and therefore things like the buffer '+
-					'progress display or seeking might not work 100% reliable. In Internet Explorer previous to '+
-					'version 9 ActiveX is used to play music. However, the layout might look completely broken '+
-					'because of Internet Explorer\'s lacking standard support. If you want a good experience please '+
-					'use <a href="http://www.firefox.com/">Mozilla Firefox</a>, '+
-					'<a href="http://www.google.com/chrome/">Google Chrome</a>, '+
-					'<a href="http://www.apple.com/safari/">Apple Safari</a> or '+
-					'<a href="http://www.opera.com/">Opera</a>.</p>'+
-					'<p><a id="start-tour" href="javascript:Magnatune.Tour.start();void(0)">Take a Tour</a> to '+
-					'get an overview of the features of the Magnatune Player.</p>'+
-					'<p>You can download the source code of this web page on '+
-					'<a href="https://bitbucket.org/panzi/magnatune-player">bitbucket</a>. '+
-					'Other experiments done by me can be found <a '+
-					'href="http://web.student.tuwien.ac.at/~e0427417/">here</a>.</p>'+
-					'<p>Copyright &copy; 2012 Mathias Panzenb&ouml;ck<br/>'+
-					'License <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="_blank">GPLv2+</a>: '+
-					'GNU GPL version 2 or later</p>'+
-					'<p>This is free software; you are free to change and redistribute it.<br/>'+
-					'There is NO WARRANTY, to the extent permitted by law.</p>');
-				Magnatune.Info.update('#/about',[],page,opts.keeptab);
+				page.show();
+				Magnatune.Info.update('#/about',[],page[0],opts.keeptab);
 			},
 			genre: function (opts) {
 				var hash = '#/genre/'+encodeURIComponent(opts.id);

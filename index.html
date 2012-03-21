@@ -19,6 +19,36 @@
 <![endif]-->
 </head>
 <body>
+<div class="about" id="description" style="display:none;">
+	<h2>Magnatune Player</h2>
+	<div class="about-float">
+	<a class="logo" title="Magnatune" href="http://magnatune.com/"><img alt="" src="images/logo.png"/></a>
+	</div>
+	<p>This is a music player that is backed by the collection of songs from
+	<a href="http://magnatune.com/">magnatune.com</a>. It uses the
+	<a href="http://www.sqlite.org/">SQLite</a> export from the
+	<a href="http://magnatune.com/info/api">Magnatune API</a> and the
+	<a href="http://dev.w3.org/html5/spec/the-audio-element.html">HTML5 Audio Element</a>.
+	Depending on the browser HTML5 Audio is still not bug free, and therefore things like the buffer
+	progress display or seeking might not work 100% reliable. In Internet Explorer previous to
+	version 9 ActiveX is used to play music. However, the layout might look completely broken
+	because of Internet Explorer's lacking standard support. If you want a good experience please
+	use <a href="http://www.firefox.com/">Mozilla Firefox</a>,
+	<a href="http://www.google.com/chrome/">Google Chrome</a>,
+	<a href="http://www.apple.com/safari/">Apple Safari</a> or
+	<a href="http://www.opera.com/">Opera</a>.</p>
+	<p><a id="start-tour" href="javascript:Magnatune.Tour.start();void(0)">Take a Tour</a> to
+	get an overview of the features of the Magnatune Player.</p>
+	<p>You can download the source code of this web page on
+	<a href="https://bitbucket.org/panzi/magnatune-player">bitbucket</a>.
+	Other experiments done by me can be found
+	<a href="http://web.student.tuwien.ac.at/~e0427417/">here</a>.</p>
+	<p>Copyright &copy; 2012 Mathias Panzenb&ouml;ck<br/>
+	License <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="_blank">GPLv2+</a>:
+	GNU GPL version 2 or later</p>
+	<p>This is free software; you are free to change and redistribute it.<br/>
+	There is NO WARRANTY, to the extent permitted by law.</p>
+</div>
 <div id="main">
 	<div id="player-wrapper">
 		<div id="player">
