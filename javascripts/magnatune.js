@@ -586,7 +586,7 @@ function escapeXml (s) {
  * email:-urls aren't supported at all (don't make sense anyway).
  */
 function absurl (url, base) {
-	if (!base) base = document.location.href;
+	if (!base) base = document.baseURI || $("html > head > base").last().attr("href") || document.location.href;
 	if (!url) {
 		return base;
 	}
