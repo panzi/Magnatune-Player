@@ -2038,7 +2038,8 @@ $.extend(Magnatune, {
 			return buf.join('');
 		},
 		_exportHtml: function (buf, songs, opts) {
-			if (opts.title) buf.push('<h2>'+escapeXml(opts.title)+'</h2>\n');
+			buf.push('<div itemscope="" itemtype="http://schema.org/MusicPlaylist">\n');
+			if (opts.title) buf.push('<h2 itemprop="name">'+escapeXml(opts.title)+'</h2>\n');
 			buf.push(
 				'<table>\n'+
 				'<thead>\n'+
@@ -2085,31 +2086,33 @@ $.extend(Magnatune, {
 						duration = ('<span class="h">'+hours+
 							'</span>:<span class="min">'+mins+
 							'</span>:<span class="s">'+secs+
-							'</span>');
+							'</span><meta itemprop="duration" content="T'+
+							hours+'H'+mins+'M'+secs+'S"/>');
 					}
 					else {
 						duration = ('<span class="min">'+mins+
 							'</span>:<span class="s">'+secs+
-							'</span>');
+							'</span><meta itemprop="duration" content="T'+
+							mins+'M'+secs+'S"/>');
 					}
 				}
 
 				buf.push(
-					'<tr class="haudio hmedia">\n'+
-					'<td class="number">'+escapeXml(String(song.number))+'</td>\n'+
-					'<td class="fn">'+escapeXml(song.desc)+'</td>\n'+
+					'<tr class="haudio hmedia" itemprop="tracks" itemscope="" itemtype="http://schema.org/MusicRecording">\n'+
+					'<td class="number" itemprop="numberInAlbum">'+escapeXml(String(song.number))+'</td>\n'+
+					'<td class="fn" itemprop="name">'+escapeXml(song.desc)+'</td>\n'+
 					'<td class="duration">'+duration+'</td>\n'+
-					'<td class="album">'+escapeXml(song.albumname)+'</td>\n'+
-					'<td class="contributor">'+escapeXml(artist)+'</td>\n'+
-					'<td><audio controls="controls" preload="none" class="player">\n'+
-					'<source type="audio/ogg" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.ogg')))+'"/>\n'+
-					'<source type="audio/mp4" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.m4a')))+'"/>\n'+
-					'<source type="audio/mpeg;codec=&quot;mp3&quot;" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.mp3')))+'"/>\n'+
+					'<td class="album" itemprop="inAlbum" itemscope="" itemtype="http://schema.org/MusicAlbum"><span itemprop="name">'+escapeXml(song.albumname)+'</span></td>\n'+
+					'<td class="contributor" itemprop="byArtist" itemscope="" itemtype="http://schema.org/MusicGroup"><span itemprop="name">'+escapeXml(artist)+'</span></td>\n'+
+					'<td><audio controls="controls" preload="none" class="player" itemprop="audio" itemscope="" itemtype="http://schema.org/AudioObject">\n'+
+					'<source itemprop="contentURL" type="audio/ogg" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.ogg')))+'"/>\n'+
+					'<source itemprop="contentURL" type="audio/mp4" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.m4a')))+'"/>\n'+
+					'<source itemprop="contentURL" type="audio/mpeg;codec=&quot;mp3&quot;" src="'+escapeXml(folder+encodeURIComponent(song.mp3.replace(/\.mp3$/i,suffix+'.mp3')))+'"/>\n'+
 					'</audio></td>\n'+
 					'</tr>\n');
 			}
 
-			buf.push('</tbody>\n</table>\n');
+			buf.push('</tbody>\n</table>\n</div>\n');
 		},
 		exportPlaylist: function (songs, opts) {
 			switch (String(opts.playlist_format).toLowerCase()) {
