@@ -1480,7 +1480,7 @@ $.extend(Magnatune, {
 				}
 				this._async_page = null;
 			}
-			if (Object.prototype.hasOwnProperty.call(this.Pages,page)) {
+			if ($.hasOwnProperty.call(this.Pages,page)) {
 				this._async_page = this.Pages[page](opts||{});
 				return true;
 			}
@@ -2531,8 +2531,77 @@ $.extend(Magnatune, {
 				artist:    decodeURIComponent(guess[1]),
 				albumname: decodeURIComponent(guess[2]),
 				mp3:       file+'.mp3',
-				number:    parseInt(guess[4],10)
+				number:    parseInt(guess[4],10),
+				duration:  NaN
 			};
+		},
+		_guessSong: function (url,desc,duration) {
+			var song = this._guessSongFromUrl(url);
+
+			if (song) {
+				// exported by Magnatune Player
+				if (duration) {
+					duration = parseFloat(duration);
+					if (duration > 0) song.duration = duration;
+				}
+				if (desc) {
+					var prefixes = [
+						song.artist+' - '+song.albumname+' - ',
+						song.artist+' - ',
+						song.artist.replace(/\s*[-:\n]+\s*/g,' ')+' - '];
+
+					for (var i = 0; i < prefixes.length; ++ i) {
+						var prefix = prefixes[i];
+						if (desc.slice(0,prefix.length).toLowerCase() === prefix.toLowerCase()) {
+							desc = desc.slice(prefix.length);
+							break;
+						}
+					}
+					song.desc = desc;
+				}
+			}
+			else if (desc) {
+				// from Magnatune.com
+				var guess = /^https?:\/\/(?:download|stream|he3)\.magnatune\.com\/all\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(url);
+				if (guess) {
+					var albumname, artist;
+					var parts = desc.split(" - ");
+					var albums = Magnatune.Collection.Albums;
+					var artists = Magnatune.Collection.Artists;
+
+					// try to guess artist and album names by looking at known artist and albums
+					for (var album_start = 1; album_start < parts.length; ++ album_start) {
+						artist = parts.slice(0,album_start).join(" - ");
+						if ($.hasOwnProperty.call(artists,artist)) {
+							for (var desc_start = album_start + 1; desc_start < parts.length; ++ desc_start) {
+								albumname = parts.slice(album_start,desc_start).join(" - ");
+								var album = albums[albumname];
+								if (album && album.artist === artists[artist]) {
+									desc = parts.slice(desc_start).join(" - ").replace(/\s*\(((\d+:)?\d+:)?\d+\)\s*$/,'');
+									break;
+								}
+								albumname = null;
+							}
+							if (albumname) break;
+						}
+						artist = null;
+					}
+
+					if (albumname && artist) {
+						var file = decodeURIComponent(guess[1]);
+						song = {
+							desc:      desc,
+							artist:    artist,
+							albumname: albumname,
+							mp3:       file+".mp3",
+							number:    parseInt(guess[2],10),
+							duration:  duration
+						};
+					}
+				}
+			}
+
+			return song;
 		},
 		parseM3u: function (data) {
 			var lines = data.split(/\r?\n/g);
@@ -2550,21 +2619,12 @@ $.extend(Magnatune, {
 				if (extm3u && /^#EXTINF:/.test(line)) {
 					var info = /^#EXTINF:([^,]*)(?:,(.*))?$/.exec(line);
 					desc = info[2];
-					duration = parseInt(info[1], 10);
-					if (duration < 0) duration = NaN;
+					duration = info[1];
 				}
 				else if (!/^#/.test(line)) {
-					var song = this._guessSongFromUrl(line);
-
+					var song = this._guessSong(line,desc,duration);
+					
 					if (song) {
-						song.duration = duration;
-						if (desc) {
-							var prefix = song.artist.replace(/\s*[-:\n]+\s*/g,' ')+' - ';
-							if (desc.slice(0,prefix.length).toLowerCase() === prefix.toLowerCase()) {
-								desc = desc.slice(prefix.length);
-							}
-							song.desc = desc;
-						}
 						songs.push(song);
 					}
 					else {
@@ -2622,12 +2682,10 @@ $.extend(Magnatune, {
 			for (var i = 1; i < length + 1; ++ i) {
 				var desc = playlist["title"+i]||'';
 				var url  = playlist["file"+i]||'';
-				var duration = parseFloat(playlist["length"+i]||'');
+				var duration = playlist["length"+i]||'';
 
-				var song = this._guessSongFromUrl(url);
+				var song = this._guessSong(url,desc,duration);
 				if (song) {
-					song.duration = duration;
-					if (desc) song.desc = desc;
 					songs.push(song);
 				}
 				else {
@@ -3739,7 +3797,7 @@ $.extend(Magnatune, {
 									artists[artist.artist] = artist;
 									for (var j = 0; j < artist_genres.length; ++ j) {
 										var genre = artist_genres[j];
-										if (Object.prototype.hasOwnProperty.call(genres, genre.genre)) {
+										if ($.hasOwnProperty.call(genres, genre.genre)) {
 											genres[genre.genre].artists.push(artist);
 										}
 										else {
@@ -3754,7 +3812,7 @@ $.extend(Magnatune, {
 								function add_album (album,artist) {
 									var new_artist;
 									albums[album.albumname] = album;
-									if (Object.prototype.hasOwnProperty.call(artists, artist.artist)) {
+									if ($.hasOwnProperty.call(artists, artist.artist)) {
 										new_artist = artists[artist.artist];
 										new_artist.albums.push(album);
 									}
@@ -3866,7 +3924,7 @@ $.extend(Magnatune, {
 								function add_album (album,artist) {
 									var new_artist;
 									albums[album.albumname] = album;
-									if (Object.prototype.hasOwnProperty.call(artists, artist.artist)) {
+									if ($.hasOwnProperty.call(artists, artist.artist)) {
 										new_artist = artists[artist.artist];
 										new_artist.albums.push(album);
 									}
@@ -3981,7 +4039,7 @@ $.extend(Magnatune, {
 
 									for (var i = 0; i < album.genres.length; ++ i) {
 										var genre = album.genres[i];
-										if (Object.prototype.hasOwnProperty.call(genres, genre.genre)) {
+										if ($.hasOwnProperty.call(genres, genre.genre)) {
 											genres[genre.genre].albums.push(album);
 										}
 										else {
