@@ -2360,6 +2360,48 @@ $.extend(Magnatune, {
 					location = absurl(location.text(),locationBase);
 					var mp3 = /^https?:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(location);
 
+					if (mp3 && (!song.albumname || !song.artist)) {
+						// complete missing information from urls if possible
+						// there is no sense in doing this when the location could not be parsed
+						var guess_regex = /^https?:\/\/(?:download|stream|he3)\.magnatune\.com\/music\/([^\/=?&#]+)\/([^\/=?&#]+)\//;
+						var guess = guess_regex.exec(location);
+
+						if (!guess) {
+							var image = track.find('> image');
+							var imageUrl = image.text();
+		
+							if (imageUrl) {
+								var imageBase = absurl(image.attr("xml:base")||"",trackBase);
+								imageUrl = absurl(imageUrl,imageBase);
+							}
+							guess = guess_regex.exec(imageUrl);
+						}
+
+						if (guess) {
+							if (!song.artist) {
+								song.artist = guess[1];
+							}
+
+							if (!song.albumname) {
+								song.albumname = guess[2];
+							}
+						}
+					}
+
+					if (mp3 && (!song.desc || isNaN(song.duration))) {
+						// complete missing information from annotation
+						var annotation = /^(.*)\s+\((?:(?:(\d+):)?(\d+):)?(\d+)\)$/.exec(track.find("> annotation").text());
+						if (annotation) {
+							if (!song.desc) {
+								song.desc = annotation[1];
+							}
+
+							if (isNaN(song.duration)) {
+								song.duration = (Number(annotation[2]||0)*60+Number(annotation[3]||0))*60+Number(annotation[4]);
+							}
+						}
+					}
+
 					var album;
 					if (!mp3 || !song.albumname || !song.desc ||
 						(isNaN(song.number) && (!mp3[2] || isNaN(song.number = parseInt(mp3[2],10)))) ||
