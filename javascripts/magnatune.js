@@ -1989,7 +1989,7 @@ $.extend(Magnatune, {
 					'\t\t\t<image>'+escapeXml(image)+'</image>\n'+
 					'\t\t\t<album>'+escapeXml(song.albumname)+'</album>\n'+
 					'\t\t\t<trackNum>'+escapeXml(String(song.number))+'</trackNum>\n'+
-					'\t\t\t<duration>'+escapeXml(String(song.duration))+'</duration>\n'+
+					'\t\t\t<duration>'+escapeXml(String(song.duration*1000))+'</duration>\n'+
 					'\t\t</track>\n');
 			}
 
@@ -2351,19 +2351,19 @@ $.extend(Magnatune, {
 						albumname: track.find('> album').text(),
 						artist:    track.find('> creator').text(),
 						desc:      track.find('> title').text(),
-						duration:  parseFloat(track.find('> duration').text()),
+						duration:  parseFloat(track.find('> duration').text()) / 1000,
 						number:    parseInt(track.find('> trackNum').text(),10)
 					};
 
 					var location = track.find('> location');
 					var locationBase = absurl(location.attr("xml:base")||"",trackBase);
 					location = absurl(location.text(),locationBase);
-					var mp3 = /^https?:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(location);
+					var mp3 = /^https?:\/\/(?:[^\/=?&#]+@)?(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(location);
 
 					if (mp3 && (!song.albumname || !song.artist)) {
 						// complete missing information from urls if possible
 						// there is no sense in doing this when the location could not be parsed
-						var guess_regex = /^https?:\/\/(?:download|stream|he3)\.magnatune\.com\/music\/([^\/=?&#]+)\/([^\/=?&#]+)\//;
+						var guess_regex = /^https?:\/\/(?:[^\/=?&#]+@)?(?:download|stream|he3)\.magnatune\.com\/music\/([^\/=?&#]+)\/([^\/=?&#]+)\//;
 						var guess = guess_regex.exec(location);
 
 						if (!guess) {
@@ -2487,7 +2487,7 @@ $.extend(Magnatune, {
 					}
 				}
 				
-				mp3 = /^http:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(mp3||'');
+				mp3 = /^http:\/\/(?:[^\/=?&#]+@)?(?:download|stream|he3)\.magnatune\.com\/(?:all|music\/[^\/=?&#]+\/[^\/=?&#]+)\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(mp3||'');
 
 				var album;
 				if (!mp3 || !song.albumname || !song.desc ||
@@ -2511,7 +2511,7 @@ $.extend(Magnatune, {
 					if (song) {
 						songs.push(song);
 					}
-					else if (/https?:\/\/(?:download|stream|he3)\.magnatune\.com\/(?:music|all)\/[^?&#]*\.(?:mp3|ogg|m4a|flac|wav)$/i.test(url)) {
+					else if (/https?:\/\/(?:[^\/=?&#]+@)?(?:download|stream|he3)\.magnatune\.com\/(?:music|all)\/[^?&#]*\.(?:mp3|ogg|m4a|flac|wav)$/i.test(url)) {
 						// don't complain about links that do not point to Magnatune songs
 						++ unknown;
 					}
@@ -2521,7 +2521,7 @@ $.extend(Magnatune, {
 			return {songs: songs, unknown: unknown};
 		},
 		_guessSongFromUrl: function (url) {
-			var guess = /^https?:\/\/(?:download|stream|he3)\.magnatune\.com\/music\/([^\/=?&#]+)\/([^\/=?&#]+)\/((\d+)-[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(url);
+			var guess = /^https?:\/\/(?:[^\/=?&#]+@)?(?:download|stream|he3)\.magnatune\.com\/music\/([^\/=?&#]+)\/([^\/=?&#]+)\/((\d+)-[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(url);
 
 			if (!guess) return null;
 
@@ -2562,7 +2562,7 @@ $.extend(Magnatune, {
 			}
 			else if (desc) {
 				// from Magnatune.com
-				var guess = /^https?:\/\/(?:download|stream|he3)\.magnatune\.com\/all\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(url);
+				var guess = /^https?:\/\/(?:[^\/=?&#]+@)?(?:download|stream|he3)\.magnatune\.com\/all\/((?:(\d+)-)?[^\/=?&#]*?)(?:_nospeech|-lofi|_spoken|_hq)?\.(?:mp3|ogg|m4a|flac|wav)$/.exec(url);
 				if (guess) {
 					var albumname, artist;
 					var parts = desc.split(" - ");
