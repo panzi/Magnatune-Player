@@ -568,7 +568,7 @@ var XML_CHAR_MAP = {
 	'>': '&gt;',
 	'&': '&amp;',
 	'"': '&quot;',
-	"'": '&apos;'
+	"'": '&#39;'
 };
 
 function escapeXml (s) {
