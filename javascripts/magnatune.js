@@ -111,15 +111,6 @@ $.format = function (fmt, args) {
 	});
 })(jQuery);
 
-// inspired by:
-// http://farhadi.ir/posts/utf8-in-javascript-with-a-new-trick
-$.base64Encode = function (input) {
-	return btoa(unescape(encodeURIComponent(input)));
-};
-$.base64Decode = function (input) {
-	return decodeURIComponent(escape(atob(input)));
-};
-
 (function ($, undefined) {
 	var dom_parser = false;
 
@@ -766,8 +757,31 @@ function showPopup (button, popup) {
 	}).fadeIn('fast');
 }
 
-function showSave (data, name, mimetype) {
-	window.open("data:"+(mimetype||"application/octet-stream")+";charset=utf-8;base64,"+$.base64Encode(data),name||"Download");
+var showSave;
+var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MsBlobBuilder;
+var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
+
+if (BlobBuilder && URL) {
+	showSave = function (data, name, mimetype) {
+		var builder = new BlobBuilder();
+		builder.append(data);
+		var blob = builder.getBlob(mimetype||"application/octet-stream");
+		var url = URL.createObjectURL(blob);
+		var win = window.open(url, name||"Download");
+		var revoke = function () {
+			URL.revokeObjectURL(url);
+		};
+		win.onload = revoke;
+		setTimeout(revoke, 5000);
+	};
+}
+else if (btoa) {
+	showSave = function (data, name, mimetype) {
+		// bas64 encoding inspired by:
+		// http://farhadi.ir/posts/utf8-in-javascript-with-a-new-trick
+		var base64 = btoa(unescape(encodeURIComponent(data)));
+		window.open("data:"+(mimetype||"application/octet-stream")+";charset=utf-8;base64,"+base64,name||"Download");
+	};
 }
 
 function loadVisibleImages (scroller) {
@@ -5471,7 +5485,7 @@ $(document).ready(function () {
 		$('label[for="export-what"]').hide();
 		$("#export-what").val('current').trigger('onchange').hide();
 	}
-	if (typeof(btoa) === "undefined") {
+	if (!showSave) {
 		if (Magnatune.Html5DnD) {
 			$('#export-menu button[type="submit"]').hide();
 		}
