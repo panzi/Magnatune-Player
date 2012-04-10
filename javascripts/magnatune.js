@@ -758,10 +758,21 @@ function showPopup (button, popup) {
 }
 
 var showSave;
-var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MsBlobBuilder;
+var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder;
 var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
 
-if (BlobBuilder && URL) {
+navigator.saveBlob = navigator.saveBlob || navigator.msSaveBlob || navigator.mozSaveBlob || navigator.webkitSaveBlob;
+
+if (BlobBuilder && navigator.saveBlob) {
+	// currently only IE 10, but I hope other browsers will also implement the saveBlob method eventually
+	showSave = function (data, name, mimeType) {
+		var builder = new BlobBuilder();
+		builder.append(data);
+		var blob = builder.getBlob(mimetype||"application/octet-stream");
+		navigator.showSave(blob, name||"Download.bin");
+	};
+}
+else if (BlobBuilder && URL) {
 	showSave = function (data, name, mimetype) {
 		var builder = new BlobBuilder();
 		builder.append(data);
@@ -777,7 +788,7 @@ if (BlobBuilder && URL) {
 }
 else if (typeof(btoa) !== "undefined") {
 	showSave = function (data, name, mimetype) {
-		// bas64 encoding inspired by:
+		// utf-8 encoded text encoded as base64, inspired by:
 		// http://farhadi.ir/posts/utf8-in-javascript-with-a-new-trick
 		var base64 = btoa(unescape(encodeURIComponent(data)));
 		window.open("data:"+(mimetype||"application/octet-stream")+";charset=utf-8;base64,"+base64,name||"Download");
