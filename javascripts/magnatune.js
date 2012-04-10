@@ -775,7 +775,7 @@ if (BlobBuilder && URL) {
 		setTimeout(revoke, 5000);
 	};
 }
-else if (btoa) {
+else if (typeof(btoa) !== "undefined") {
 	showSave = function (data, name, mimetype) {
 		// bas64 encoding inspired by:
 		// http://farhadi.ir/posts/utf8-in-javascript-with-a-new-trick
