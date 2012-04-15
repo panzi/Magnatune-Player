@@ -758,11 +758,34 @@ function showPopup (button, popup) {
 }
 
 var showSave;
+var DownloadAttributeSupport = $.browser.webkit && function () {
+	var m = /\bChrome\/(\S*)\b/.exec(navigator.userAgent);
+	if (m) {
+		var version = $.map(m[1].split("."),Number);
+		var minversion = [14,0,835,15];
+		for (var i = 0; i < version.length; ++ i) {
+			var v    = version[i];
+			var minv = minversion[i]||0;
+			if (v > minv) {
+				return true;
+			}
+			else if (v < minv) {
+				return false;
+			}
+		}
+		return true;
+	}
+	return false;
+};
 var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder;
 var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
 
 navigator.saveBlob = navigator.saveBlob || navigator.msSaveBlob || navigator.mozSaveBlob || navigator.webkitSaveBlob;
 
+// there is a draft for a FileSaver interface, but it's not supported by any browser yet. :(
+// http://www.w3.org/TR/file-writer-api/#the-filesaver-interface
+// and then there is a download attribute for anchor tags, but that's only supported by Chrome so far.
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/links.html#attr-hyperlink-download
 if (BlobBuilder && navigator.saveBlob) {
 	// currently only IE 10, but I hope other browsers will also implement the saveBlob method eventually
 	showSave = function (data, name, mimeType) {
@@ -773,25 +796,34 @@ if (BlobBuilder && navigator.saveBlob) {
 	};
 }
 else if (BlobBuilder && URL) {
+	// WebKit and Gecko
 	showSave = function (data, name, mimetype) {
 		var builder = new BlobBuilder();
 		builder.append(data);
 		var blob = builder.getBlob(mimetype||"application/octet-stream");
 		var url = URL.createObjectURL(blob);
-		var win = window.open(url, name||"Download");
-		var revoke = function () {
+		if (DownloadAttributeSupport) {
+			// Chrome
+			var link = tag("a",{href:url,download:name||"Download.bin"});
+			var event = document.createEvent('MouseEvents');
+			event.initMouseEvent('click', true, true, window, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
+			link.dispatchEvent(event);
+		}
+		else {
+			window.open(url, '_blank');
+		}
+		setTimeout(function () {
 			URL.revokeObjectURL(url);
-		};
-		win.onload = revoke;
-		setTimeout(revoke, 5000);
+		}, 250);
 	};
 }
 else if (typeof(btoa) !== "undefined") {
+	// WebKit (Chrome?), Gecko and Opera
 	showSave = function (data, name, mimetype) {
 		// utf-8 encoded text encoded as base64, inspired by:
 		// http://farhadi.ir/posts/utf8-in-javascript-with-a-new-trick
 		var base64 = btoa(unescape(encodeURIComponent(data)));
-		window.open("data:"+(mimetype||"application/octet-stream")+";charset=utf-8;base64,"+base64,name||"Download");
+		window.open("data:"+(mimetype||"application/octet-stream")+";charset=utf-8;base64,"+base64,'_blank');
 	};
 }
 
