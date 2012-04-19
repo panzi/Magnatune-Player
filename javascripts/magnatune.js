@@ -758,25 +758,7 @@ function showPopup (button, popup) {
 }
 
 var showSave;
-var DownloadAttributeSupport = $.browser.webkit && function () {
-	var m = /\bChrome\/(\S*)\b/.exec(navigator.userAgent);
-	if (m) {
-		var version = $.map(m[1].split("."),Number);
-		var minversion = [14,0,835,15];
-		for (var i = 0; i < version.length; ++ i) {
-			var v    = version[i];
-			var minv = minversion[i]||0;
-			if (v > minv) {
-				return true;
-			}
-			else if (v < minv) {
-				return false;
-			}
-		}
-		return true;
-	}
-	return false;
-};
+var DownloadAttributeSupport = 'download' in document.createElement('a');
 var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder;
 var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
 
@@ -792,7 +774,7 @@ if (BlobBuilder && navigator.saveBlob) {
 		var builder = new BlobBuilder();
 		builder.append(data);
 		var blob = builder.getBlob(mimetype||"application/octet-stream");
-		navigator.showSave(blob, name||"Download.bin");
+		navigator.saveBlob(blob, name||"Download.bin");
 	};
 }
 else if (BlobBuilder && URL) {
@@ -803,14 +785,14 @@ else if (BlobBuilder && URL) {
 		var blob = builder.getBlob(mimetype||"application/octet-stream");
 		var url = URL.createObjectURL(blob);
 		if (DownloadAttributeSupport) {
-			// Chrome
+			// currently only Chrome
 			var link = tag("a",{href:url,download:name||"Download.bin"});
 			var event = document.createEvent('MouseEvents');
 			event.initMouseEvent('click', true, true, window, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
 			link.dispatchEvent(event);
 		}
 		else {
-			window.open(url, '_blank');
+			window.open(url, '_blank', '');
 		}
 		setTimeout(function () {
 			URL.revokeObjectURL(url);
@@ -823,7 +805,7 @@ else if (typeof(btoa) !== "undefined") {
 		// utf-8 encoded text encoded as base64, inspired by:
 		// http://farhadi.ir/posts/utf8-in-javascript-with-a-new-trick
 		var base64 = btoa(unescape(encodeURIComponent(data)));
-		window.open("data:"+(mimetype||"application/octet-stream")+";charset=utf-8;base64,"+base64,'_blank');
+		window.open("data:"+(mimetype||"application/octet-stream")+";charset=utf-8;base64,"+base64,'_blank','');
 	};
 }
 
@@ -2220,9 +2202,20 @@ $.extend(Magnatune, {
 		},
 		showExportPlaylist: function (playlist, opts) {
 			this.hideExportMenu();
+			var filename;
+			if (opts.title) {
+				filename = opts.title.
+					replace(/["\?]/g,'').
+					replace(/[:;<>\*\|\/\\]/g,' ').
+					replace(/\s\s+/g,' ').
+					trim()+"."+opts.playlist_format;
+			}
+			else {
+				filename = "Playlist."+opts.playlist_format;
+			}
 			showSave(
 				this.exportPlaylist(playlist, opts),
-				"Playlist."+opts.playlist_format,
+				filename,
 				DOWNLOAD_MIME_TYPE_MAP[opts.playlist_format]);
 		},
 		showExportSaved: function () {
