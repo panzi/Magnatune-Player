@@ -113,7 +113,7 @@ input[type="button"],
 button,
 input[type="submit"],
 input[type="button"],
-#status {
+#status * {
 	cursor: pointer;
 }
 
@@ -1029,7 +1029,6 @@ a.button {
 }
 
 #current-time-duration {
-	cursor: default;
 	font-family: monospace;
 }
 
