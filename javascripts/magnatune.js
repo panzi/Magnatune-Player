@@ -85,30 +85,30 @@ $.format = function (fmt, args) {
 			function () {
 				return document.body["client"+name];
 			};
-
-		$.window.screenX = ('screenX' in window) && !$.browser.opera ?
-			function () {
-				return window.screenX;
-			} :
-			function () {
-				return window.screenLeft;
-			};
-			
-		$.window.screenY = ('screenY' in window) && !$.browser.opera ?
-			function () {
-				return window.screenY;
-			} :
-			function () {
-				return window.screenTop;
-			};
-
-		$.window.position = function () {
-			return {
-				left: $.window.screenX(),
-				top:  $.window.screenY()
-			};
-		};
 	});
+	
+	$.window.screenX = ('screenX' in window) && !$.browser.opera ?
+		function () {
+			return window.screenX;
+		} :
+		function () {
+			return window.screenLeft;
+		};
+			
+	$.window.screenY = ('screenY' in window) && !$.browser.opera ?
+		function () {
+			return window.screenY;
+		} :
+		function () {
+			return window.screenTop;
+		};
+
+	$.window.position = function () {
+		return {
+			left: $.window.screenX(),
+			top:  $.window.screenY()
+		};
+	};
 })(jQuery);
 
 (function ($, undefined) {
