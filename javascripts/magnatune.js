@@ -5662,8 +5662,8 @@ $(document).ready(function () {
 							}
 						}
 						catch (e) {
-							// if the type is not supported by the dataTransfer objet it throws an exception
-							console.error(e);
+							// if the type is not supported by the dataTransfer objext IE throws an exception
+							console.warn("unsupported D'n'D data type: "+type+" ("+e+")");
 						}
 					}
 				}
@@ -5739,7 +5739,8 @@ $(document).ready(function () {
 						transfer.setData(format, data);
 					}
 					catch (e) {
-						console.error(e);
+						// if the type is not supported by the dataTransfer object IE throws an exception
+						console.warn("unsupported D'n'D data type: "+format+" ("+e+")");
 					}
 				}
 				if (transfer.setDragImage) {
