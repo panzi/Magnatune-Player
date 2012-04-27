@@ -296,9 +296,13 @@ def like_escape(text):
 	return LIKE_CHARS.sub("\\\\\\1",text)
 
 def build_query(columns,words):
-	expr = '(%s)' % ' or '.join(column+" like ? escape '\\'" for column in columns)
-	where = '(%s)' % ' and '.join(repeat(expr, len(words)))
-	args = ['%%%s%%' % like_escape(word) for word in words]
+	where = '(%s)' % ' or '.join(
+		'(%s)' % ' and '.join(repeat(column+" like ? escape '\\'", len(words)))
+		for column in columns)
+
+	words = ['%%%s%%' % like_escape(word) for word in words]
+	args = concat(*repeat(words, len(columns)))
+
 	return where, args
 
 @action
