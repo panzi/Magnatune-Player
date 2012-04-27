@@ -237,7 +237,7 @@ def search_basic_artist_album(cur,query,order):
 	where, args = build_query(['albums.albumname','songs.desc'],query)
 
 	cur.execute(
-		'select distinct albums.albumname, sku, launchdate, artist '
+		'select distinct albums.albumname, sku, launchdate, artist, homepage '
 		'from albums inner join songs on albums.albumname = songs.albumname '
 		'where '
 		'artist not in (%s) and %s '
