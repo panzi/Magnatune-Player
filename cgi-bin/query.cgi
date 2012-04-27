@@ -201,7 +201,7 @@ def search_basic_artist_album(cur,query,order):
 		artist_order = 'latestdate desc, artists.artist'
 
 	cur.execute(
-		'select artists.artist, homepage, max(launchdate) as latestdate from albums '
+		'select artists.artist as artist, homepage, max(launchdate) as latestdate from albums '
 		'inner join artists on artists.artist = albums.artist '
 		'where %s '
 		'group by artists.artist, homepage '
@@ -237,7 +237,7 @@ def search_basic_artist_album(cur,query,order):
 	where, args = build_query(['albums.albumname','songs.desc'],query)
 
 	cur.execute(
-		'select distinct albums.albumname, sku, launchdate, artists.artist, homepage '
+		'select distinct albums.albumname, sku, launchdate, artists.artist as artist, homepage '
 		'from albums inner join songs on albums.albumname = songs.albumname '
 		'inner join artists on artists.artist = albums.artist '
 		'where '
