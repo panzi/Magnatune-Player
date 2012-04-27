@@ -193,6 +193,65 @@ def search_artist_album(cur,query,order):
 	}
 
 @finder
+def search_basic_artist_album(cur,query,order):
+	where, args = build_query(['artists.artist'],query)
+	if order == "name":
+		artist_order = 'artists.artist'
+	else:
+		artist_order = 'latestdate desc, artists.artist'
+
+	cur.execute(
+		'select artists.artist, homepage, max(launchdate) as latestdate from albums '
+		'inner join artists on artists.artist = albums.artist '
+		'where %s '
+		'group by artists.artist, homepage '
+		'order by %s' % (where, artist_order),
+		args)
+	artists = rows_to_dicts(cur,cur.fetchall())
+
+	if order == "name":
+		album_order = 'albums.albumname'
+	else:
+		album_order = 'launchdate desc, albums.albumname'
+
+	artist_names = []
+	artists_by_name = {}
+	for artist in artists:
+		artist['albums'] = []
+		artistname = artist['artist']
+		artist_names.append(artistname)
+		artists_by_name[artistname] = artist
+
+	cur.execute(
+		'select artist, albumname, sku, launchdate '
+		'from albums '
+		'where artist in (%s) '
+		'order by %s' % (nargs(len(artist_names)), album_order),
+		artist_names)
+	artist_albums = rows_to_dicts(cur,cur.fetchall())
+
+	for album in artist_albums:
+		artists_by_name[album['artist']]['albums'].append(album)
+		del album['artist']
+	
+	where, args = build_query(['albums.albumname','songs.desc'],query)
+
+	cur.execute(
+		'select distinct albums.albumname, sku, launchdate, artist '
+		'from albums inner join songs on albums.albumname = songs.albumname '
+		'where '
+		'artist not in (%s) and %s '
+		'order by %s' % (nargs(len(artist_names)), where, album_order),
+		artist_names+args)
+
+	albums = rows_to_dicts(cur,cur.fetchall())
+
+	return {
+		"artists": artists,
+		"albums": albums
+	}
+
+@finder
 def search_genre_album(cur,query,order):
 	where, args = build_query(['genre'],query)
 	cur.execute('select distinct genre from genres where %s order by genre' % where,args)
