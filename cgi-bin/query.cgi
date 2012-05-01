@@ -107,6 +107,20 @@ def songs_by_album(songs):
 		album.append(song)
 	return songs_by_album
 
+LIKE_CHARS = re.compile('([%_\\\\])')
+def like_escape(text):
+	return LIKE_CHARS.sub("\\\\\\1",text)
+
+def build_query(columns,words):
+	where = '(%s)' % ' or '.join(
+		'(%s)' % ' and '.join(repeat(column+" like ? escape '\\'", len(words)))
+		for column in columns)
+
+	words = ['%%%s%%' % like_escape(word) for word in words]
+	args = concat(*repeat(words, len(columns)))
+
+	return where, args
+
 @finder
 def search_album(cur,query,order):
 	where, args = build_query(['albums.albumname'],query)
@@ -350,20 +364,6 @@ def search_genre_artist_album(cur,query,order):
 		'albums':  albums,
 		'songs':   songs_by_album(songs)
 	}
-
-LIKE_CHARS = re.compile('([%_\\\\])')
-def like_escape(text):
-	return LIKE_CHARS.sub("\\\\\\1",text)
-
-def build_query(columns,words):
-	where = '(%s)' % ' or '.join(
-		'(%s)' % ' and '.join(repeat(column+" like ? escape '\\'", len(words)))
-		for column in columns)
-
-	words = ['%%%s%%' % like_escape(word) for word in words]
-	args = concat(*repeat(words, len(columns)))
-
-	return where, args
 
 @action
 def search(cur,params):
