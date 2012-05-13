@@ -770,7 +770,7 @@ navigator.saveBlob = navigator.saveBlob || navigator.msSaveBlob || navigator.moz
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/links.html#attr-hyperlink-download
 if (BlobBuilder && navigator.saveBlob) {
 	// currently only IE 10, but I hope other browsers will also implement the saveBlob method eventually
-	showSave = function (data, name, mimeType) {
+	showSave = function (data, name, mimetype) {
 		var builder = new BlobBuilder();
 		builder.append(data);
 		var blob = builder.getBlob(mimetype||"application/octet-stream");
