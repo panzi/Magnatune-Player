@@ -758,23 +758,31 @@ function showPopup (button, popup) {
 }
 
 var showSave;
+// There is a download attribute for anchor tags, but that's only supported by Chrome so far.
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/links.html#attr-hyperlink-download
 var DownloadAttributeSupport = 'download' in document.createElement('a');
 var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder;
 var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
 
 navigator.saveBlob = navigator.saveBlob || navigator.msSaveBlob || navigator.mozSaveBlob || navigator.webkitSaveBlob;
 
-// there is a draft for a FileSaver interface, but it's not supported by any browser yet. :(
+// There is a draft for a FileSaver interface, but it's not supported by any browser yet. :(
 // http://www.w3.org/TR/file-writer-api/#the-filesaver-interface
-// and then there is a download attribute for anchor tags, but that's only supported by Chrome so far.
-// http://www.whatwg.org/specs/web-apps/current-work/multipage/links.html#attr-hyperlink-download
-if (BlobBuilder && navigator.saveBlob) {
+window.saveAs = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs;
+
+if (BlobBuilder && (window.saveAs || navigator.saveBlob)) {
 	// currently only IE 10, but I hope other browsers will also implement the saveBlob method eventually
 	showSave = function (data, name, mimetype) {
 		var builder = new BlobBuilder();
 		builder.append(data);
 		var blob = builder.getBlob(mimetype||"application/octet-stream");
-		navigator.saveBlob(blob, name||"Download.bin");
+		if (!name) name = "Download.bin";
+		if (window.saveAs) {
+			window.saveAs(blob, name);
+		}
+		else {
+			navigator.saveBlob(blob, name);
+		}
 	};
 }
 else if (BlobBuilder && URL) {
@@ -799,13 +807,10 @@ else if (BlobBuilder && URL) {
 		}, 250);
 	};
 }
-else if (typeof(btoa) !== "undefined") {
-	// WebKit (Chrome?), Gecko and Opera
+else if (!$.browser.msie) {
+	// IE has problems handling data URLs
 	showSave = function (data, name, mimetype) {
-		// utf-8 encoded text encoded as base64, inspired by:
-		// http://farhadi.ir/posts/utf8-in-javascript-with-a-new-trick
-		var base64 = btoa(unescape(encodeURIComponent(data)));
-		window.open("data:"+(mimetype||"application/octet-stream")+";charset=utf-8;base64,"+base64,'_blank','');
+		window.open("data:"+(mimetype||"application/octet-stream")+","+encodeURIComponent(data),'_blank','');
 	};
 }
 

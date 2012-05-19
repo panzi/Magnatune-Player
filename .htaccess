@@ -1,3 +1,4 @@
 AddType application/x-chrome-extension .crx
+AddType application/x-web-app-manifest+json .webapp
 DirectoryIndex index.cgi index.html
 AddOutputFilterByType DEFLATE text/css text/html text/xml text/plain text/javascript application/x-javascript application/javascript application/json application/x-sh
