@@ -509,28 +509,61 @@ var tag = (function ($,undefined) {
 })(jQuery);
 
 var Magnatune = {
-	TouchDevice: 'ontouchstart' in window && 'createTouch' in document,
-	VolumeControl: (function () {
-		var ua = navigator.userAgent.toLowerCase();
-		// got information from jplayer:
-		var noVolume = [
-			/ipad/,
-			/iphone/,
-			/ipod/,
-			/android(?!.*?mobile)/,
-			/android.*?mobile/,
-			/blackberry/,
-			/windows ce/,
-			/webos/,
-			/playbook/
-		];
-		for (var i = 0; i < noVolume.length; ++ i) {
-			if (noVolume[i].test(ua)) {
-				return false;
-			}
+	getApp: function (callback) {
+		if (window.chrome && window.chrome.app) {
+			callback(window.chrome.app.isInstalled,window.chrome.app);
 		}
-		return true;
-	})(),
+		else if (navigator.mozApps) {
+			var request = navigator.mozApps.getSelf();
+			request.onsuccess = function (event) {
+				callback(!!request.result,request.result);
+			};
+			request.onerror = function (event) {
+				callback(false);
+			};
+		}
+		else {
+			callback(false);
+		}
+
+		return (window.chrome && window.chrome.app && window.chrome.app.isInstalled) ||
+			(navigator.mozApps && navigator.mozApps.getSelf());
+	},
+	installApp: function () {
+		if (window.chrome) {
+			window.location = absurl("app/magnatune-player.crx");
+		}
+		else if (navigator.mozApps) {
+			navigator.mozApps.install(absurl("manifest.webapp"));
+		}
+	},
+	BrowserFeatures: {
+		App: !!(window.chrome && window.chrome.app || navigator.mozApps),
+		AuthenticationDialog: !$.browser.webkit,
+		TouchDevice: 'ontouchstart' in window && 'createTouch' in document,
+		VolumeControl: (function () {
+			var ua = navigator.userAgent.toLowerCase();
+			// got information from jplayer:
+			var noVolume = [
+				/ipad/,
+				/iphone/,
+				/ipod/,
+				/android(?!.*?mobile)/,
+				/android.*?mobile/,
+				/blackberry/,
+				/windows ce/,
+				/webos/,
+				/playbook/
+			];
+			for (var i = 0; i < noVolume.length; ++ i) {
+				if (noVolume[i].test(ua)) {
+					return false;
+				}
+			}
+			return true;
+		})(),
+		Notifications: !!(window.webkitNotifications || navigator.mozNotification)
+	},
 	Options: {
 		AnimationDuration: 500
 	}
@@ -873,6 +906,11 @@ $.extend(Magnatune, {
 		if (typeof(localStorage) !== "undefined") {
 			localStorage.setItem('notifications.enabled',String(enabled));
 		}
+		if (enabled) {
+			this._request_notification_permissions();
+		}
+	},
+	_request_notification_permissions: function () {
 		if (window.webkitNotifications && window.webkitNotifications.checkPermission() !== 0) {
 			window.webkitNotifications.requestPermission();
 		}
@@ -943,15 +981,19 @@ $.extend(Magnatune, {
 			if (this._song &&
 				typeof(localStorage) !== "undefined" &&
 				getBoolean('notifications.enabled') &&
-				window.webkitNotifications &&
-				window.webkitNotifications.checkPermission() === 0) {
+				((window.webkitNotifications &&
+				window.webkitNotifications.checkPermission() === 0) ||
+				navigator.mozNotification)) {
 				var album = Magnatune.Collection.Albums[this._song.albumname];
-				var notification = window.webkitNotifications.createNotification(
-					'http://he3.magnatune.com/music/'+
+				var iconUrl = 'http://he3.magnatune.com/music/'+
 					encodeURIComponent(album.artist.artist)+'/'+
-					encodeURIComponent(album.albumname)+'/cover_50.jpg',
-					this._song.desc,
-					"by "+album.artist.artist+" from the album "+this._song.albumname);
+					encodeURIComponent(album.albumname)+'/cover_50.jpg';
+				var title = this._song.desc;
+				var description = "by "+album.artist.artist+" from the album "+this._song.albumname;
+
+				var notification = window.webkitNotifications ?
+					window.webkitNotifications.createNotification(iconUrl, title, description) :
+					navigator.mozNotification.createNotification(title, description, iconUrl);
 				notification.ondisplay = this._timed_hide_notification;
 				notification.show();
 			}
@@ -1059,8 +1101,11 @@ $.extend(Magnatune, {
 					try { this.audio.pause(); } catch (e) {}
 				}
 				$(this.audio).empty();
-				this.audio.src = "";
-				try { this.audio.load(); } catch(e) {}
+				if (this.audio.currentSrc) {
+					// stop potential download by loading empty wav file:
+					this.audio.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAIAgLsAAADuAgAEABAAZGF0YQAAAAA=";
+					try { this.audio.load(); } catch(e) {}
+				}
 				$(this.audio).remove();
 			}
 			this.audio = new Audio();
@@ -1557,20 +1602,28 @@ $.extend(Magnatune, {
 			},
 			about: function (opts) {
 				var page = $("#description").clone();
-				if (window.chrome && window.chrome.app) {
-					var about_float = page.find(".about-float");
-					if (window.chrome.app.isInstalled) {
-						about_float.append('<span class="app installed">App is installed</span>');
-						if (window.webkitNotifications) {
-							about_float.append('<br/><input type="checkbox" id="notifications-enabled" '+
-								'onchange="Magnatune.setNotificationsEnabled($(this).is(\':checked\'));"'+
-								(getBoolean('notifications.enabled') ? ' checked' : '')+'/> ' +
-								'<label for="notifications-enabled">Show notifications on song change</label>');
+				var about_float = page.find(".about-float");
+
+				if (Magnatune.BrowserFeatures.App) {
+					Magnatune.getApp(function (installed) {
+						if (installed) {
+							about_float.find('.app.installed').css({display:'block'});
+							about_float.find('.app.button').hide();
 						}
-					}
-					else {
-						about_float.append('<a class="button app" href="app/magnatune-player.crx">Install App</a>');
-					}
+						else {
+							about_float.find('.app.installed').hide();
+							about_float.find('.app.button').css({display:'block'});
+						}
+					});
+				}
+				
+				var notification_controls = about_float.find(".notification-controls");
+				if (Magnatune.BrowserFeatures.Notifications) {
+					notification_controls.find("input")[0].checked = getBoolean('notifications.enabled');
+					notification_controls.css({display:'block'});
+				}
+				else {
+					notification_controls.hide();
 				}
 				page.show();
 				Magnatune.Info.update('#/about',[],page[0],opts.keeptab);
@@ -3047,7 +3100,7 @@ $.extend(Magnatune, {
 			var attrs = {dataset:song};
 			if (selected && selection_start) attrs['class'] = "selected selection-start";
 			else if (selected)               attrs['class'] = "selected";
-			if (Magnatune.TouchDevice) {
+			if (Magnatune.BrowserFeatures.TouchDevice) {
 				attrs.ontouchstart = Magnatune.Playlist._touch_song;
 			}
 			else {
@@ -3204,7 +3257,7 @@ $.extend(Magnatune, {
 
 			Magnatune.Playlist._scroll_state = new_state;
 			
-			if (!Magnatune.TouchDevice && (track = $(event.target).closest('tr')) && track.parent().parent().is(playlist)) {
+			if (!Magnatune.BrowserFeatures.TouchDevice && (track = $(event.target).closest('tr')) && track.parent().parent().is(playlist)) {
 				// on browsers that support "pointer-events: none"
 				if (track.parent().is("thead")) {
 					var first_track = tbody.find("> tr:first");
@@ -3264,7 +3317,7 @@ $.extend(Magnatune, {
 					}
 				}
 			}
-			else if (Magnatune.TouchDevice || $(event.target).closest('.dragged').length > 0) {
+			else if (Magnatune.BrowserFeatures.TouchDevice || $(event.target).closest('.dragged').length > 0) {
 				// fallback for browsers that do not support "pointer-events: none"
 				var tracks = tbody.find('> tr');
 				
@@ -4444,7 +4497,7 @@ $.extend(Magnatune, {
 				if (!options.condition || options.condition(event)) {
 					event.preventDefault();
 				}
-			}).addClass('draggable').on(Magnatune.TouchDevice ? 'touchstart' : 'mousedown', function (event) {
+			}).addClass('draggable').on(Magnatune.BrowserFeatures.TouchDevice ? 'touchstart' : 'mousedown', function (event) {
 				if (Magnatune.DnD.source) return;
 
 				if (event.type === 'touchstart') {
@@ -4642,12 +4695,11 @@ $.extend(Magnatune, {
 			}
 		}
 	},
-	BrowserAuthenticates: !$.browser.webkit,
 	authenticated: false,
 	login: function () {
 		var onload, onerror, script, src, onreadystatechange;
 		var path = "/info/changed.txt?"+(new Date().getTime());
-		if (Magnatune.BrowserAuthenticates) {
+		if (Magnatune.BrowserFeatures.AuthenticationDialog) {
 			// HTTP Auth hack for Firefox and Opera
 			src = "http://stream.magnatune.com"+path;
 			onerror = function (event) {
@@ -4751,7 +4803,7 @@ $.extend(Magnatune, {
 	Tour: {
 		Pages: {
 			info: {
-				text: "This is the information area. Here is information about genres, albums and artists displayed.",
+				text: "This is the information area. Here information about genres, albums and artists is displayed.",
 				context: "#info-content",
 				placed: {left: 20, top: 60},
 				arrow: 'up',
@@ -4879,7 +4931,7 @@ $.extend(Magnatune, {
 				next: 'select_range'
 			},
 			select_range: {
-				text: Magnatune.TouchDevice ?
+				text: Magnatune.BrowserFeatures.TouchDevice ?
 					"Touch songs to select them." :
 					"Click to select a single song. "+
 					"Hold <code>Shift</code> and click a second song to select multiple songs.",
@@ -4894,7 +4946,7 @@ $.extend(Magnatune, {
 				next: 'deselect_one'
 			},
 			deselect_one: {
-				text: Magnatune.TouchDevice ?
+				text: Magnatune.BrowserFeatures.TouchDevice ?
 					"Touch a song a second time to deselect it." :
 					"Hold <code>Ctrl</code> and click to select/deselect single songs.",
 				context: '#playlist > tbody > tr[data-desc="Sukhothai Rain"]',
@@ -4909,7 +4961,7 @@ $.extend(Magnatune, {
 				next: 'move_selection'
 			},
 			move_selection: {
-				text: (Magnatune.TouchDevice ?
+				text: (Magnatune.BrowserFeatures.TouchDevice ?
 					"<p>Swipe over the selection and drag the songs to move them. "+
 					"Note that you may do all this only with one finger, so you can "+
 					"still scroll and zoom using two fingers.</p>" :
@@ -4933,7 +4985,7 @@ $.extend(Magnatune, {
 					Magnatune.Playlist.move(2,5,8);
 					Magnatune.Playlist.move(1,2,4);
 				},
-				next: Magnatune.TouchDevice ? null : "play_dblclick"
+				next: Magnatune.BrowserFeatures.TouchDevice ? null : "play_dblclick"
 			},
 			play_dblclick: {
 				text: "Double-click a song to play it.",
@@ -5224,7 +5276,8 @@ $.extend(Magnatune, {
 	},
 	load: function () {
 		var remember, username = '', password = '', hash, songs, current, member,
-		    volume, playerVisible, navigationVisible, playlistVisible, order, mode;
+		    volume, playerVisible, navigationVisible, playlistVisible, order, mode,
+			notifications;
 		if (typeof(localStorage) !== "undefined") {
 			remember = getBoolean('login.remember');
 			if (remember) {
@@ -5250,6 +5303,7 @@ $.extend(Magnatune, {
 			navigationVisible = getBoolean('navigation.visible');
 			order = localStorage.getItem('navigation.order') || 'name';
 			mode = localStorage.getItem('navigation.mode') || 'genre/artist/album';
+			notifications = getBoolean('notifications.enabled');
 		}
 		else {
 			hash = '#/about';
@@ -5272,10 +5326,10 @@ $.extend(Magnatune, {
 			Magnatune.Player.setMember(false);
 		}
 
-		if (member && (Magnatune.BrowserAuthenticates || (remember && username && password))) {
+		if (member && (Magnatune.BrowserFeatures.AuthenticationDialog || (remember && username && password))) {
 			Magnatune.Player.setMember(true);
 			// auto login
-			if (!Magnatune.BrowserAuthenticates) {
+			if (!Magnatune.BrowserFeatures.AuthenticationDialog) {
 				$('#username').val(username);
 				$('#password').val(password);
 			}
@@ -5338,6 +5392,10 @@ $.extend(Magnatune, {
 		else if (navigationVisible === false) {
 			Magnatune.Navigation.hide(true);
 		}
+
+		if (notifications) {
+			Magnatune._request_notification_permissions();
+		}
 	}
 });
 
@@ -5352,7 +5410,7 @@ Magnatune.Playlist.SupportedMimeTypesMap = (function () {
 
 Magnatune.Events.extend(Magnatune.Collection);
 
-if (Magnatune.TouchDevice) {
+if (Magnatune.BrowserFeatures.TouchDevice) {
 	// assume touch devices don't have a mouse
 	// in fact iOS sends sometimes bogus mouseover events
 
@@ -5425,7 +5483,7 @@ $(document).ready(function () {
 	}
 	catch (e) {}
 	
-	if (!Magnatune.VolumeControl) {
+	if (!Magnatune.BrowserFeatures.VolumeControl) {
 		$('#volume-button').hide();
 	}
 
@@ -5449,7 +5507,7 @@ $(document).ready(function () {
 			});
 		}
 	}
-	if (!Magnatune.TouchDevice) {
+	if (!Magnatune.BrowserFeatures.TouchDevice) {
 		// assume touch devices don't have a mouse
 		// in fact iOS sends sometimes bogus mouseover events
 		$('#play-progress-container').on('mousemove', function (event) {
@@ -5554,7 +5612,7 @@ $(document).ready(function () {
 	$('#currently-playing').on('mouseenter', Magnatune.Player._titleAnim);
 	$('#currently-playing').on('mouseleave', Magnatune.Player._stopTitleAnim);
 	$('#member').on('change', function (event) {
-		if (Magnatune.BrowserAuthenticates) {
+		if (Magnatune.BrowserFeatures.AuthenticationDialog) {
 			if ($(this).is(':checked')) {
 				// force authentication dialog now:
 				Magnatune.login();
@@ -5767,9 +5825,12 @@ $(document).ready(function () {
 // and it makes sense to implement custom move/resize so the player can
 // be used without window decoration
 if ((!window.matchMedia || window.matchMedia("not handheld").matches) &&
-	window.chrome && window.chrome.app && window.chrome.app.isInstalled &&
 	$.window.outerHeight() - $.window.innerHeight() < 62) {
-	$.ajax('javascripts/move_and_resize.js',{dataType:'script',cache:true});
+	Magnatune.getApp(function (installed) {
+		if (installed) {
+			$.ajax('javascripts/move_and_resize.js',{dataType:'script',cache:true});
+		}
+	});
 }
 
 $(document).on('click touchend touchcancel', function (event) {

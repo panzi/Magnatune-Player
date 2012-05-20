@@ -24,6 +24,14 @@
 	<h2>Magnatune Player</h2>
 	<div class="about-float">
 	<a class="logo" title="Magnatune" href="http://magnatune.com/"><img alt="" src="images/logo.png"/></a>
+	<span class="app installed" style="display:none;">App is installed</span>
+	<a class="app button" style="display:none;"
+		href="javascript:Magnatune.installApp();void(0)">Install App</a>
+	<label class="notification-controls" style="display:none;">
+		<input type="checkbox"
+			onchange="Magnatune.setNotificationsEnabled($(this).is(':checked'));"/>
+		Show notifications on song change
+	</label>
 	</div>
 	<p>This is a music player that is backed by the collection of songs from
 	<a href="http://magnatune.com/">magnatune.com</a>. It uses the
