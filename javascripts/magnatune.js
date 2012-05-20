@@ -509,34 +509,6 @@ var tag = (function ($,undefined) {
 })(jQuery);
 
 var Magnatune = {
-	getApp: function (callback) {
-		if (window.chrome && window.chrome.app) {
-			callback(window.chrome.app.isInstalled,window.chrome.app);
-		}
-		else if (navigator.mozApps) {
-			var request = navigator.mozApps.getSelf();
-			request.onsuccess = function (event) {
-				callback(!!request.result,request.result);
-			};
-			request.onerror = function (event) {
-				callback(false);
-			};
-		}
-		else {
-			callback(false);
-		}
-
-		return (window.chrome && window.chrome.app && window.chrome.app.isInstalled) ||
-			(navigator.mozApps && navigator.mozApps.getSelf());
-	},
-	installApp: function () {
-		if (window.chrome) {
-			window.location = absurl("app/magnatune-player.crx");
-		}
-		else if (navigator.mozApps) {
-			navigator.mozApps.install(absurl("manifest.webapp"));
-		}
-	},
 	BrowserFeatures: {
 		App: !!(window.chrome && window.chrome.app || navigator.mozApps),
 		AuthenticationDialog: !$.browser.webkit,
@@ -870,6 +842,31 @@ function loadVisibleImages (scroller) {
 }
 
 $.extend(Magnatune, {
+	installApp: function () {
+		if (window.chrome) {
+			window.location = absurl("app/magnatune-player.crx");
+		}
+		else if (navigator.mozApps) {
+			navigator.mozApps.install(absurl("manifest.webapp"));
+		}
+	},
+	getApp: function (callback) {
+		if (window.chrome && window.chrome.app) {
+			callback(window.chrome.app.isInstalled,window.chrome.app);
+		}
+		else if (navigator.mozApps) {
+			var request = navigator.mozApps.getSelf();
+			request.onsuccess = function (event) {
+				callback(!!request.result,request.result);
+			};
+			request.onerror = function (event) {
+				callback(false);
+			};
+		}
+		else {
+			callback(false);
+		}
+	},
 	Events: {
 		extend: function (obj) {
 			var events = {};
