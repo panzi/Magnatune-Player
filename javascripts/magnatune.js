@@ -1074,6 +1074,9 @@ $.extend(Magnatune, {
 			canplay: function (event) {
 				Magnatune.Player.hideSpinner();
 			},
+			canplaythrough: function (event) {
+				Magnatune.Player.hideSpinner();
+			},
 			playing: function (event) {
 				Magnatune.Player._playing();
 			},
