@@ -142,11 +142,9 @@ if ($.browser.msie && parseInt($.browser.version.split(/\./g)[0],10) < 9) {
 		ended: function () {
 			return this.audio.playState === 1;
 		},
-		play: function (norewind) {
-			this._update(norewind);
-			if (this._song) {
-				this.audio.controls.play();
-			}
+		_load: function () {},
+		_play: function () {
+			this.audio.controls.play();
 		},
 		_prepare_audio: function () {
 			if (!this.ended()) {
@@ -161,6 +159,16 @@ if ($.browser.msie && parseInt($.browser.version.split(/\./g)[0],10) < 9) {
 					break;
 				}
 			}
+			for (var i = 0; i < sources.length; ++ i) {
+				var source = sources[i];
+				if (/^audio\/(x-)?wav\b/i.test(source.type)) {
+					this.audio.URL = source.src;
+					break;
+				}
+			}
+		},
+		currentSource: function () {
+			return this.audio.URL;
 		},
 		seek: function (time) {
 			try {

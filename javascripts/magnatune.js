@@ -1124,8 +1124,62 @@ $.extend(Magnatune, {
 		play: function (norewind) {
 			this._update(norewind);
 			if (this._song) {
-				this.audio.load();
-				this.audio.play();
+				this._load();
+				this._play();
+			}
+		},
+		_load: function () {
+			this.audio.load();
+		},
+		_play: function () {
+			this.audio.play();
+		},
+		currentSource: function () {
+			return this.audio.currentSrc;
+		},
+		reload: function () {
+			if (this._song) {
+				var sources = this._get_sources();
+				var currentSrc = this.currentSource();
+				for (var i = 0; i < sources.length; ++ i) {
+					var source = sources[i];
+					if (source.src === currentSrc) {
+						return;
+					}
+				}
+
+				var playing = Magnatune.Player.playing();
+				var time = this.currentTime();
+				this._update(false);
+				this._load();
+				if (playing) {
+					this._play();
+				}
+				this.seek(time);
+			}
+		},
+		_get_sources: function () {
+			var song = this._song;
+			var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
+			if (Magnatune.authenticated && this.member()) {
+				var url = "http://stream.magnatune.com/music/"+encodeURIComponent(artist)+"/"+
+					encodeURIComponent(song.albumname)+"/"+encodeURIComponent(song.mp3);
+
+				return [
+					{type:'audio/ogg',src:url.replace(/\.mp3$/i,'.ogg')},
+					{type:'audio/mp4',src:url.replace(/\.mp3$/i,'.m4a')},
+					{type:'audio/mpeg;codecs="mp3"',src:url}
+				];
+			}
+			else {
+				var url = "http://he3.magnatune.com/music/"+encodeURIComponent(artist)+"/"+
+					encodeURIComponent(song.albumname)+"/"+encodeURIComponent(song.mp3);
+
+				return [
+					{type:'audio/ogg',src:url.replace(/\.mp3$/i,'_spoken.ogg')},
+					{type:'audio/mp4',src:url.replace(/\.mp3$/i,'_spoken.m4a')},
+					{type:'audio/mpeg;codecs="mp3"',src:url.replace(/\.mp3$/i,'_spoken.mp3')}
+				];
 			}
 		},
 		_set_sources: function (sources) {
@@ -1173,28 +1227,8 @@ $.extend(Magnatune, {
 				return;
 			}
 
+			this._set_sources(this._get_sources());
 			var artist = Magnatune.Collection.Albums[song.albumname].artist.artist;
-			if (Magnatune.authenticated && this.member()) {
-				var url = "http://stream.magnatune.com/music/"+encodeURIComponent(artist)+"/"+
-					encodeURIComponent(song.albumname)+"/"+encodeURIComponent(song.mp3);
-
-				this._set_sources([
-					{type:'audio/ogg',src:url.replace(/\.mp3$/i,'.ogg')},
-					{type:'audio/mp4',src:url.replace(/\.mp3$/i,'.m4a')},
-					{type:'audio/mpeg;codecs="mp3"',src:url}
-				]);
-			}
-			else {
-				var url = "http://he3.magnatune.com/music/"+encodeURIComponent(artist)+"/"+
-					encodeURIComponent(song.albumname)+"/"+encodeURIComponent(song.mp3);
-
-				this._set_sources([
-					{type:'audio/ogg',src:url.replace(/\.mp3$/i,'_spoken.ogg')},
-					{type:'audio/mp4',src:url.replace(/\.mp3$/i,'_spoken.m4a')},
-					{type:'audio/mpeg;codecs="mp3"',src:url.replace(/\.mp3$/i,'_spoken.mp3')}
-				]);
-			}
-
 			var album_url = '#/album/'+encodeURIComponent(song.albumname);
 			var song_label = song.desc+' - '+song.albumname+' - '+artist;
 			currently_playing.attr('title',song_label);
@@ -4700,7 +4734,7 @@ $.extend(Magnatune, {
 		var onload, onerror, script, src, onreadystatechange;
 		var path = "/info/changed.txt?"+(new Date().getTime());
 		if (Magnatune.BrowserFeatures.AuthenticationDialog) {
-			// HTTP Auth hack for Firefox and Opera
+			// HTTP Auth hack for Firefox, Opera and IE, although IE never reports an error.
 			src = "http://stream.magnatune.com"+path;
 			onerror = function (event) {
 				if (event.originalEvent.target === script) {
@@ -4713,11 +4747,13 @@ $.extend(Magnatune, {
 
 			onload = function (event) {
 				Magnatune.authenticated = true;
+				try { Magnatune.Player.reload(); } catch (e) { console.error(e); }
 				$(window).off('error',onerror);
 				$(this).off('readystatechange', onreadystatechange).remove();
 			};
 		}
 		else {
+			// XXX: does not work anymore as of Chrome 19!
 			// HTTP Auth hack for Chrome/WebKit
 			// changed.txt just contains a decimal number so it is a valid JavaScript
 			// if onload fires this means the login was ok.
@@ -4765,6 +4801,7 @@ $.extend(Magnatune, {
 
 			onload = function (event) {
 				Magnatune.authenticated = true;
+				try { Magnatune.Player.reload(); } catch (e) { console.error(e); }
 				Magnatune.Player.hideCredentials();
 				$(window).off('error',onerror);
 				$(this).off('readystatechange', onreadystatechange).remove();
