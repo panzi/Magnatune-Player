@@ -511,7 +511,22 @@ var tag = (function ($,undefined) {
 var Magnatune = {
 	BrowserFeatures: {
 		App: !!(window.chrome && window.chrome.app || navigator.mozApps),
-		AuthenticationDialog: !$.browser.webkit,
+		Authentication: (function () {
+			var m = /\bChrome\/([0-9]+(?:\.[0-9]+)*)/.exec(navigator.userAgent);
+			if (m) {
+				var version = m[1].split(".");
+				if (parseInt(version[0],10) >= 19) {
+					return "popup";
+				}
+			}
+
+			if ($.browser.webkit) {
+				return "url";
+			}
+			else {
+				return "browser";
+			}
+		})(),
 		TouchDevice: 'ontouchstart' in window && 'createTouch' in document,
 		VolumeControl: (function () {
 			var ua = navigator.userAgent.toLowerCase();
@@ -4730,102 +4745,166 @@ $.extend(Magnatune, {
 		}
 	},
 	authenticated: false,
-	login: function () {
-		var onload, onerror, script, src, onreadystatechange;
-		var path = "/info/changed.txt?"+(new Date().getTime());
-		if (Magnatune.BrowserFeatures.AuthenticationDialog) {
-			// HTTP Auth hack for Firefox, Opera and IE, although IE never reports an error.
-			src = "http://stream.magnatune.com"+path;
-			onerror = function (event) {
-				if (event.originalEvent.target === script) {
-					Magnatune.authenticated = false;
-					Magnatune.Player.setMember(false);
-					$(window).off('error',onerror);
-					$(this).off('readystatechange', onreadystatechange).remove();
-				}
-			};
+	_loginPopup: function () {
+		// HTTP Auth hack for Chrome >= 19
+		var width  = 348;
+		var height = 170;
 
-			onload = function (event) {
-				Magnatune.authenticated = true;
-				try { Magnatune.Player.reload(); } catch (e) { console.error(e); }
-				$(window).off('error',onerror);
-				$(this).off('readystatechange', onreadystatechange).remove();
-			};
+		var screenWidth  = screen.availWidth||screen.width;
+		var screenHeight = screen.availHeight||screen.height;
+		var screenTop  = screen.availTop||0;
+		var screenLeft = screen.availLeft||0;
+
+		var top  = screenTop  + Math.round((screenHeight - height) * 0.5);
+		var left = screenLeft + Math.round((screenWidth  - width)  * 0.5);
+
+		var url = "http://stream.magnatune.com/redir?url="+encodeURIComponent(absurl("login.html"));
+		var target = "magnatune-login";
+		var options = "top="+top+",left="+left+",width="+width+",height="+height+
+			",resizeable=false,location=false,menubar=false,status=false"+
+			",dependant=true,scrollbars=false";
+	
+		var child = window.open(url, target, options);
+		var ended = false;
+		var loginTimer = null;
+
+		function endLogin () {
+			ended = true;
+			try { $(child).off("load", loadLogin); } catch (e) {}
+			if (loginTimer !== null) {
+				clearInterval(loginTimer);
+				loginTimer = null;
+			}
+			if (!child.closed) {
+				try { child.close(); } catch (e) {}
+			}
 		}
-		else {
-			// XXX: does not work anymore as of Chrome 19!
-			// HTTP Auth hack for Chrome/WebKit
-			// changed.txt just contains a decimal number so it is a valid JavaScript
-			// if onload fires this means the login was ok.
-			// onerror will be fired if the login was not ok because scripts may not
-			// be transferred with the HTTP status 401. And even if they could be
-			// transferred that way the returned document contains HTML which would
-			// raise a JavaScript SyntaxError and will fire the onerror event on window.
-			var username = $('#username').val();
-			var password = $('#password').val();
-
-			if (!username || !password) {
-				alert("Please enter your username and password.");
-				return;
+	
+		function loadLogin (event) {
+			if (ended) { return; }
+			var href, access;
+			try {
+				href = child.location ? child.location.href : null;
+				access = true;
+			} catch (e) {
+				access = false;
 			}
 
-			var spinner = $('#login-spinner');
-			var spin = function () {
-				spinner.show().rotate({
-					angle: 0,
-					animateTo: 360,
-					easing: function (x,t,b,c,d) {
-						return c*(t/d)+b;
-					},
-					callback: function () {
-						if (spinner.is(':visible')) {
-							spin();
-						}
-					}
-				});
-			};
-			spin();
-
-			src = "http://"+encodeURIComponent(username)+":"+
-				encodeURIComponent(password)+"@stream.magnatune.com"+path;
-			onerror = function (event) {
-				if (event.originalEvent.target === script) {
-					Magnatune.authenticated = false;
-					spinner.hide();
-					Magnatune.Player._showCredentials();
-					$(window).off('error',onerror);
-					$(this).off('readystatechange', onreadystatechange).remove();
-					alert("Wrong username or password or connection problem.");
+			if (!access) {
+				// on other domain -> user clicked cancel
+				// Chrome seem not to throw an exception on an illegal access
+				// but instead return null/undefined. But it does not hurt to
+				// handle this case anyway.
+				endLogin();
+				Magnatune.authenticated = false;
+				Magnatune.Player.setMember(false);
+			}
+			else if (child.closed || href !== "about:blank") {
+				endLogin();
+				if (child.MagnatuneLoginSuccess) {
+					Magnatune.authenticated = true;
+					try { Magnatune.Player.reload(); } catch (e) { console.error(e); }
 				}
-			};
+				else {
+					Magnatune.authenticated = false;
+					Magnatune.Player.setMember(false);
+				}
+			}
+		}
 
-			onload = function (event) {
-				Magnatune.authenticated = true;
-				try { Magnatune.Player.reload(); } catch (e) { console.error(e); }
+		loginTimer = setInterval(loadLogin, 1000);
+		$(child).on('load', loadLogin);
+		$(child).on('unload', setTimeout.bind(window, loadLogin, 20));
+	},
+	_loginUrl: function () {
+		// HTTP Auth hack for Chrome (< 19)/WebKit
+		var username = $('#username').val();
+		var password = $('#password').val();
+	
+		if (!username || !password) {
+			alert("Please enter your username and password.");
+			return;
+		}
+
+		var spinner = $('#login-spinner');
+		var spin = function () {
+			spinner.show().rotate({
+				angle: 0,
+				animateTo: 360,
+				easing: function (x,t,b,c,d) {
+					return c*(t/d)+b;
+				},
+				callback: function () {
+					if (spinner.is(':visible')) {
+						spin();
+					}
+				}
+			});
+		};
+		spin();
+
+		this._loginScript("http://"+encodeURIComponent(username)+":"+
+			encodeURIComponent(password)+"@stream.magnatune.com", {
+			success: function () {
 				Magnatune.Player.hideCredentials();
-				$(window).off('error',onerror);
-				$(this).off('readystatechange', onreadystatechange).remove();
 				if (typeof(localStorage) !== "undefined" && getBoolean('login.remember')) {
 					// login.remember is set by hideCredentials
 					localStorage.setItem('login.username',username);
 					localStorage.setItem('login.password',password);
 				}
-			};
-		}
-
-		$(window).on('error',onerror);
-
-		onreadystatechange = function (event) {
-			if (this.readyState === "loaded" || this.readyState === "complete") {
-				$(this).off('load',onload).off('error',onerror);
-				// cannot detect error in MSIE
-				onload.call(this,event);
+			},
+			error: function () {
+				spinner.hide();
+				Magnatune.Player._showCredentials();
+			}
+		});
+	},
+	_loginBrowser: function () {
+		// HTTP Auth hack for Firefox, Opera and IE, although IE never reports an error.
+		this._loginScript("http://stream.magnatune.com");
+	},
+	_loginScript: function (origin, options) {
+		// changed.txt just contains a decimal number so it is a valid JavaScript
+		// if onload fires this means the login was ok.
+		// onerror will be fired if the login was not ok because scripts may not
+		// be transferred with the HTTP status 401. And even if they could be
+		// transferred that way the returned document contains HTML which would
+		// raise a JavaScript SyntaxError and will fire the onerror event on window.
+		var onerror = function (event) {
+			if (event.originalEvent.target === script) {
+				Magnatune.authenticated = false;
+				Magnatune.Player.setMember(false);
+				$(window).off('error',onerror);
+				$(this).off('readystatechange', onreadystatechange).remove();
+				if (options && options.error) {
+					options.error.call(this,event);
+				}
 			}
 		};
 
-		script = tag('script',{
+		var onload = function (event) {
+			Magnatune.authenticated = true;
+			try { Magnatune.Player.reload(); } catch (e) { console.error(e); }
+			$(window).off('error',onerror);
+			$(this).off('readystatechange', onreadystatechange).remove();
+			if (options && options.success) {
+				options.success.call(this,event);
+			}
+		};
+	
+		var onreadystatechange = function (event) {
+			if (this.readyState === "loaded" || this.readyState === "complete") {
+				$(this).off('load',onload).off('error',onerror);
+				// cannot detect faild login in MSIE :(
+				onload.call(this,event);
+			}
+		};
+		
+		$(window).on('error',onerror);
+
+		var script = tag('script',{
 			type:'text/javascript',
-			src: src,
+			src: origin+"/info/changed.txt?"+(new Date().getTime()),
 			onload: onload,
 			onerror: onerror,
 			onabort: onerror
@@ -4834,8 +4913,15 @@ $.extend(Magnatune, {
 		if ($.browser.msie) {
 			$(script).on('readystatechange',onreadystatechange);
 		}
-
+	
 		document.body.appendChild(script);
+	},
+	login: function () {
+		switch (Magnatune.BrowserFeatures.Authentication) {
+			case "popup":   this._loginPopup();   break;
+			case "url":     this._loginUrl();     break;
+			case "browser": this._loginBrowser(); break;
+		}
 	},
 	Tour: {
 		Pages: {
@@ -5363,14 +5449,23 @@ $.extend(Magnatune, {
 			Magnatune.Player.setMember(false);
 		}
 
-		if (member && (Magnatune.BrowserFeatures.AuthenticationDialog || (remember && username && password))) {
-			Magnatune.Player.setMember(true);
+		if (member) {
 			// auto login
-			if (!Magnatune.BrowserFeatures.AuthenticationDialog) {
-				$('#username').val(username);
-				$('#password').val(password);
+			switch (Magnatune.BrowserFeatures.Authentication) {
+				case "url":
+					if (remember && username && password) {
+						Magnatune.Player.setMember(true);
+						$('#username').val(username);
+						$('#password').val(password);
+						Magnatune._loginUrl();
+					}
+					break;
+				case "browser":
+				case "popup":
+					Magnatune.Player.setMember(true);
+					Magnatune._loginBrowser();
+					break;
 			}
-			Magnatune.login();
 		}
 
 		try {
@@ -5649,7 +5744,7 @@ $(document).ready(function () {
 	$('#currently-playing').on('mouseenter', Magnatune.Player._titleAnim);
 	$('#currently-playing').on('mouseleave', Magnatune.Player._stopTitleAnim);
 	$('#member').on('change', function (event) {
-		if (Magnatune.BrowserFeatures.AuthenticationDialog) {
+		if (Magnatune.BrowserFeatures.Authentication !== "url") {
 			if ($(this).is(':checked')) {
 				// force authentication dialog now:
 				Magnatune.login();
@@ -5677,6 +5772,14 @@ $(document).ready(function () {
 			Magnatune.save();
 		}
 	});
+	// Opera does not support on(before)unload at all!
+	// So I save whenever something changes. This includes
+	// false positives but should not include false negatives.
+	if ($.browser.opera) {
+		$(window).on('change mouseup',function (event) {
+			Magnatune.save();
+		});
+	}
 	$(window).on('hashchange',function (event) {
 		Magnatune.showHash();
 	});
