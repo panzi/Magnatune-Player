@@ -4749,14 +4749,8 @@ $.extend(Magnatune, {
 		// HTTP Auth hack for Chrome >= 19
 		var width  = 348;
 		var height = 170;
-
-		var screenWidth  = screen.availWidth||screen.width;
-		var screenHeight = screen.availHeight||screen.height;
-		var screenTop  = screen.availTop||0;
-		var screenLeft = screen.availLeft||0;
-
-		var top  = screenTop  + Math.round((screenHeight - height) * 0.5);
-		var left = screenLeft + Math.round((screenWidth  - width)  * 0.5);
+		var top  = $.window.screenY() + Math.round(($.window.outerHeight() - height) * 0.5);
+		var left = $.window.screenX() + Math.round(($.window.outerWidth()  - width)  * 0.5);
 
 		var url = "http://stream.magnatune.com/redir?url="+encodeURIComponent(absurl("login.html"));
 		var target = "magnatune-login";
