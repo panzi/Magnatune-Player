@@ -4753,7 +4753,7 @@ $.extend(Magnatune, {
 		var left = $.window.screenX() + Math.round(($.window.outerWidth()  - width)  * 0.5);
 
 		var url = "http://stream.magnatune.com/redir?url="+encodeURIComponent(absurl("login.html"));
-		var target = "magnatune-login";
+		var target = "MagnatuneLogin";
 		var options = "top="+top+",left="+left+",width="+width+",height="+height+
 			",resizeable=false,location=false,menubar=false,status=false"+
 			",dependant=true,scrollbars=false";
