@@ -4871,8 +4871,11 @@ $.extend(Magnatune, {
 		// be transferred with the HTTP status 401. And even if they could be
 		// transferred that way the returned document contains HTML which would
 		// raise a JavaScript SyntaxError and will fire the onerror event on window.
+		var finished = false;
 		var onerror = function (event) {
+			if (finished) return;
 			if (event.originalEvent.target === script) {
+				finished = true;
 				Magnatune.authenticated = false;
 				Magnatune.Player.setMember(false);
 				$(window).off('error',onerror);
@@ -4884,6 +4887,8 @@ $.extend(Magnatune, {
 		};
 
 		var onload = function (event) {
+			if (finished) return;
+			finished = true;
 			Magnatune.authenticated = true;
 			try { Magnatune.Player.reload(); } catch (e) { console.error(e); }
 			$(window).off('error',onerror);
@@ -4894,10 +4899,10 @@ $.extend(Magnatune, {
 		};
 	
 		var onreadystatechange = function (event) {
+			if (finished) return;
 			if (this.readyState === "loaded" || this.readyState === "complete") {
-				$(this).off('load',onload).off('error',onerror);
-				// cannot detect faild login in MSIE :(
-				onload.call(this,event);
+				// delay so onerror can fire in IE (which old IE does not do)
+				setTimeout(onload.bind(this,event), 0);
 			}
 		};
 		
