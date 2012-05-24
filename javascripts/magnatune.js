@@ -4762,6 +4762,13 @@ $.extend(Magnatune, {
 		var ended = false;
 		var loginTimer = null;
 
+		try {
+			child.document.title = "Magnatune Login";
+		}
+		catch (e) {
+			console.error(e);
+		}
+
 		function endLogin () {
 			ended = true;
 			try { $(child).off("load", loadLogin); } catch (e) {}
